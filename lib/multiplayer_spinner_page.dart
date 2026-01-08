@@ -202,291 +202,346 @@ class _MultiplayerSpinnerPageState extends State<MultiplayerSpinnerPage>
     );
   }
 
+  void _showExitConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF3D3D5C),
+        title: const Text(
+          'Leave Game?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to leave the game?',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+            },
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              // Navigate back to config page using pushReplacement
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const MultiplayerConfigPage(),
+                ),
+              );
+            },
+            child: const Text('Leave', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF2D2D44),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6C5CE7),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                  ),
-                  const Text(
-                    'Multiplayer Game',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Game content
-            Expanded(
-              child: SingleChildScrollView(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          _showExitConfirmationDialog();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF2D2D44),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 20,
+                  horizontal: 16,
+                  vertical: 16,
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    // Users with their rounds - side by side
-                    ...List.generate(widget.users.length, (userIndex) {
-                      final user = widget.users[userIndex];
-                      final isCurrentUser =
-                          userIndex == _currentUserIndex &&
-                          (_isSpinning || _isHighlighting);
-                      final isCurrentUserSpinning =
-                          userIndex == _currentUserIndex && _isSpinning;
-
-                      return Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Rounds display vertically
-                              Column(
-                                children: List.generate(widget.rounds, (index) {
-                                  final roundNumber = index + 1;
-                                  final isDisabled = _disabledRounds[userIndex]
-                                      .contains(roundNumber);
-                                  final isBlinking =
-                                      isCurrentUserSpinning &&
-                                      _blinkingRound == roundNumber;
-                                  final isHighlighting =
-                                      _isHighlighting &&
-                                      userIndex == _currentUserIndex &&
-                                      _finalSelectedRound == roundNumber;
-                                  final isHighlightedAndDisabled =
-                                      isHighlighting && isDisabled;
-
-                                  return AnimatedBuilder(
-                                    animation: _highlightAnimation,
-                                    builder: (context, child) {
-                                      // Calculate highlight effect
-                                      final highlightScale = isHighlighting
-                                          ? 1.0 +
-                                                (_highlightAnimation.value *
-                                                    0.3)
-                                          : 1.0;
-                                      final highlightOpacity = isHighlighting
-                                          ? 0.5 +
-                                                (_highlightAnimation.value *
-                                                    0.5)
-                                          : 1.0;
-                                      // Red if disabled, green if not disabled
-                                      final highlightColor = isHighlighting
-                                          ? isHighlightedAndDisabled
-                                                ? Color.lerp(
-                                                    Colors.red,
-                                                    Colors.redAccent,
-                                                    _highlightAnimation.value,
-                                                  )!
-                                                : Color.lerp(
-                                                    Colors.green,
-                                                    Colors.lightGreen,
-                                                    _highlightAnimation.value,
-                                                  )!
-                                          : null;
-
-                                      return Transform.scale(
-                                        scale: highlightScale,
-                                        child: Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            vertical: 4,
-                                          ),
-                                          width: 50,
-                                          height: 50,
-                                          decoration: BoxDecoration(
-                                            color: isHighlighting
-                                                ? highlightColor
-                                                : isBlinking
-                                                ? Colors.yellow
-                                                : isDisabled
-                                                ? Colors.grey.withOpacity(0.3)
-                                                : const Color(0xFF3D3D5C),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            border: Border.all(
-                                              color: isHighlighting
-                                                  ? Colors.white
-                                                  : isBlinking
-                                                  ? Colors.orange
-                                                  : isDisabled
-                                                  ? Colors.grey
-                                                  : Colors.transparent,
-                                              width: isHighlighting ? 3 : 2,
-                                            ),
-                                            boxShadow: isHighlighting
-                                                ? [
-                                                    BoxShadow(
-                                                      color: highlightColor!
-                                                          .withOpacity(
-                                                            highlightOpacity,
-                                                          ),
-                                                      blurRadius: 15,
-                                                      spreadRadius: 2,
-                                                    ),
-                                                  ]
-                                                : null,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              '$roundNumber',
-                                              style: TextStyle(
-                                                color: isHighlighting
-                                                    ? Colors.white
-                                                    : isDisabled
-                                                    ? Colors.grey
-                                                    : Colors.white,
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                decoration:
-                                                    isDisabled &&
-                                                        !isHighlighting
-                                                    ? TextDecoration.lineThrough
-                                                    : null,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                }),
-                              ),
-                              const SizedBox(height: 12),
-                              // User name
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isCurrentUser
-                                      ? const Color(0xFF6C5CE7)
-                                      : const Color(0xFF3D3D5C),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isCurrentUser
-                                        ? Colors.white
-                                        : Colors.transparent,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (isCurrentUser)
-                                      const Padding(
-                                        padding: EdgeInsets.only(right: 6),
-                                        child: Icon(
-                                          Icons.play_arrow,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    Flexible(
-                                      child: Text(
-                                        user,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    if (_disabledRounds[userIndex].length ==
-                                        widget.rounds)
-                                      const Padding(
-                                        padding: EdgeInsets.only(left: 6),
-                                        child: Icon(
-                                          Icons.emoji_events,
-                                          color: Colors.amber,
-                                          size: 20,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6C5CE7),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      );
-                    }),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => _showExitConfirmationDialog(),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Multiplayer Game',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-            // Start button at bottom
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: ElevatedButton(
-                onPressed: _isSpinning || _winner != null || _isHighlighting
-                    ? null
-                    : _startSpinning,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _isSpinning || _winner != null || _isHighlighting
-                      ? Colors.grey
-                      : const Color(0xFF6C5CE7),
-                  foregroundColor: Colors.white,
+              // Game content
+              Expanded(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 18,
+                    horizontal: 20,
+                    vertical: 20,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                ),
-                child: Text(
-                  _isSpinning
-                      ? 'Spinning...'
-                      : _winner != null
-                      ? 'Game Over'
-                      : 'Start',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Users with their rounds - side by side
+                      ...List.generate(widget.users.length, (userIndex) {
+                        final user = widget.users[userIndex];
+                        final isCurrentUser =
+                            userIndex == _currentUserIndex &&
+                            (_isSpinning || _isHighlighting);
+                        final isCurrentUserSpinning =
+                            userIndex == _currentUserIndex && _isSpinning;
+
+                        return Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Rounds display vertically
+                                Column(
+                                  children: List.generate(widget.rounds, (
+                                    index,
+                                  ) {
+                                    final roundNumber = index + 1;
+                                    final isDisabled =
+                                        _disabledRounds[userIndex].contains(
+                                          roundNumber,
+                                        );
+                                    final isBlinking =
+                                        isCurrentUserSpinning &&
+                                        _blinkingRound == roundNumber;
+                                    final isHighlighting =
+                                        _isHighlighting &&
+                                        userIndex == _currentUserIndex &&
+                                        _finalSelectedRound == roundNumber;
+                                    final isHighlightedAndDisabled =
+                                        isHighlighting && isDisabled;
+
+                                    return AnimatedBuilder(
+                                      animation: _highlightAnimation,
+                                      builder: (context, child) {
+                                        // Calculate highlight effect
+                                        final highlightScale = isHighlighting
+                                            ? 1.0 +
+                                                  (_highlightAnimation.value *
+                                                      0.3)
+                                            : 1.0;
+                                        final highlightOpacity = isHighlighting
+                                            ? 0.5 +
+                                                  (_highlightAnimation.value *
+                                                      0.5)
+                                            : 1.0;
+                                        // Red if disabled, green if not disabled
+                                        final highlightColor = isHighlighting
+                                            ? isHighlightedAndDisabled
+                                                  ? Color.lerp(
+                                                      Colors.red,
+                                                      Colors.redAccent,
+                                                      _highlightAnimation.value,
+                                                    )!
+                                                  : Color.lerp(
+                                                      Colors.green,
+                                                      Colors.lightGreen,
+                                                      _highlightAnimation.value,
+                                                    )!
+                                            : null;
+
+                                        return Transform.scale(
+                                          scale: highlightScale,
+                                          child: Container(
+                                            margin: const EdgeInsets.symmetric(
+                                              vertical: 4,
+                                            ),
+                                            width: 50,
+                                            height: 50,
+                                            decoration: BoxDecoration(
+                                              color: isHighlighting
+                                                  ? highlightColor
+                                                  : isBlinking
+                                                  ? Colors.yellow
+                                                  : isDisabled
+                                                  ? Colors.grey.withOpacity(0.3)
+                                                  : const Color(0xFF3D3D5C),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: isHighlighting
+                                                    ? Colors.white
+                                                    : isBlinking
+                                                    ? Colors.orange
+                                                    : isDisabled
+                                                    ? Colors.grey
+                                                    : Colors.transparent,
+                                                width: isHighlighting ? 3 : 2,
+                                              ),
+                                              boxShadow: isHighlighting
+                                                  ? [
+                                                      BoxShadow(
+                                                        color: highlightColor!
+                                                            .withOpacity(
+                                                              highlightOpacity,
+                                                            ),
+                                                        blurRadius: 15,
+                                                        spreadRadius: 2,
+                                                      ),
+                                                    ]
+                                                  : null,
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                '$roundNumber',
+                                                style: TextStyle(
+                                                  color: isHighlighting
+                                                      ? Colors.white
+                                                      : isDisabled
+                                                      ? Colors.grey
+                                                      : Colors.white,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  decoration:
+                                                      isDisabled &&
+                                                          !isHighlighting
+                                                      ? TextDecoration
+                                                            .lineThrough
+                                                      : null,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }),
+                                ),
+                                const SizedBox(height: 12),
+                                // User name
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isCurrentUser
+                                        ? const Color(0xFF6C5CE7)
+                                        : const Color(0xFF3D3D5C),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isCurrentUser
+                                          ? Colors.white
+                                          : Colors.transparent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (isCurrentUser)
+                                        const Padding(
+                                          padding: EdgeInsets.only(right: 6),
+                                          child: Icon(
+                                            Icons.play_arrow,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      Flexible(
+                                        child: Text(
+                                          user,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (_disabledRounds[userIndex].length ==
+                                          widget.rounds)
+                                        const Padding(
+                                          padding: EdgeInsets.only(left: 6),
+                                          child: Icon(
+                                            Icons.emoji_events,
+                                            color: Colors.amber,
+                                            size: 20,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              // Start button at bottom
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: ElevatedButton(
+                  onPressed: _isSpinning || _winner != null || _isHighlighting
+                      ? null
+                      : _startSpinning,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        _isSpinning || _winner != null || _isHighlighting
+                        ? Colors.grey
+                        : const Color(0xFF6C5CE7),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 48,
+                      vertical: 18,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: Text(
+                    _isSpinning
+                        ? 'Spinning...'
+                        : _winner != null
+                        ? 'Game Over'
+                        : 'Start',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
