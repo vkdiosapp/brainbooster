@@ -256,9 +256,10 @@ class _MultiplayerSpinnerPageState extends State<MultiplayerSpinnerPage>
                   horizontal: 20,
                   vertical: 20,
                 ),
-                child: Column(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Users with their rounds
+                    // Users with their rounds - side by side
                     ...List.generate(widget.users.length, (userIndex) {
                       final user = widget.users[userIndex];
                       final isCurrentUser =
@@ -267,19 +268,14 @@ class _MultiplayerSpinnerPageState extends State<MultiplayerSpinnerPage>
                       final isCurrentUserSpinning =
                           userIndex == _currentUserIndex && _isSpinning;
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Rounds display above user name
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                      return Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Rounds display vertically
+                              Column(
                                 children: List.generate(widget.rounds, (index) {
                                   final roundNumber = index + 1;
                                   final isDisabled = _disabledRounds[userIndex]
@@ -327,10 +323,10 @@ class _MultiplayerSpinnerPageState extends State<MultiplayerSpinnerPage>
                                         scale: highlightScale,
                                         child: Container(
                                           margin: const EdgeInsets.symmetric(
-                                            horizontal: 4,
+                                            vertical: 4,
                                           ),
-                                          width: 40,
-                                          height: 40,
+                                          width: 50,
+                                          height: 50,
                                           decoration: BoxDecoration(
                                             color: isHighlighting
                                                 ? highlightColor
@@ -390,92 +386,103 @@ class _MultiplayerSpinnerPageState extends State<MultiplayerSpinnerPage>
                                   );
                                 }),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            // User name
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isCurrentUser
-                                    ? const Color(0xFF6C5CE7)
-                                    : const Color(0xFF3D3D5C),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
+                              const SizedBox(height: 12),
+                              // User name
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
                                   color: isCurrentUser
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  width: 2,
+                                      ? const Color(0xFF6C5CE7)
+                                      : const Color(0xFF3D3D5C),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isCurrentUser
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isCurrentUser)
+                                      const Padding(
+                                        padding: EdgeInsets.only(right: 6),
+                                        child: Icon(
+                                          Icons.play_arrow,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    Flexible(
+                                      child: Text(
+                                        user,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (_disabledRounds[userIndex].length ==
+                                        widget.rounds)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 6),
+                                        child: Icon(
+                                          Icons.emoji_events,
+                                          color: Colors.amber,
+                                          size: 20,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  if (isCurrentUser)
-                                    const Padding(
-                                      padding: EdgeInsets.only(right: 8),
-                                      child: Icon(
-                                        Icons.play_arrow,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  Text(
-                                    user,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  if (_disabledRounds[userIndex].length ==
-                                      widget.rounds)
-                                    const Padding(
-                                      padding: EdgeInsets.only(left: 8),
-                                      child: Icon(
-                                        Icons.emoji_events,
-                                        color: Colors.amber,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }),
-                    const SizedBox(height: 32),
-                    // Start button
-                    ElevatedButton(
-                      onPressed:
-                          _isSpinning || _winner != null || _isHighlighting
-                          ? null
-                          : _startSpinning,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            _isSpinning || _winner != null || _isHighlighting
-                            ? Colors.grey
-                            : const Color(0xFF6C5CE7),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 48,
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 4,
-                      ),
-                      child: Text(
-                        _isSpinning
-                            ? 'Spinning...'
-                            : _winner != null
-                            ? 'Game Over'
-                            : 'Start',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                   ],
+                ),
+              ),
+            ),
+            // Start button at bottom
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: ElevatedButton(
+                onPressed: _isSpinning || _winner != null || _isHighlighting
+                    ? null
+                    : _startSpinning,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      _isSpinning || _winner != null || _isHighlighting
+                      ? Colors.grey
+                      : const Color(0xFF6C5CE7),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 48,
+                    vertical: 18,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                ),
+                child: Text(
+                  _isSpinning
+                      ? 'Spinning...'
+                      : _winner != null
+                      ? 'Game Over'
+                      : 'Start',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
