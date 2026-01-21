@@ -3,5 +3,19 @@
   "languages": "Языки",
   "continueButton": "Продолжить",
   "save": "Сохранить",
-  "changeLanguage": "Изменить Язык"
+  "changeLanguage": "Изменить Язык",
+  "welcomeToBrainBooster": "Добро пожаловать в Brain Booster",
+  "pleaseFillDetails": "Пожалуйста, заполните свои данные для продолжения",
+  "firstName": "Имя",
+  "enterFirstName": "Введите ваше имя",
+  "lastName": "Фамилия",
+  "enterLastName": "Введите вашу фамилию",
+  "birthdate": "Дата рождения",
+  "selectBirthdate": "Выберите дату рождения",
+  "iAccept": "Я принимаю",
+  "termsAndConditions": "Условия использования",
+  "pleaseAcceptTerms": "Пожалуйста, примите Условия использования",
+  "pleaseEnterFirstName": "Пожалуйста, введите ваше имя",
+  "pleaseEnterLastName": "Пожалуйста, введите вашу фамилию",
+  "pleaseSelectBirthdate": "Пожалуйста, выберите дату рождения"
 }

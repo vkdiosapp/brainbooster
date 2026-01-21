@@ -3,5 +3,19 @@
   "languages": "Tale",
   "continueButton": "Gaan voort",
   "save": "Stoor",
-  "changeLanguage": "Verander Taal"
+  "changeLanguage": "Verander Taal",
+  "welcomeToBrainBooster": "Welkom by Brain Booster",
+  "pleaseFillDetails": "Vul asseblief jou besonderhede in om voort te gaan",
+  "firstName": "Voornaam",
+  "enterFirstName": "Voer jou voornaam in",
+  "lastName": "Van",
+  "enterLastName": "Voer jou van in",
+  "birthdate": "Geboortedatum",
+  "selectBirthdate": "Kies jou geboortedatum",
+  "iAccept": "Ek aanvaar die",
+  "termsAndConditions": "Bepalings en Voorwaardes",
+  "pleaseAcceptTerms": "Aanvaar asseblief die Bepalings en Voorwaardes",
+  "pleaseEnterFirstName": "Voer asseblief jou voornaam in",
+  "pleaseEnterLastName": "Voer asseblief jou van in",
+  "pleaseSelectBirthdate": "Kies asseblief jou geboortedatum"
 }

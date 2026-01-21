@@ -3,5 +3,19 @@
   "languages": "Diller",
   "continueButton": "Devam Et",
   "save": "Kaydet",
-  "changeLanguage": "Dili Değiştir"
+  "changeLanguage": "Dili Değiştir",
+  "welcomeToBrainBooster": "Brain Booster'a Hoş Geldiniz",
+  "pleaseFillDetails": "Lütfen devam etmek için bilgilerinizi doldurun",
+  "firstName": "Ad",
+  "enterFirstName": "Adınızı girin",
+  "lastName": "Soyad",
+  "enterLastName": "Soyadınızı girin",
+  "birthdate": "Doğum Tarihi",
+  "selectBirthdate": "Doğum tarihinizi seçin",
+  "iAccept": "Kabul ediyorum",
+  "termsAndConditions": "Şartlar ve Koşullar",
+  "pleaseAcceptTerms": "Lütfen Şartlar ve Koşulları kabul edin",
+  "pleaseEnterFirstName": "Lütfen adınızı girin",
+  "pleaseEnterLastName": "Lütfen soyadınızı girin",
+  "pleaseSelectBirthdate": "Lütfen doğum tarihinizi seçin"
 }

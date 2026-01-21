@@ -3,5 +3,19 @@
   "languages": "언어",
   "continueButton": "계속",
   "save": "저장",
-  "changeLanguage": "언어 변경"
+  "changeLanguage": "언어 변경",
+  "welcomeToBrainBooster": "Brain Booster에 오신 것을 환영합니다",
+  "pleaseFillDetails": "계속하려면 세부 정보를 입력하세요",
+  "firstName": "이름",
+  "enterFirstName": "이름을 입력하세요",
+  "lastName": "성",
+  "enterLastName": "성을 입력하세요",
+  "birthdate": "생년월일",
+  "selectBirthdate": "생년월일을 선택하세요",
+  "iAccept": "동의합니다",
+  "termsAndConditions": "이용약관",
+  "pleaseAcceptTerms": "이용약관에 동의해주세요",
+  "pleaseEnterFirstName": "이름을 입력하세요",
+  "pleaseEnterLastName": "성을 입력하세요",
+  "pleaseSelectBirthdate": "생년월일을 선택하세요"
 }

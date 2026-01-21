@@ -3,5 +3,19 @@
   "languages": "Języki",
   "continueButton": "Kontynuuj",
   "save": "Zapisz",
-  "changeLanguage": "Zmień Język"
+  "changeLanguage": "Zmień Język",
+  "welcomeToBrainBooster": "Witamy w Brain Booster",
+  "pleaseFillDetails": "Proszę wypełnić swoje dane, aby kontynuować",
+  "firstName": "Imię",
+  "enterFirstName": "Wprowadź swoje imię",
+  "lastName": "Nazwisko",
+  "enterLastName": "Wprowadź swoje nazwisko",
+  "birthdate": "Data Urodzenia",
+  "selectBirthdate": "Wybierz datę urodzenia",
+  "iAccept": "Akceptuję",
+  "termsAndConditions": "Warunki i Zastrzeżenia",
+  "pleaseAcceptTerms": "Proszę zaakceptować Warunki i Zastrzeżenia",
+  "pleaseEnterFirstName": "Proszę wprowadzić swoje imię",
+  "pleaseEnterLastName": "Proszę wprowadzić swoje nazwisko",
+  "pleaseSelectBirthdate": "Proszę wybrać datę urodzenia"
 }

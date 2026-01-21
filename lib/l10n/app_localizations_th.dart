@@ -19,4 +19,46 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get changeLanguage => 'เปลี่ยนภาษา';
+
+  @override
+  String get welcomeToBrainBooster => 'ยินดีต้อนรับสู่ Brain Booster';
+
+  @override
+  String get pleaseFillDetails => 'กรุณากรอกข้อมูลของคุณเพื่อดำเนินการต่อ';
+
+  @override
+  String get firstName => 'ชื่อ';
+
+  @override
+  String get enterFirstName => 'กรอกชื่อของคุณ';
+
+  @override
+  String get lastName => 'นามสกุล';
+
+  @override
+  String get enterLastName => 'กรอกนามสกุลของคุณ';
+
+  @override
+  String get birthdate => 'วันเกิด';
+
+  @override
+  String get selectBirthdate => 'เลือกวันเกิดของคุณ';
+
+  @override
+  String get iAccept => 'ฉันยอมรับ';
+
+  @override
+  String get termsAndConditions => 'ข้อกำหนดและเงื่อนไข';
+
+  @override
+  String get pleaseAcceptTerms => 'กรุณายอมรับข้อกำหนดและเงื่อนไข';
+
+  @override
+  String get pleaseEnterFirstName => 'กรุณากรอกชื่อของคุณ';
+
+  @override
+  String get pleaseEnterLastName => 'กรุณากรอกนามสกุลของคุณ';
+
+  @override
+  String get pleaseSelectBirthdate => 'กรุณาเลือกวันเกิดของคุณ';
 }

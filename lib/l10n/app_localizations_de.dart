@@ -19,4 +19,48 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get changeLanguage => 'Sprache ändern';
+
+  @override
+  String get welcomeToBrainBooster => 'Willkommen bei Brain Booster';
+
+  @override
+  String get pleaseFillDetails =>
+      'Bitte füllen Sie Ihre Daten aus, um fortzufahren';
+
+  @override
+  String get firstName => 'Vorname';
+
+  @override
+  String get enterFirstName => 'Geben Sie Ihren Vornamen ein';
+
+  @override
+  String get lastName => 'Nachname';
+
+  @override
+  String get enterLastName => 'Geben Sie Ihren Nachnamen ein';
+
+  @override
+  String get birthdate => 'Geburtsdatum';
+
+  @override
+  String get selectBirthdate => 'Wählen Sie Ihr Geburtsdatum';
+
+  @override
+  String get iAccept => 'Ich akzeptiere die';
+
+  @override
+  String get termsAndConditions => 'Allgemeinen Geschäftsbedingungen';
+
+  @override
+  String get pleaseAcceptTerms =>
+      'Bitte akzeptieren Sie die Allgemeinen Geschäftsbedingungen';
+
+  @override
+  String get pleaseEnterFirstName => 'Bitte geben Sie Ihren Vornamen ein';
+
+  @override
+  String get pleaseEnterLastName => 'Bitte geben Sie Ihren Nachnamen ein';
+
+  @override
+  String get pleaseSelectBirthdate => 'Bitte wählen Sie Ihr Geburtsdatum';
 }

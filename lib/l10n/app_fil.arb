@@ -3,5 +3,19 @@
   "languages": "Mga Wika",
   "continueButton": "Magpatuloy",
   "save": "I-save",
-  "changeLanguage": "Palitan ang Wika"
+  "changeLanguage": "Palitan ang Wika",
+  "welcomeToBrainBooster": "Maligayang pagdating sa Brain Booster",
+  "pleaseFillDetails": "Mangyaring punan ang iyong mga detalye upang magpatuloy",
+  "firstName": "Pangalan",
+  "enterFirstName": "Ilagay ang iyong pangalan",
+  "lastName": "Apelyido",
+  "enterLastName": "Ilagay ang iyong apelyido",
+  "birthdate": "Petsa ng Kapanganakan",
+  "selectBirthdate": "Piliin ang iyong petsa ng kapanganakan",
+  "iAccept": "Tinatanggap ko ang",
+  "termsAndConditions": "Mga Tuntunin at Kundisyon",
+  "pleaseAcceptTerms": "Mangyaring tanggapin ang Mga Tuntunin at Kundisyon",
+  "pleaseEnterFirstName": "Mangyaring ilagay ang iyong pangalan",
+  "pleaseEnterLastName": "Mangyaring ilagay ang iyong apelyido",
+  "pleaseSelectBirthdate": "Mangyaring piliin ang iyong petsa ng kapanganakan"
 }

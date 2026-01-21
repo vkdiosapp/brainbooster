@@ -3,5 +3,19 @@
   "languages": "言語",
   "continueButton": "続ける",
   "save": "保存",
-  "changeLanguage": "言語を変更"
+  "changeLanguage": "言語を変更",
+  "welcomeToBrainBooster": "Brain Boosterへようこそ",
+  "pleaseFillDetails": "続行するには詳細を入力してください",
+  "firstName": "名",
+  "enterFirstName": "名を入力してください",
+  "lastName": "姓",
+  "enterLastName": "姓を入力してください",
+  "birthdate": "生年月日",
+  "selectBirthdate": "生年月日を選択してください",
+  "iAccept": "同意します",
+  "termsAndConditions": "利用規約",
+  "pleaseAcceptTerms": "利用規約に同意してください",
+  "pleaseEnterFirstName": "名を入力してください",
+  "pleaseEnterLastName": "姓を入力してください",
+  "pleaseSelectBirthdate": "生年月日を選択してください"
 }

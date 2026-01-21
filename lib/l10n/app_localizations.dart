@@ -155,6 +155,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change Language'**
   String get changeLanguage;
+
+  /// No description provided for @welcomeToBrainBooster.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Brain Booster'**
+  String get welcomeToBrainBooster;
+
+  /// No description provided for @pleaseFillDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in your details to continue'**
+  String get pleaseFillDetails;
+
+  /// No description provided for @firstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get firstName;
+
+  /// No description provided for @enterFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your first name'**
+  String get enterFirstName;
+
+  /// No description provided for @lastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get lastName;
+
+  /// No description provided for @enterLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your last name'**
+  String get enterLastName;
+
+  /// No description provided for @birthdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthdate'**
+  String get birthdate;
+
+  /// No description provided for @selectBirthdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your birthdate'**
+  String get selectBirthdate;
+
+  /// No description provided for @iAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I Accept'**
+  String get iAccept;
+
+  /// No description provided for @termsAndConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and Conditions'**
+  String get termsAndConditions;
+
+  /// No description provided for @pleaseAcceptTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Please accept Terms and Conditions'**
+  String get pleaseAcceptTerms;
+
+  /// No description provided for @pleaseEnterFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your first name'**
+  String get pleaseEnterFirstName;
+
+  /// No description provided for @pleaseEnterLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your last name'**
+  String get pleaseEnterLastName;
+
+  /// No description provided for @pleaseSelectBirthdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select your birthdate'**
+  String get pleaseSelectBirthdate;
 }
 
 class _AppLocalizationsDelegate

@@ -21,9 +21,6 @@ class _PortraitAspectWrapperState extends State<PortraitAspectWrapper> {
   // Store the device's portrait dimensions (width and height when in portrait)
   double? _portraitWidth;
   double? _portraitHeight;
-  
-  // Default portrait aspect ratio (9:16) to use when portrait dimensions aren't available yet
-  static const double _defaultPortraitAspectRatio = 9 / 16;
 
   void _updatePortraitDimensions(double width, double height) {
     // Store portrait dimensions when device is in portrait mode
@@ -35,28 +32,25 @@ class _PortraitAspectWrapperState extends State<PortraitAspectWrapper> {
   }
   
   double _getPortraitAspectRatio(double screenWidth, double screenHeight) {
-    // If we have stored portrait dimensions, use them
+    // If we have stored portrait dimensions, use them (most accurate)
     if (_portraitWidth != null && _portraitHeight != null) {
       return _portraitWidth! / _portraitHeight!;
     }
     
-    // If app starts in landscape, estimate portrait dimensions
-    // In landscape: width > height, so portrait would be height x width
-    // But we need to estimate what the portrait width would be
-    // Use the smaller dimension as portrait width estimate
+    // If app starts in landscape, calculate actual portrait dimensions from current screen
+    // In landscape: width > height
+    // Portrait dimensions are: width = current height, height = current width
+    // So portrait aspect ratio = (current height) / (current width)
     if (screenWidth > screenHeight) {
-      // We're in landscape, estimate portrait aspect ratio
-      // Assume portrait width is the current height, portrait height is current width
-      // This gives us an estimate: height/width
-      final estimatedPortraitRatio = screenHeight / screenWidth;
-      // Use this or fallback to default
-      return estimatedPortraitRatio > 0.4 && estimatedPortraitRatio < 0.7 
-          ? estimatedPortraitRatio 
-          : _defaultPortraitAspectRatio;
+      // We're in landscape, calculate actual portrait aspect ratio
+      // Portrait width = screenHeight (smaller dimension)
+      // Portrait height = screenWidth (larger dimension)
+      // Aspect ratio = width/height = screenHeight/screenWidth
+      return screenHeight / screenWidth;
     }
     
-    // Fallback to default
-    return _defaultPortraitAspectRatio;
+    // If we're in portrait mode, use current dimensions directly
+    return screenWidth / screenHeight;
   }
 
   @override

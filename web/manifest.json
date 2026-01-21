@@ -1,6 +1,6 @@
 {
-    "name": "first1to10",
-    "short_name": "first1to10",
+    "name": "Brain Booster",
+    "short_name": "Brain Booster",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

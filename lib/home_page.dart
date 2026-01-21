@@ -48,12 +48,12 @@ class _HomePageState extends State<HomePage> {
   void _startBannerAutoScroll() {
     // Cancel existing timer if any
     _bannerTimer?.cancel();
-    
+
     // Auto-scroll banner every 5 seconds
     _bannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (mounted && 
-          _randomExercises.isNotEmpty && 
-          !_isSearching && 
+      if (mounted &&
+          _randomExercises.isNotEmpty &&
+          !_isSearching &&
           !_showSearchField &&
           _bannerController.hasClients) {
         final nextIndex = (_currentBannerIndex + 1) % _randomExercises.length;
@@ -79,9 +79,11 @@ class _HomePageState extends State<HomePage> {
         _isSearching = false;
       } else {
         _filteredExercises = _allExercises
-            .where((exercise) =>
-                exercise.name.toLowerCase().contains(query) ||
-                exercise.desc.toLowerCase().contains(query))
+            .where(
+              (exercise) =>
+                  exercise.name.toLowerCase().contains(query) ||
+                  exercise.desc.toLowerCase().contains(query),
+            )
             .toList();
         _isSearching = true;
       }
@@ -133,7 +135,9 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(_showSearchField ? Icons.close : Icons.search),
+                        icon: Icon(
+                          _showSearchField ? Icons.close : Icons.search,
+                        ),
                         onPressed: () {
                           setState(() {
                             _showSearchField = !_showSearchField;
@@ -147,9 +151,14 @@ class _HomePageState extends State<HomePage> {
                               // Stop auto-scroll when search is opened
                               _stopBannerAutoScroll();
                               // Focus on search field when shown
-                              Future.delayed(const Duration(milliseconds: 100), () {
-                                FocusScope.of(context).requestFocus(FocusNode());
-                              });
+                              Future.delayed(
+                                const Duration(milliseconds: 100),
+                                () {
+                                  FocusScope.of(
+                                    context,
+                                  ).requestFocus(FocusNode());
+                                },
+                              );
                             }
                           });
                         },
@@ -164,7 +173,8 @@ class _HomePageState extends State<HomePage> {
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => const LanguageSelectionPage(),
+                              builder: (context) =>
+                                  const LanguageSelectionPage(),
                             ),
                           );
                         },
@@ -187,7 +197,10 @@ class _HomePageState extends State<HomePage> {
                   autofocus: true,
                   decoration: InputDecoration(
                     hintText: 'Search exercises...',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF94A3B8),
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -326,12 +339,7 @@ class _HomePageState extends State<HomePage> {
         height: 80,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.8),
-          border: Border(
-            top: BorderSide(
-              color: Colors.grey[200]!,
-              width: 1,
-            ),
-          ),
+          border: Border(top: BorderSide(color: Colors.grey[200]!, width: 1)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -444,10 +452,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 8),
                   Text(
                     exercise.desc,
-                    style: TextStyle(
-                      color: Colors.grey[300],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey[300], fontSize: 14),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -475,9 +480,7 @@ class _HomePageState extends State<HomePage> {
                             SizedBox(width: 8),
                             Text(
                               'Start Now',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.w700),
                             ),
                           ],
                         ),
@@ -510,10 +513,7 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.white.withOpacity(0.2),
                               ),
                             ),
-                            child: const Icon(
-                              Icons.star,
-                              color: Colors.white,
-                            ),
+                            child: const Icon(Icons.star, color: Colors.white),
                           ),
                         ],
                       ),
@@ -566,19 +566,12 @@ class _HomePageState extends State<HomePage> {
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 32,
-              ),
+              child: Icon(icon, color: color, size: 32),
             ),
             const SizedBox(height: 8),
             Text(
               category.name,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -593,10 +586,7 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
       ),
       child: Row(
         children: [
@@ -661,10 +651,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 4),
                 Text(
                   exercise.desc,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -684,10 +671,7 @@ class _HomePageState extends State<HomePage> {
                     color: const Color(0xFFF1F5F9),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.lock,
-                    color: Color(0xFF94A3B8),
-                  ),
+                  child: const Icon(Icons.lock, color: Color(0xFF94A3B8)),
                 )
               : Container(
                   width: 40,
@@ -696,10 +680,7 @@ class _HomePageState extends State<HomePage> {
                     color: const Color(0xFF6366F1).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    color: Color(0xFF6366F1),
-                  ),
+                  child: const Icon(Icons.play_arrow, color: Color(0xFF6366F1)),
                 ),
         ],
       ),

@@ -3,5 +3,19 @@
   "languages": "Bahasa",
   "continueButton": "Lanjutkan",
   "save": "Simpan",
-  "changeLanguage": "Ubah Bahasa"
+  "changeLanguage": "Ubah Bahasa",
+  "welcomeToBrainBooster": "Selamat datang di Brain Booster",
+  "pleaseFillDetails": "Silakan isi detail Anda untuk melanjutkan",
+  "firstName": "Nama Depan",
+  "enterFirstName": "Masukkan nama depan Anda",
+  "lastName": "Nama Belakang",
+  "enterLastName": "Masukkan nama belakang Anda",
+  "birthdate": "Tanggal Lahir",
+  "selectBirthdate": "Pilih tanggal lahir Anda",
+  "iAccept": "Saya menerima",
+  "termsAndConditions": "Syarat dan Ketentuan",
+  "pleaseAcceptTerms": "Silakan terima Syarat dan Ketentuan",
+  "pleaseEnterFirstName": "Silakan masukkan nama depan Anda",
+  "pleaseEnterLastName": "Silakan masukkan nama belakang Anda",
+  "pleaseSelectBirthdate": "Silakan pilih tanggal lahir Anda"
 }
