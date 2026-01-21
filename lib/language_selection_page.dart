@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'language_settings.dart';
 import 'home_page.dart';
 import 'app_localizations_helper.dart';
+import 'pages/login_page.dart';
 
 class LanguageSelectionPage extends StatefulWidget {
   const LanguageSelectionPage({super.key});
@@ -56,12 +57,12 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
 
     await LanguageSettings.setLanguage(_selectedLanguageCode!);
 
-    // If this is first launch, mark it complete and navigate to home
+    // If this is first launch, mark it complete and navigate to login page
     if (LanguageSettings.isFirstLaunch) {
       await LanguageSettings.markFirstLaunchComplete();
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       }
     } else {

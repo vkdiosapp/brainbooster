@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/login_service.dart';
 import '../home_page.dart';
+import '../language_selection_page.dart';
+import '../language_settings.dart';
 import 'terms_webview_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -77,6 +79,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentLanguageCode = LanguageSettings.selectedLanguageCode;
+    final currentLanguageName = LanguageSettings.getLanguageName(currentLanguageCode);
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -236,7 +241,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 32),
                 // Terms and Conditions
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Checkbox(
                       value: _acceptTerms,
@@ -261,27 +266,24 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           );
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                              children: [
-                                const TextSpan(text: 'I Accept '),
-                                TextSpan(
-                                  text: 'Terms and Conditions',
-                                  style: const TextStyle(
-                                    color: Color(0xFF6366F1),
-                                    fontWeight: FontWeight.w700,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ],
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
                             ),
+                            children: [
+                              const TextSpan(text: 'I Accept '),
+                              TextSpan(
+                                text: 'Terms and Conditions',
+                                style: const TextStyle(
+                                  color: Color(0xFF6366F1),
+                                  fontWeight: FontWeight.w700,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -289,47 +291,60 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
                 const SizedBox(height: 40),
-                // Save Button
+                // Login Button
                 Container(
                   width: double.infinity,
                   height: 64,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF818CF8), Color(0xFF6366F1)],
-                    ),
+                    gradient: _acceptTerms
+                        ? const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFF818CF8), Color(0xFF6366F1)],
+                          )
+                        : LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.grey[400]!,
+                              Colors.grey[500]!,
+                            ],
+                          ),
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF6366F1).withOpacity(0.4),
-                        blurRadius: 25,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+                    boxShadow: _acceptTerms
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF6366F1).withOpacity(0.4),
+                              blurRadius: 25,
+                              offset: const Offset(0, 10),
+                            ),
+                          ]
+                        : [],
                   ),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: _saveLogin,
+                      onTap: _acceptTerms ? _saveLogin : null,
                       borderRadius: BorderRadius.circular(24),
                       child: Container(
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.center,
-                            colors: [
-                              Colors.white.withOpacity(0.2),
-                              Colors.transparent,
-                            ],
-                          ),
+                          gradient: _acceptTerms
+                              ? LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.center,
+                                  colors: [
+                                    Colors.white.withOpacity(0.2),
+                                    Colors.transparent,
+                                  ],
+                                )
+                              : null,
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'Save',
+                            'Login',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: _acceptTerms ? Colors.white : Colors.grey[300],
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                             ),
@@ -339,6 +354,64 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                // Language Selection Button
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const LanguageSelectionPage(),
+                        ),
+                      ).then((_) {
+                        // Rebuild the page when language changes
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.language,
+                            color: Color(0xFF6366F1),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            currentLanguageName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
               ],
             ),
           ),

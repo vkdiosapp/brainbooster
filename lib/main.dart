@@ -50,9 +50,15 @@ class _MyAppState extends State<MyApp> {
     // Get current locale from notifier
     final currentLocale = LanguageSettings.localeNotifier.value;
     
-    // Determine initial route based on login and language settings
-    return FutureBuilder<bool>(
-      future: LoginService.isLoginComplete(),
+    // Determine initial route based on language and login settings
+    return FutureBuilder<Map<String, bool>>(
+      future: Future.wait([
+        Future.value(LanguageSettings.isFirstLaunch),
+        LoginService.isLoginComplete(),
+      ]).then((results) => {
+        'isFirstLaunch': results[0],
+        'isLoginComplete': results[1],
+      }),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const MaterialApp(
@@ -62,41 +68,21 @@ class _MyAppState extends State<MyApp> {
           );
         }
         
-        final isLoginComplete = snapshot.data ?? false;
+        final isFirstLaunch = snapshot.data!['isFirstLaunch'] ?? true;
+        final isLoginComplete = snapshot.data!['isLoginComplete'] ?? false;
         
-        // Show login page if not completed
-        if (!isLoginComplete) {
-          return MaterialApp(
-            title: 'Brain Booster',
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-              scaffoldBackgroundColor: Colors.white,
-            ),
-            localizationsDelegates: [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizationsHelper.getSupportedLocales(),
-            locale: currentLocale,
-            builder: (context, child) {
-              if (child == null) {
-                return const SizedBox.shrink();
-              }
-              return PortraitAspectWrapper(
-                backgroundColor: Colors.black,
-                child: child,
-              );
-            },
-            home: const LoginPage(),
-          );
+        // Determine initial route:
+        // 1. First launch -> Language Selection Page
+        // 2. Language selected but login not complete -> Login Page
+        // 3. Both complete -> Home Page
+        Widget initialRoute;
+        if (isFirstLaunch) {
+          initialRoute = const LanguageSelectionPage();
+        } else if (!isLoginComplete) {
+          initialRoute = const LoginPage();
+        } else {
+          initialRoute = const HomePage();
         }
-        
-        // Show language selection page on first launch, otherwise show home page
-        final initialRoute = LanguageSettings.isFirstLaunch
-            ? const LanguageSelectionPage()
-            : const HomePage();
         
         return MaterialApp(
           title: 'Brain Booster',
