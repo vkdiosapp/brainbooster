@@ -106,11 +106,11 @@ class _LoginPageState extends State<LoginPage> {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              const Color(0xFF6366F1).withOpacity(0.2), // indigo-500/20
-                              const Color(0xFFA855F7).withOpacity(0.2), // purple-500/20
-                              const Color(0xFFEC4899).withOpacity(0.2), // pink-500/20
-                            ],
+                              colors: [
+                                const Color(0xFFA5B4FC).withOpacity(0.4), // darker purple
+                                const Color(0xFFC4B5FD).withOpacity(0.4), // darker purple
+                                const Color(0xFFB8A5F8).withOpacity(0.4), // darker purple
+                              ],
                           ),
                         ),
                         child: ClipOval(
@@ -123,9 +123,9 @@ class _LoginPageState extends State<LoginPage> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    const Color(0xFF6366F1).withOpacity(0.2),
-                                    const Color(0xFFA855F7).withOpacity(0.2),
-                                    const Color(0xFFEC4899).withOpacity(0.2),
+                                    const Color(0xFFA5B4FC).withOpacity(0.4), // darker purple
+                                    const Color(0xFFC4B5FD).withOpacity(0.4), // darker purple
+                                    const Color(0xFFB8A5F8).withOpacity(0.4), // darker purple
                                   ],
                                 ),
                               ),
@@ -148,7 +148,7 @@ class _LoginPageState extends State<LoginPage> {
                       left: 32,
                       right: 32,
                       top: 48,
-                      bottom: 100, // Space for language button
+                      bottom: 32,
                     ),
                     child: Form(
                       key: _formKey,
@@ -450,12 +450,12 @@ class _LoginPageState extends State<LoginPage> {
                                         border: Border.all(
                                           color: _acceptTerms
                                               ? const Color(0xFF6366F1)
-                                              : const Color(0xFFE2E8F0),
+                                              : const Color(0xFFCBD5E1),
                                           width: 2,
                                         ),
                                         color: _acceptTerms
                                             ? const Color(0xFF6366F1)
-                                            : Colors.transparent,
+                                            : Colors.white,
                                       ),
                                       child: _acceptTerms
                                           ? const Icon(
@@ -566,76 +566,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ],
-            ),
-          ),
-          // Language Selection Button at bottom - fixed position
-          Positioned(
-            bottom: 32,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              child: Center(
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const LanguageSelectionPage(),
-                      ),
-                    ).then((_) {
-                      // Rebuild the page when language changes
-                      if (mounted) {
-                        setState(() {});
-                      }
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: const Color(0xFFF1F5F9),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.language,
-                          color: Color(0xFF6366F1),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          currentLanguageName,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF334155),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.expand_more,
-                          color: Color(0xFF94A3B8),
-                          size: 18,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ),
           ),
           // Bottom indicator bar
