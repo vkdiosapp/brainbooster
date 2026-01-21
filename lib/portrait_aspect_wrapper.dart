@@ -21,6 +21,9 @@ class _PortraitAspectWrapperState extends State<PortraitAspectWrapper> {
   // Store the device's portrait dimensions (width and height when in portrait)
   double? _portraitWidth;
   double? _portraitHeight;
+  
+  // Default portrait aspect ratio (9:16) to use when portrait dimensions aren't available yet
+  static const double _defaultPortraitAspectRatio = 9 / 16;
 
   void _updatePortraitDimensions(double width, double height) {
     // Store portrait dimensions when device is in portrait mode
@@ -29,6 +32,31 @@ class _PortraitAspectWrapperState extends State<PortraitAspectWrapper> {
       _portraitWidth = width;
       _portraitHeight = height;
     }
+  }
+  
+  double _getPortraitAspectRatio(double screenWidth, double screenHeight) {
+    // If we have stored portrait dimensions, use them
+    if (_portraitWidth != null && _portraitHeight != null) {
+      return _portraitWidth! / _portraitHeight!;
+    }
+    
+    // If app starts in landscape, estimate portrait dimensions
+    // In landscape: width > height, so portrait would be height x width
+    // But we need to estimate what the portrait width would be
+    // Use the smaller dimension as portrait width estimate
+    if (screenWidth > screenHeight) {
+      // We're in landscape, estimate portrait aspect ratio
+      // Assume portrait width is the current height, portrait height is current width
+      // This gives us an estimate: height/width
+      final estimatedPortraitRatio = screenHeight / screenWidth;
+      // Use this or fallback to default
+      return estimatedPortraitRatio > 0.4 && estimatedPortraitRatio < 0.7 
+          ? estimatedPortraitRatio 
+          : _defaultPortraitAspectRatio;
+    }
+    
+    // Fallback to default
+    return _defaultPortraitAspectRatio;
   }
 
   @override
@@ -44,9 +72,10 @@ class _PortraitAspectWrapperState extends State<PortraitAspectWrapper> {
         // Determine if we're in landscape mode
         final isLandscape = screenWidth > screenHeight;
         
-        if (isLandscape && _portraitWidth != null && _portraitHeight != null) {
-          // Calculate dynamic portrait aspect ratio from device's actual portrait dimensions
-          final portraitAspectRatio = _portraitWidth! / _portraitHeight!;
+        if (isLandscape) {
+          // Calculate dynamic portrait aspect ratio
+          // Will use stored dimensions if available, otherwise estimate or use default
+          final portraitAspectRatio = _getPortraitAspectRatio(screenWidth, screenHeight);
           
           // Calculate the width we should use for portrait content
           // We want to fit the portrait height within the landscape height

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'language_selection_page.dart';
 import '../models/category.dart';
@@ -22,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   int _currentBannerIndex = 0;
   bool _isSearching = false;
   bool _showSearchField = false;
+  Timer? _bannerTimer;
 
   @override
   void initState() {
@@ -37,6 +39,36 @@ class _HomePageState extends State<HomePage> {
       _randomExercises = ExerciseData.getRandomExercises(3);
       _filteredExercises = _allExercises;
     });
+    // Start auto-scroll after data is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startBannerAutoScroll();
+    });
+  }
+
+  void _startBannerAutoScroll() {
+    // Cancel existing timer if any
+    _bannerTimer?.cancel();
+    
+    // Auto-scroll banner every 5 seconds
+    _bannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted && 
+          _randomExercises.isNotEmpty && 
+          !_isSearching && 
+          !_showSearchField &&
+          _bannerController.hasClients) {
+        final nextIndex = (_currentBannerIndex + 1) % _randomExercises.length;
+        _bannerController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  void _stopBannerAutoScroll() {
+    _bannerTimer?.cancel();
+    _bannerTimer = null;
   }
 
   void _filterExercises() {
@@ -58,6 +90,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _stopBannerAutoScroll();
     _bannerController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -70,32 +103,6 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Status bar
-            Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '9:41',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.signal_cellular_alt, size: 18),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.wifi, size: 18),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.battery_full, size: 18),
-                    ],
-                  ),
-                ],
-              ),
-            ),
             // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -134,7 +141,11 @@ class _HomePageState extends State<HomePage> {
                               _searchController.clear();
                               _isSearching = false;
                               _filteredExercises = _allExercises;
+                              // Restart auto-scroll when search is closed
+                              _startBannerAutoScroll();
                             } else {
+                              // Stop auto-scroll when search is opened
+                              _stopBannerAutoScroll();
                               // Focus on search field when shown
                               Future.delayed(const Duration(milliseconds: 100), () {
                                 FocusScope.of(context).requestFocus(FocusNode());
@@ -243,24 +254,14 @@ class _HomePageState extends State<HomePage> {
                       // Categories section
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Categories',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'See All',
-                                style: TextStyle(
-                                  color: Color(0xFF6366F1),
-                                  fontWeight: FontWeight.w600,
-                                ),
                               ),
                             ),
                           ],
@@ -362,30 +363,26 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(32),
         child: Stack(
           children: [
-            // Background image
+            // Background - use same background for all banners (Color Change style)
             Positioned.fill(
-              child: exercise.imageUrl != null
-                  ? Image.network(
-                      exercise.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: const Color(0xFF6366F1),
-                        );
-                      },
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFF6366F1),
-                            const Color(0xFF818CF8),
-                          ],
-                        ),
+              child: Image.network(
+                'https://lh3.googleusercontent.com/aida-public/AB6AXuBTFo1CdlHTfS7aak4OC9WXyP0Ix_KDkptveGyCzBnXpFvtRFAuSetyV03Ki_GSDyOw57a3oL3nFEPsPI_k_uf-YTr6SzhGAO73K9qKuPIcywoxxJLLrf4gEZCTuzacydth9CgUEBRA_YnbDFKH0o31jTQ8wJGaPQd9FmJCk3JuCSRR9t0dGOcKAlF66dp7j0_haPNkq9O8Nvi33yufSzg0_3tjpLDYFsmeTV0c6O59ebU43KdF62f1q140dCiQ-VBXF8OYhiDpPZhm',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF6366F1),
+                          const Color(0xFF818CF8),
+                        ],
                       ),
                     ),
+                  );
+                },
+              ),
             ),
             // Gradient overlay
             Positioned.fill(
