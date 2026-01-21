@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/login_service.dart';
@@ -83,339 +84,577 @@ class _LoginPageState extends State<LoginPage> {
     final currentLanguageName = LanguageSettings.getLanguageName(currentLanguageCode);
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                // Title
-                const Text(
-                  'Welcome to Brain Booster',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Please fill in your details to continue',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // First Name
-                TextFormField(
-                  controller: _firstNameController,
-                  decoration: InputDecoration(
-                    labelText: 'First Name',
-                    hintText: 'Enter your first name',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF6366F1),
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your first name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                // Last Name
-                TextFormField(
-                  controller: _lastNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Last Name',
-                    hintText: 'Enter your last name',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF6366F1),
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your last name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                // Birthdate
-                TextFormField(
-                  controller: _birthdateController,
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: 'Birthdate',
-                    hintText: 'Select your birthdate',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF6366F1),
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    suffixIcon: const Icon(
-                      Icons.calendar_today,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  onTap: () => _selectDate(context),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select your birthdate';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-                // Terms and Conditions
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Gradient overlay filling whole page
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.3,
+              child: Container(
+                child: Stack(
                   children: [
-                    Checkbox(
-                      value: _acceptTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _acceptTerms = value ?? false;
-                        });
-                      },
-                      activeColor: const Color(0xFF6366F1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const TermsWebViewPage(
-                                url: 'https://www.google.com',
-                              ),
-                            ),
-                          );
-                        },
-                        child: RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                            children: [
-                              const TextSpan(text: 'I Accept '),
-                              TextSpan(
-                                text: 'Terms and Conditions',
-                                style: const TextStyle(
-                                  color: Color(0xFF6366F1),
-                                  fontWeight: FontWeight.w700,
-                                  decoration: TextDecoration.underline,
+                    // Blurred gradient circle - matches HTML blur-3xl rounded-full
+                    Positioned(
+                      top: -192, // -top-48 = -192px
+                      left: -96, // -left-24 = -96px
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 1.5, // w-[150%]
+                        height: MediaQuery.of(context).size.width * 1.5, // h-[150%]
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              const Color(0xFF6366F1).withOpacity(0.2), // indigo-500/20
+                              const Color(0xFFA855F7).withOpacity(0.2), // purple-500/20
+                              const Color(0xFFEC4899).withOpacity(0.2), // pink-500/20
+                            ],
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 64, sigmaY: 64), // blur-3xl
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    const Color(0xFF6366F1).withOpacity(0.2),
+                                    const Color(0xFFA855F7).withOpacity(0.2),
+                                    const Color(0xFFEC4899).withOpacity(0.2),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
-                // Login Button
-                Container(
-                  width: double.infinity,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: _acceptTerms
-                        ? const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0xFF818CF8), Color(0xFF6366F1)],
-                          )
-                        : LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.grey[400]!,
-                              Colors.grey[500]!,
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      left: 32,
+                      right: 32,
+                      top: 48,
+                      bottom: 100, // Space for language button
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title section with mb-12
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Welcome to',
+                                          style: TextStyle(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.025,
+                                            color: Color(0xFF0F172A),
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'Brain Booster',
+                                          style: TextStyle(
+                                            fontSize: 42,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.025,
+                                            color: Color(0xFF0F172A),
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Language selector in top right
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const LanguageSelectionPage(),
+                                        ),
+                                      ).then((_) {
+                                        // Rebuild the page when language changes
+                                        if (mounted) {
+                                          setState(() {});
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(999),
+                                        border: Border.all(
+                                          color: const Color(0xFFF1F5F9),
+                                          width: 1,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.05),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.language,
+                                            color: Color(0xFF6366F1),
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            currentLanguageName,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF334155),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Please fill in your details to continue',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
                             ],
                           ),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: _acceptTerms
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF6366F1).withOpacity(0.4),
-                              blurRadius: 25,
-                              offset: const Offset(0, 10),
+                          const SizedBox(height: 48),
+                          // First Name
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, -2),
+                                ),
+                              ],
                             ),
-                          ]
-                        : [],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _acceptTerms ? _saveLogin : null,
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: _acceptTerms
-                              ? LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.center,
-                                  colors: [
-                                    Colors.white.withOpacity(0.2),
-                                    Colors.transparent,
-                                  ],
-                                )
-                              : null,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Login',
-                            style: TextStyle(
-                              color: _acceptTerms ? Colors.white : Colors.grey[300],
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Language Selection Button
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LanguageSelectionPage(),
-                        ),
-                      ).then((_) {
-                        // Rebuild the page when language changes
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFFE2E8F0),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.language,
-                            color: Color(0xFF6366F1),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            currentLanguageName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF0F172A),
+                            child: TextFormField(
+                              controller: _firstNameController,
+                              decoration: InputDecoration(
+                                hintText: 'First Name',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 20,
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF0F172A),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter your first name';
+                                }
+                                return null;
+                              },
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 14,
-                            color: Color(0xFF94A3B8),
+                            const SizedBox(height: 16),
+                            // Last Name
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, -2),
+                                ),
+                              ],
+                            ),
+                            child: TextFormField(
+                              controller: _lastNameController,
+                              decoration: InputDecoration(
+                                hintText: 'Last Name',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 20,
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF0F172A),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter your last name';
+                                }
+                                return null;
+                              },
+                            ),
                           ),
+                            const SizedBox(height: 16),
+                            // Birthdate
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, -2),
+                                ),
+                              ],
+                            ),
+                            child: TextFormField(
+                              controller: _birthdateController,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                hintText: 'Birthdate',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 20,
+                                ),
+                                suffixIcon: const Padding(
+                                  padding: EdgeInsets.only(right: 24),
+                                  child: Icon(
+                                    Icons.calendar_today,
+                                    color: Color(0xFF94A3B8),
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF0F172A),
+                              ),
+                              onTap: () => _selectDate(context),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please select your birthdate';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                            const SizedBox(height: 24),
+                            // Terms and Conditions
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _acceptTerms = !_acceptTerms;
+                                      });
+                                    },
+                                    child: Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: _acceptTerms
+                                              ? const Color(0xFF6366F1)
+                                              : const Color(0xFFE2E8F0),
+                                          width: 2,
+                                        ),
+                                        color: _acceptTerms
+                                            ? const Color(0xFF6366F1)
+                                            : Colors.transparent,
+                                      ),
+                                      child: _acceptTerms
+                                          ? const Icon(
+                                              Icons.check,
+                                              color: Colors.white,
+                                              size: 16,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const TermsWebViewPage(
+                                              url: 'https://www.google.com',
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          children: [
+                                            const TextSpan(text: 'I Accept '),
+                                            TextSpan(
+                                              text: 'Terms and Conditions',
+                                              style: const TextStyle(
+                                                color: Color(0xFF6366F1),
+                                                fontWeight: FontWeight.w500,
+                                                decoration:
+                                                    TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                              // Login Button
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _acceptTerms ? _saveLogin : null,
+                                borderRadius: BorderRadius.circular(32),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 20),
+                                  decoration: BoxDecoration(
+                                    gradient: _acceptTerms
+                                        ? const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Color(0xFF6366F1),
+                                              Color(0xFFA855F7),
+                                            ],
+                                          )
+                                        : LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Colors.grey[400]!,
+                                              Colors.grey[500]!,
+                                            ],
+                                          ),
+                                    borderRadius: BorderRadius.circular(32),
+                                    boxShadow: _acceptTerms
+                                        ? [
+                                            BoxShadow(
+                                              color: const Color(0xFF6366F1)
+                                                  .withOpacity(0.4),
+                                              blurRadius: 24,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ]
+                                        : [],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'Login',
+                                      style: TextStyle(
+                                        color: _acceptTerms
+                                            ? Colors.white
+                                            : Colors.grey[300],
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
               ],
             ),
           ),
-        ),
+          // Language Selection Button at bottom - fixed position
+          Positioned(
+            bottom: 32,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const LanguageSelectionPage(),
+                      ),
+                    ).then((_) {
+                      // Rebuild the page when language changes
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: const Color(0xFFF1F5F9),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.language,
+                          color: Color(0xFF6366F1),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          currentLanguageName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF334155),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.expand_more,
+                          color: Color(0xFF94A3B8),
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Bottom indicator bar
+          Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 128,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200]!.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
