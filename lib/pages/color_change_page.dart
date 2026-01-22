@@ -359,7 +359,7 @@ class _ColorChangePageState extends State<ColorChangePage> {
                     // Main game card - flexible with 20 padding on all sides
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
                         child: Container(
                           width: double.infinity,
                           height: double.infinity,
