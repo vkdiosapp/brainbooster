@@ -85,41 +85,30 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.4),
-          borderRadius: BorderRadius.circular(24),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF6366F1)
-                : Colors.white.withOpacity(0.6),
+                : const Color(0xFFE2E8F0),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: const Color(0xFF6366F1).withOpacity(0.3),
-                blurRadius: 15,
+                color: const Color(0xFF6366F1).withOpacity(0.2),
+                blurRadius: 12,
                 spreadRadius: 0,
+                offset: const Offset(0, 4),
               ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-            BoxShadow(
-              color: Colors.white.withOpacity(0.8),
-              blurRadius: 1,
-              offset: const Offset(0, 1),
-              blurStyle: BlurStyle.inner,
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: child,
-          ),
-        ),
+        child: child,
       ),
     );
   }
@@ -134,11 +123,11 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
           color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFCBD5E1),
           width: 2,
         ),
-        color: isSelected ? const Color(0xFF6366F1) : Colors.transparent,
+        color: isSelected ? const Color(0xFF6366F1) : Colors.white,
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.5),
+                  color: const Color(0xFF6366F1).withOpacity(0.3),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
@@ -146,14 +135,11 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
             : null,
       ),
       child: isSelected
-          ? Center(
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
+          ? const Center(
+              child: Icon(
+                Icons.check,
+                color: Colors.white,
+                size: 16,
               ),
             )
           : null,
@@ -345,79 +331,65 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                   },
                 ),
               ),
-              // Save button at bottom with gradient fade
+              // Save button at bottom - matching login button style
               Container(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-
-                child: Column(
-                  children: [
-                    // Glossy Save button
-                    Container(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _selectedLanguageCode != null
+                        ? _saveAndContinue
+                        : null,
+                    borderRadius: BorderRadius.circular(32),
+                    child: Container(
                       width: double.infinity,
-                      height: 64,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFF818CF8), Color(0xFF6366F1)],
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF6366F1).withOpacity(0.4),
-                            blurRadius: 25,
-                            offset: const Offset(0, -5),
-                          ),
-                          BoxShadow(
-                            color: Colors.white.withOpacity(0.3),
-                            blurRadius: 2,
-                            offset: const Offset(0, 2),
-                            blurStyle: BlurStyle.inner,
-                          ),
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 2,
-                            offset: const Offset(0, -2),
-                            blurStyle: BlurStyle.inner,
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _selectedLanguageCode != null
-                              ? _saveAndContinue
-                              : null,
-                          borderRadius: BorderRadius.circular(24),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.center,
+                        gradient: _selectedLanguageCode != null
+                            ? const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                                 colors: [
-                                  Colors.white.withOpacity(0.2),
-                                  Colors.transparent,
+                                  Color(0xFF6366F1),
+                                  Color(0xFFA855F7),
+                                ],
+                              )
+                            : LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.grey[400]!,
+                                  Colors.grey[500]!,
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Center(
-                              child: Text(
-                                LanguageSettings.isFirstLaunch
-                                    ? l10n.continueButton
-                                    : l10n.save,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: _selectedLanguageCode != null
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF6366F1)
+                                      .withOpacity(0.4),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
                                 ),
-                              ),
-                            ),
+                              ]
+                            : [],
+                      ),
+                      child: Center(
+                        child: Text(
+                          LanguageSettings.isFirstLaunch
+                              ? l10n.continueButton
+                              : l10n.save,
+                          style: TextStyle(
+                            color: _selectedLanguageCode != null
+                                ? Colors.white
+                                : Colors.grey[300],
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
