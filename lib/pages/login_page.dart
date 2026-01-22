@@ -202,76 +202,7 @@ class _LoginPageState extends State<LoginPage> {
           SafeArea(
             child: Column(
               children: [
-                // App bar for edit mode (similar to language page)
-                if (widget.isEditMode)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        // Back button - left aligned with frosted glass effect
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.4),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.6),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.03),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withOpacity(0.8),
-                                  blurRadius: 1,
-                                  offset: const Offset(0, 1),
-                                  blurStyle: BlurStyle.inner,
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                                child: const Icon(
-                                  Icons.arrow_back,
-                                  color: Color(0xFF475569),
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Spacer to center the title
-                        const Spacer(),
-                        // Title - centered on screen
-                        const Text(
-                          'Edit Profile',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        // Spacer to balance the back button
-                        const Spacer(),
-                        // Invisible placeholder to balance the back button width
-                        const SizedBox(width: 40),
-                      ],
-                    ),
-                  ),
+                // App bar for edit mode - hidden when shown in tab bar
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(
@@ -285,42 +216,44 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title section (hidden in edit mode)
-                          if (!widget.isEditMode) ...[
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Welcome to',
-                                            style: TextStyle(
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: -0.025,
-                                              color: Color(0xFF0F172A),
-                                              height: 1.2,
-                                            ),
+                          // Title section
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          widget.isEditMode
+                                              ? 'Welcome Again to'
+                                              : 'Welcome to',
+                                          style: const TextStyle(
+                                            fontSize: 36,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.025,
+                                            color: Color(0xFF0F172A),
+                                            height: 1.2,
                                           ),
-                                          const Text(
-                                            'Brain Booster',
-                                            style: TextStyle(
-                                              fontSize: 42,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: -0.025,
-                                              color: Color(0xFF0F172A),
-                                              height: 1.2,
-                                            ),
+                                        ),
+                                        const Text(
+                                          'Brain Booster',
+                                          style: TextStyle(
+                                            fontSize: 42,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.025,
+                                            color: Color(0xFF0F172A),
+                                            height: 1.2,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                    // Language selector in top right
+                                  ),
+                                  // Language selector in top right (hidden in edit mode)
+                                  if (!widget.isEditMode)
                                     GestureDetector(
                                       onTap: () {
                                         Navigator.of(context).push(
@@ -375,9 +308,10 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              if (!widget.isEditMode)
                                 Text(
                                   'Please fill in your details to continue',
                                   style: TextStyle(
@@ -386,10 +320,9 @@ class _LoginPageState extends State<LoginPage> {
                                     color: Colors.grey[500],
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 48),
-                          ],
+                            ],
+                          ),
+                          const SizedBox(height: 48),
                           // First Name
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -622,8 +555,8 @@ class _LoginPageState extends State<LoginPage> {
                               ],
                             ],
                           ),
-                            // Terms and Conditions (hidden in edit mode)
-                            if (!widget.isEditMode) ...[
+                          // Terms and Conditions (hidden in edit mode)
+                          if (!widget.isEditMode) ...[
                               const SizedBox(height: 24),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

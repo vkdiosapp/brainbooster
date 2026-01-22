@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../models/exercise.dart';
 import '../data/exercise_data.dart';
-import 'color_change_page.dart';
+import '../navigation/exercise_navigator.dart';
 
 class CategoryExercisesPage extends StatefulWidget {
   final Category category;
@@ -130,11 +130,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
   Widget _buildExerciseTile(Exercise exercise, int number) {
     return GestureDetector(
       onTap: () {
-        if (exercise.id == 1) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ColorChangePage()),
-          );
-        }
+        ExerciseNavigator.navigateToExercise(context, exercise.id);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

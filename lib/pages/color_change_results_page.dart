@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'color_change_page.dart';
+import '../models/round_result.dart';
 import '../data/exercise_data.dart';
 
 class ColorChangeResultsPage extends StatelessWidget {

@@ -6,7 +6,7 @@ import '../data/exercise_data.dart';
 import 'pages/category_exercises_page.dart';
 import 'pages/login_page.dart';
 import 'pages/settings_page.dart';
-import 'pages/color_change_page.dart';
+import 'navigation/exercise_navigator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   bool _isSearching = false;
   bool _showSearchField = false;
   Timer? _bannerTimer;
+  int _selectedTab = 0; // 0: Home, 1: Discover, 2: Stats, 3: Profile
 
   @override
   void initState() {
@@ -121,16 +122,18 @@ class _HomePageState extends State<HomePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Exercises',
-                          style: TextStyle(
+                        Text(
+                          _selectedTab == 3 ? 'Edit Profile' : 'Exercises',
+                          style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.5,
                           ),
                         ),
                         Text(
-                          'Train your brain today',
+                          _selectedTab == 3
+                              ? 'Update your personal information'
+                              : 'Train your brain today',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -189,47 +192,13 @@ class _HomePageState extends State<HomePage> {
                             shape: const CircleBorder(),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFF6366F1),
-                                const Color(0xFF8B5CF6),
-                                const Color(0xFFEC4899),
-                              ],
-                            ),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const LoginPage(isEditMode: true),
-                                  ),
-                                );
-                              },
-                              customBorder: const CircleBorder(),
-                              child: const Center(
-                                child: Icon(Icons.person, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ],
                 ),
               ),
               // Search field (appears below header when search button is tapped)
-              if (_showSearchField)
+              if (_showSearchField && _selectedTab == 0)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                   child: TextField(
@@ -259,117 +228,144 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Banner section
-                      if (!_isSearching && !_showSearchField) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            child: PageView.builder(
-                              controller: _bannerController,
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentBannerIndex = index;
-                                });
-                              },
-                              itemCount: _randomExercises.length,
-                              itemBuilder: (context, index) {
-                                final exercise = _randomExercises[index];
-                                return _buildBannerCard(exercise);
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        // Banner indicators
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            _randomExercises.length,
-                            (index) => Container(
-                              width: index == _currentBannerIndex ? 24 : 6,
-                              height: 6,
-                              margin: const EdgeInsets.symmetric(horizontal: 3),
-                              decoration: BoxDecoration(
-                                color: index == _currentBannerIndex
-                                    ? const Color(0xFF6366F1)
-                                    : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        // Categories section
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Categories',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
+                child: _selectedTab == 3
+                    ? const LoginPage(isEditMode: true)
+                    : SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Banner section
+                            if (!_isSearching && !_showSearchField) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.5,
+                                  child: PageView.builder(
+                                    controller: _bannerController,
+                                    onPageChanged: (index) {
+                                      setState(() {
+                                        _currentBannerIndex = index;
+                                      });
+                                    },
+                                    itemCount: _randomExercises.length,
+                                    itemBuilder: (context, index) {
+                                      final exercise = _randomExercises[index];
+                                      return _buildBannerCard(exercise);
+                                    },
+                                  ),
                                 ),
                               ),
+                              const SizedBox(height: 24),
+                              // Banner indicators
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(
+                                  _randomExercises.length,
+                                  (index) => Container(
+                                    width: index == _currentBannerIndex
+                                        ? 24
+                                        : 6,
+                                    height: 6,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: index == _currentBannerIndex
+                                          ? const Color(0xFF6366F1)
+                                          : Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                              // Categories section
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Categories',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // Categories horizontal list
+                              SizedBox(
+                                height: 100,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  itemCount: _categories.length,
+                                  itemBuilder: (context, index) {
+                                    final category = _categories[index];
+                                    return _buildCategoryButton(
+                                      category,
+                                      index,
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 40),
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Categories horizontal list
-                        SizedBox(
-                          height: 100,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: _categories.length,
-                            itemBuilder: (context, index) {
-                              final category = _categories[index];
-                              return _buildCategoryButton(category, index);
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                      ],
-                      // All Exercises section
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _isSearching ? 'Search Results' : 'All Exercises',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
+                            // All Exercises section
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _isSearching
+                                        ? 'Search Results'
+                                        : 'All Exercises',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            // Exercise list
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _filteredExercises.length,
+                                itemBuilder: (context, index) {
+                                  final exercise = _filteredExercises[index];
+                                  return _buildExerciseTile(
+                                    exercise,
+                                    index + 1,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 100),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      // Exercise list
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _filteredExercises.length,
-                          itemBuilder: (context, index) {
-                            final exercise = _filteredExercises[index];
-                            return _buildExerciseTile(exercise, index + 1);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 100),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),
@@ -384,10 +380,28 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.home, 'Home', true),
-              _buildNavItem(Icons.explore, 'Discover', false),
-              _buildNavItem(Icons.bar_chart, 'Stats', false),
-              _buildNavItem(Icons.person, 'Profile', false),
+              _buildNavItem(Icons.home, 'Home', _selectedTab == 0, () {
+                setState(() {
+                  _selectedTab = 0;
+                });
+              }),
+              _buildNavItem(Icons.bar_chart, 'Stats', _selectedTab == 2, () {
+                setState(() {
+                  _selectedTab = 2;
+                });
+              }),
+              _buildNavItem(Icons.person, 'Profile', _selectedTab == 3, () {
+                setState(() {
+                  _selectedTab = 3;
+                  // Close search field when switching to profile
+                  if (_showSearchField) {
+                    _showSearchField = false;
+                    _searchController.clear();
+                    _isSearching = false;
+                    _filteredExercises = _allExercises;
+                  }
+                });
+              }),
             ],
           ),
         ),
@@ -398,11 +412,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBannerCard(Exercise exercise) {
     return GestureDetector(
       onTap: () {
-        if (exercise.id == 1) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ColorChangePage()),
-          );
-        }
+        ExerciseNavigator.navigateToExercise(context, exercise.id);
       },
       child: Container(
         margin: const EdgeInsets.only(right: 8),
@@ -511,13 +521,10 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            if (exercise.id == 1) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const ColorChangePage(),
-                                ),
-                              );
-                            }
+                            ExerciseNavigator.navigateToExercise(
+                              context,
+                              exercise.id,
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
@@ -643,11 +650,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildExerciseTile(Exercise exercise, int number) {
     return GestureDetector(
       onTap: () {
-        if (exercise.id == 1) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ColorChangePage()),
-          );
-        }
+        ExerciseNavigator.navigateToExercise(context, exercise.id);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -760,24 +763,32 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          icon,
-          color: isActive ? const Color(0xFF6366F1) : Colors.grey[400],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
+  Widget _buildNavItem(
+    IconData icon,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
             color: isActive ? const Color(0xFF6366F1) : Colors.grey[400],
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isActive ? const Color(0xFF6366F1) : Colors.grey[400],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

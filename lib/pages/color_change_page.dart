@@ -3,19 +3,8 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
+import '../models/round_result.dart';
 import 'color_change_results_page.dart';
-
-class RoundResult {
-  final int roundNumber;
-  final int reactionTime;
-  final bool isFailed;
-
-  RoundResult({
-    required this.roundNumber,
-    required this.reactionTime,
-    required this.isFailed,
-  });
-}
 
 class ColorChangePage extends StatefulWidget {
   const ColorChangePage({super.key});
@@ -465,98 +454,22 @@ class _ColorChangePageState extends State<ColorChangePage> {
                                           ),
                                         ),
                                       ),
-                                    // Start button or waiting state
+                                    // Start button
                                     if (!_isPlaying &&
                                         _errorMessage == null &&
                                         _reactionTimeMessage == null)
                                       Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Container(
-                                              width: 160,
-                                              height: 160,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                gradient: const LinearGradient(
-                                                  begin: Alignment.topLeft,
-                                                  end: Alignment.bottomRight,
-                                                  colors: [
-                                                    Color(0xFFDBEAFE),
-                                                    Color(0xFFE2E8F0),
-                                                    Color(0xFFFCE7F3),
-                                                  ],
-                                                ),
-                                                border: Border.all(
-                                                  color: Colors.white
-                                                      .withOpacity(0.8),
-                                                  width: 2,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: const Color(
-                                                      0xFFDBEAFE,
-                                                    ).withOpacity(0.6),
-                                                    blurRadius: 30,
-                                                    spreadRadius: 0,
-                                                  ),
-                                                  BoxShadow(
-                                                    color: const Color(
-                                                      0xFFFCE7F3,
-                                                    ).withOpacity(0.4),
-                                                    blurRadius: 60,
-                                                    spreadRadius: 0,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Stack(
-                                                children: [
-                                                  // Inner gradient overlay
-                                                  Positioned.fill(
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        gradient: LinearGradient(
-                                                          begin: Alignment
-                                                              .topCenter,
-                                                          end: Alignment
-                                                              .bottomCenter,
-                                                          colors: [
-                                                            Colors.white
-                                                                .withOpacity(
-                                                                  0.4,
-                                                                ),
-                                                            Colors.transparent,
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Play icon
-                                                  Center(
-                                                    child: Icon(
-                                                      Icons.play_arrow,
-                                                      size: 80,
-                                                      color: const Color(
-                                                        0xFF475569,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
+                                        child: GestureDetector(
+                                          onTap: _handleTap,
+                                          child: const Text(
+                                            'START',
+                                            style: TextStyle(
+                                              fontSize: 48,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 4.0,
+                                              color: Color(0xFF475569),
                                             ),
-                                            const SizedBox(height: 64),
-                                            const Text(
-                                              'START',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w900,
-                                                letterSpacing: 4.0,
-                                                color: Color(0xFF94A3B8),
-                                              ),
-                                            ),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     // Waiting state
@@ -573,22 +486,6 @@ class _ColorChangePageState extends State<ColorChangePage> {
                                             fontWeight: FontWeight.w900,
                                             color: Color(0xFF94A3B8),
                                             letterSpacing: 4.0,
-                                          ),
-                                        ),
-                                      ),
-                                    // Background blur pattern
-                                    if (!_isColorVisible &&
-                                        _errorMessage == null &&
-                                        _reactionTimeMessage == null)
-                                      Positioned.fill(
-                                        child: Opacity(
-                                          opacity: 0.03,
-                                          child: Center(
-                                            child: Icon(
-                                              Icons.blur_circular,
-                                              size: 400,
-                                              color: Colors.black,
-                                            ),
                                           ),
                                         ),
                                       ),
