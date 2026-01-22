@@ -187,10 +187,7 @@ class _FindNumberPageState extends State<FindNumberPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFE2E8F0),
-            width: 2,
-          ),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -516,20 +513,35 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                   children: [
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[0]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[0],
+                                                        ),
                                                       ),
                                                     ),
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[1]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[1],
+                                                        ),
                                                       ),
                                                     ),
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[2]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[2],
+                                                        ),
                                                       ),
                                                     ),
                                                   ],
@@ -541,20 +553,35 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                   children: [
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[3]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[3],
+                                                        ),
                                                       ),
                                                     ),
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[4]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[4],
+                                                        ),
                                                       ),
                                                     ),
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[5]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[5],
+                                                        ),
                                                       ),
                                                     ),
                                                   ],
@@ -566,20 +593,35 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                   children: [
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[6]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[6],
+                                                        ),
                                                       ),
                                                     ),
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[7]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[7],
+                                                        ),
                                                       ),
                                                     ),
                                                     Expanded(
                                                       child: Padding(
-                                                        padding: const EdgeInsets.all(3),
-                                                        child: _buildNumberCell(_gridNumbers[8]),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              3,
+                                                            ),
+                                                        child: _buildNumberCell(
+                                                          _gridNumbers[8],
+                                                        ),
                                                       ),
                                                     ),
                                                   ],
