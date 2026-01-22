@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/round_result.dart';
+import '../models/game_session.dart';
+import '../services/game_history_service.dart';
 import 'color_change_results_page.dart';
 
 class ColorChangePage extends StatefulWidget {
@@ -198,7 +200,7 @@ class _ColorChangePageState extends State<ColorChangePage> {
     });
   }
 
-  void _endGame() {
+  Future<void> _endGame() async {
     setState(() {
       _isPlaying = false;
       _isWaitingForColor = false;
@@ -207,14 +209,45 @@ class _ColorChangePageState extends State<ColorChangePage> {
 
     // Calculate average reaction time
     final successfulRounds = _roundResults.where((r) => !r.isFailed).toList();
+    int averageTime = 0;
+    int bestTime = 0;
+
     if (successfulRounds.isNotEmpty) {
-      final averageTime =
+      averageTime =
           successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
           successfulRounds.length;
+
+      bestTime = successfulRounds
+          .map((r) => r.reactionTime)
+          .reduce((a, b) => a < b ? a : b);
 
       if (averageTime < _bestSession || _bestSession == 0) {
         _bestSession = averageTime;
       }
+    } else {
+      // If no successful rounds, calculate from all rounds
+      if (_roundResults.isNotEmpty) {
+        averageTime =
+            _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
+            _roundResults.length;
+      }
+    }
+
+    // Save game session
+    if (_roundResults.isNotEmpty) {
+      final sessionNumber = await GameHistoryService.getNextSessionNumber(
+        'color_change',
+      );
+      final session = GameSession(
+        gameId: 'color_change',
+        gameName: 'Color Change',
+        timestamp: DateTime.now(),
+        sessionNumber: sessionNumber,
+        roundResults: List.from(_roundResults),
+        averageTime: averageTime,
+        bestTime: bestTime,
+      );
+      await GameHistoryService.saveSession(session);
     }
 
     // Navigate to results page or show results

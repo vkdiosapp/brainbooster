@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../models/exercise.dart';
 import '../data/exercise_data.dart';
+import '../services/game_history_service.dart';
 import 'pages/category_exercises_page.dart';
 import 'pages/login_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/analytics_page.dart';
 import 'navigation/exercise_navigator.dart';
 
 class HomePage extends StatefulWidget {
@@ -230,6 +232,8 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: _selectedTab == 3
                     ? const LoginPage(isEditMode: true)
+                    : _selectedTab == 2
+                    ? _buildStatsView()
                     : SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -647,7 +651,21 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String? _getGameIdFromExerciseId(int exerciseId) {
+    // Map exercise IDs to game IDs
+    switch (exerciseId) {
+      case 1:
+        return 'color_change';
+      case 2:
+        return 'find_number';
+      default:
+        return null; // Other games don't have analytics yet
+    }
+  }
+
   Widget _buildExerciseTile(Exercise exercise, int number) {
+    final gameId = _getGameIdFromExerciseId(exercise.id);
+
     return GestureDetector(
       onTap: () {
         ExerciseNavigator.navigateToExercise(context, exercise.id);
@@ -731,10 +749,44 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.star_outline, color: Color(0xFF94A3B8)),
-              onPressed: () {},
-            ),
+            // Graph icon (only if game has history)
+            if (gameId != null)
+              FutureBuilder<List<dynamic>>(
+                future: GameHistoryService.getSessions(gameId),
+                builder: (context, snapshot) {
+                  final hasHistory =
+                      snapshot.hasData && snapshot.data!.isNotEmpty;
+                  if (!hasHistory) {
+                    return const SizedBox.shrink();
+                  }
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => AnalyticsPage(
+                            gameId: gameId,
+                            gameName: exercise.name,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF2FF),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.show_chart,
+                        color: Color(0xFF6366F1),
+                        size: 20,
+                      ),
+                    ),
+                  );
+                },
+              ),
             exercise.isPro
                 ? Container(
                     width: 40,
@@ -757,6 +809,82 @@ class _HomePageState extends State<HomePage> {
                       color: Color(0xFF6366F1),
                     ),
                   ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsView() {
+    final gamesWithAnalytics = [
+      {'id': 'color_change', 'name': 'Color Change'},
+      {'id': 'find_number', 'name': 'Find Number'},
+    ];
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Game Analytics',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'View detailed statistics for each game',
+              style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+            ),
+            const SizedBox(height: 24),
+            ...gamesWithAnalytics.map((game) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => AnalyticsPage(
+                        gameId: game['id']!,
+                        gameName: game['name']!,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: const Color(0xFFF1F5F9),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        game['name']!,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           ],
         ),
       ),
