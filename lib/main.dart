@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'home_page.dart';
 import 'language_settings.dart';
+import 'game_settings.dart';
 import 'language_selection_page.dart';
 import 'app_localizations_helper.dart';
 import 'portrait_aspect_wrapper.dart';
@@ -12,6 +13,7 @@ import 'pages/login_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LanguageSettings.initialize();
+  await GameSettings.initialize();
   
   runApp(const MyApp());
 }

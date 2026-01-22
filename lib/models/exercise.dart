@@ -6,6 +6,7 @@ class Exercise {
   final String? imageUrl;
   final bool isPro;
   final bool isRecommended;
+  final int timeRequired; // in milliseconds
 
   Exercise({
     required this.id,
@@ -15,6 +16,7 @@ class Exercise {
     this.imageUrl,
     this.isPro = false,
     this.isRecommended = false,
+    this.timeRequired = 350, // default 350ms
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Exercise {
       imageUrl: json['imageUrl'] as String?,
       isPro: json['isPro'] as bool? ?? false,
       isRecommended: json['isRecommended'] as bool? ?? false,
+      timeRequired: json['timeRequired'] as int? ?? 350,
     );
   }
 
@@ -38,6 +41,7 @@ class Exercise {
       'imageUrl': imageUrl,
       'isPro': isPro,
       'isRecommended': isRecommended,
+      'timeRequired': timeRequired,
     };
   }
 }

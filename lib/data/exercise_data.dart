@@ -18,21 +18,26 @@ class ExerciseData {
         id: 1,
         categoryId: 1,
         name: 'Color Change',
-        desc: 'Boost your reaction speed by identifying rapid color shifts in real-time.',
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBTFo1CdlHTfS7aak4OC9WXyP0Ix_KDkptveGyCzBnXpFvtRFAuSetyV03Ki_GSDyOw57a3oL3nFEPsPI_k_uf-YTr6SzhGAO73K9qKuPIcywoxxJLLrf4gEZCTuzacydth9CgUEBRA_YnbDFKH0o31jTQ8wJGaPQd9FmJCk3JuCSRR9t0dGOcKAlF66dp7j0_haPNkq9O8Nvi33yufSzg0_3tjpLDYFsmeTV0c6O59ebU43KdF62f1q140dCiQ-VBXF8OYhiDpPZhm',
+        desc:
+            'Boost your reaction speed by identifying rapid color shifts in real-time.',
+        imageUrl:
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuBTFo1CdlHTfS7aak4OC9WXyP0Ix_KDkptveGyCzBnXpFvtRFAuSetyV03Ki_GSDyOw57a3oL3nFEPsPI_k_uf-YTr6SzhGAO73K9qKuPIcywoxxJLLrf4gEZCTuzacydth9CgUEBRA_YnbDFKH0o31jTQ8wJGaPQd9FmJCk3JuCSRR9t0dGOcKAlF66dp7j0_haPNkq9O8Nvi33yufSzg0_3tjpLDYFsmeTV0c6O59ebU43KdF62f1q140dCiQ-VBXF8OYhiDpPZhm',
         isRecommended: true,
+        timeRequired: 350,
       ),
       Exercise(
         id: 2,
         categoryId: 2,
         name: 'Find Number',
         desc: 'Identify numerical patterns quickly',
+        timeRequired: 400,
       ),
       Exercise(
         id: 3,
         categoryId: 1,
         name: 'Catch The Ball',
         desc: 'Reaction on moving objects',
+        timeRequired: 300,
       ),
       Exercise(
         id: 4,
@@ -40,30 +45,35 @@ class ExerciseData {
         name: 'Find Color',
         desc: 'Advanced visual differentiation',
         isPro: true,
+        timeRequired: 450,
       ),
       Exercise(
         id: 5,
         categoryId: 4,
         name: 'Schulte Table',
         desc: 'Expand your peripheral vision',
+        timeRequired: 500,
       ),
       Exercise(
         id: 6,
         categoryId: 3,
         name: 'Quick Math',
         desc: 'Solve math problems rapidly',
+        timeRequired: 600,
       ),
       Exercise(
         id: 7,
         categoryId: 2,
         name: 'Memory Sequence',
         desc: 'Remember and recall patterns',
+        timeRequired: 550,
       ),
       Exercise(
         id: 8,
         categoryId: 5,
         name: 'Logic Puzzle',
         desc: 'Solve complex logical problems',
+        timeRequired: 700,
       ),
     ];
   }

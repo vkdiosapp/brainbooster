@@ -1,0 +1,718 @@
+import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+import 'package:flutter/material.dart';
+import '../game_settings.dart';
+import 'color_change_results_page.dart';
+
+class RoundResult {
+  final int roundNumber;
+  final int reactionTime;
+  final bool isFailed;
+
+  RoundResult({
+    required this.roundNumber,
+    required this.reactionTime,
+    required this.isFailed,
+  });
+}
+
+class ColorChangePage extends StatefulWidget {
+  const ColorChangePage({super.key});
+
+  @override
+  State<ColorChangePage> createState() => _ColorChangePageState();
+}
+
+class _ColorChangePageState extends State<ColorChangePage> {
+  int _currentRound = 0;
+  int _completedRounds = 0;
+  int _bestSession = 240; // in milliseconds
+  bool _isPlaying = false;
+  bool _isWaitingForColor = false;
+  bool _isColorVisible = false;
+  Color? _currentColor;
+  DateTime? _colorAppearedTime;
+  Timer? _delayTimer;
+  Timer? _errorDisplayTimer;
+  Timer? _reactionTimeDisplayTimer;
+  String? _errorMessage;
+  String? _reactionTimeMessage;
+  List<RoundResult> _roundResults = [];
+
+  // Random colors for the game
+  final List<Color> _gameColors = [
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.yellow,
+    Colors.orange,
+    Colors.purple,
+    Colors.pink,
+    Colors.teal,
+    Colors.cyan,
+    Colors.amber,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _resetGame();
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _errorDisplayTimer?.cancel();
+    _reactionTimeDisplayTimer?.cancel();
+    super.dispose();
+  }
+
+  void _resetGame() {
+    _currentRound = 0;
+    _completedRounds = 0;
+    _isPlaying = false;
+    _isWaitingForColor = false;
+    _isColorVisible = false;
+    _currentColor = null;
+    _colorAppearedTime = null;
+    _errorMessage = null;
+    _roundResults.clear();
+    _delayTimer?.cancel();
+    _errorDisplayTimer?.cancel();
+  }
+
+  void _startGame() {
+    setState(() {
+      _isPlaying = true;
+      _currentRound = 0;
+      _completedRounds = 0;
+      _roundResults.clear();
+    });
+    _startNextRound();
+  }
+
+  void _startNextRound() {
+    if (_currentRound >= GameSettings.numberOfRepetitions) {
+      _endGame();
+      return;
+    }
+
+    setState(() {
+      _currentRound++;
+      _isWaitingForColor = true;
+      _isColorVisible = false;
+      _currentColor = null;
+      _colorAppearedTime = null;
+      _errorMessage = null;
+    });
+
+    // Random delay between 1-5 seconds
+    final random = math.Random();
+    final delaySeconds = 1 + random.nextDouble() * 4; // 1 to 5 seconds
+    final delayMilliseconds = (delaySeconds * 1000).toInt();
+
+    _delayTimer = Timer(Duration(milliseconds: delayMilliseconds), () {
+      if (mounted && _isWaitingForColor) {
+        _showColor();
+      }
+    });
+  }
+
+  void _showColor() {
+    if (!_isWaitingForColor) return;
+
+    final random = math.Random();
+    _currentColor = _gameColors[random.nextInt(_gameColors.length)];
+
+    setState(() {
+      _isColorVisible = true;
+      _isWaitingForColor = false;
+      _colorAppearedTime = DateTime.now();
+    });
+  }
+
+  void _handleTap() {
+    if (!_isPlaying) {
+      _startGame();
+      return;
+    }
+
+    if (_isWaitingForColor && !_isColorVisible) {
+      // User tapped too early - penalty
+      _handleEarlyTap();
+      return;
+    }
+
+    if (_isColorVisible && _colorAppearedTime != null) {
+      // Calculate reaction time
+      final reactionTime = DateTime.now()
+          .difference(_colorAppearedTime!)
+          .inMilliseconds;
+      _completeRound(reactionTime, false);
+    }
+  }
+
+  void _handleEarlyTap() {
+    setState(() {
+      _errorMessage = 'PENALTY +1 SECOND';
+      _isWaitingForColor = false;
+      _isColorVisible = false;
+    });
+
+    // Mark round as failed with penalty
+    _roundResults.add(
+      RoundResult(
+        roundNumber: _currentRound,
+        reactionTime: 1000, // 1 second penalty
+        isFailed: true,
+      ),
+    );
+
+    _errorDisplayTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _errorMessage = null;
+          _completedRounds++;
+        });
+        _startNextRound();
+      }
+    });
+  }
+
+  void _completeRound(int reactionTime, bool isFailed) {
+    _roundResults.add(
+      RoundResult(
+        roundNumber: _currentRound,
+        reactionTime: reactionTime,
+        isFailed: isFailed,
+      ),
+    );
+
+    setState(() {
+      _isColorVisible = false;
+      _completedRounds++;
+      _currentColor = null;
+      if (!isFailed) {
+        _reactionTimeMessage = '$reactionTime ms';
+      }
+    });
+
+    // Show reaction time for 1 second, then start next round
+    _reactionTimeDisplayTimer = Timer(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _reactionTimeMessage = null;
+        });
+        _startNextRound();
+      }
+    });
+  }
+
+  void _endGame() {
+    setState(() {
+      _isPlaying = false;
+      _isWaitingForColor = false;
+      _isColorVisible = false;
+    });
+
+    // Calculate average reaction time
+    final successfulRounds = _roundResults.where((r) => !r.isFailed).toList();
+    if (successfulRounds.isNotEmpty) {
+      final averageTime =
+          successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
+          successfulRounds.length;
+
+      if (averageTime < _bestSession || _bestSession == 0) {
+        _bestSession = averageTime;
+      }
+    }
+
+    // Navigate to results page or show results
+    _showResults();
+  }
+
+  void _showResults() {
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => ColorChangeResultsPage(
+              roundResults: List.from(_roundResults),
+              bestSession: _bestSession,
+            ),
+          ),
+        )
+        .then((_) {
+          // Reset game when returning from results
+          if (mounted) {
+            _resetGame();
+            setState(() {});
+          }
+        });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topLeft,
+            radius: 1.5,
+            colors: [
+              Color(0xFFE2E8F0),
+              Color(0xFFF8FAFC),
+              Color(0xFFDBEAFE),
+              Color(0xFFFCE7F3),
+            ],
+            stops: [0.0, 0.3, 0.7, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                      ),
+                    ),
+                    const Spacer(),
+                    const Text(
+                      'COLOR CHANGE',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2.0,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                    const Spacer(),
+                    ValueListenableBuilder<int>(
+                      valueListenable: GameSettings.repetitionsNotifier,
+                      builder: (context, numberOfRepetitions, _) {
+                        return Row(
+                          children: [
+                            Text(
+                              _isPlaying
+                                  ? '$_completedRounds / $numberOfRepetitions'
+                                  : '0 / $numberOfRepetitions',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            IconButton(
+                              icon: const Icon(Icons.refresh),
+                              onPressed: () {
+                                _resetGame();
+                                setState(() {});
+                              },
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.white.withOpacity(0.4),
+                                shape: const CircleBorder(),
+                                padding: const EdgeInsets.all(8),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // Main content
+              Expanded(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    // Variant text
+                    const Text(
+                      'VARIANT: HOLOGRAPHIC SILVER',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 2.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    // Title
+                    Text(
+                      _isPlaying
+                          ? (_isWaitingForColor
+                                ? 'Wait for the color...'
+                                : (_isColorVisible
+                                      ? 'TAP NOW!'
+                                      : 'Round $_currentRound'))
+                          : 'Tap when the color appears',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F172A),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    // Main game card - flexible with 20 padding on all sides
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(56),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 32,
+                                offset: const Offset(0, 16),
+                              ),
+                            ],
+                          ),
+                          child: GestureDetector(
+                            onTap: _handleTap,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(56),
+                              child: BackdropFilter(
+                                filter: ui.ImageFilter.blur(
+                                  sigmaX: 24,
+                                  sigmaY: 24,
+                                ),
+                                child: Stack(
+                                  children: [
+                                    // Background gradient blur effect (when not showing color)
+                                    if (!_isColorVisible)
+                                      Positioned.fill(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                const Color(
+                                                  0xFFDBEAFE,
+                                                ).withOpacity(0.4),
+                                                const Color(
+                                                  0xFFE2E8F0,
+                                                ).withOpacity(0.4),
+                                                const Color(
+                                                  0xFFFCE7F3,
+                                                ).withOpacity(0.4),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    // Random color display
+                                    if (_isColorVisible &&
+                                        _currentColor != null)
+                                      Positioned.fill(
+                                        child: Container(color: _currentColor),
+                                      ),
+                                    // Error message overlay
+                                    if (_errorMessage != null)
+                                      Positioned.fill(
+                                        child: Container(
+                                          color: Colors.red.withOpacity(0.9),
+                                          child: Center(
+                                            child: Text(
+                                              _errorMessage!,
+                                              style: const TextStyle(
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white,
+                                                letterSpacing: 2.0,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    // Reaction time message
+                                    if (_reactionTimeMessage != null)
+                                      Positioned.fill(
+                                        child: Container(
+                                          color: Colors.green.withOpacity(0.8),
+                                          child: Center(
+                                            child: Text(
+                                              _reactionTimeMessage!,
+                                              style: const TextStyle(
+                                                fontSize: 32,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white,
+                                                letterSpacing: 2.0,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    // Start button or waiting state
+                                    if (!_isPlaying &&
+                                        _errorMessage == null &&
+                                        _reactionTimeMessage == null)
+                                      Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Container(
+                                              width: 160,
+                                              height: 160,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: const LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Color(0xFFDBEAFE),
+                                                    Color(0xFFE2E8F0),
+                                                    Color(0xFFFCE7F3),
+                                                  ],
+                                                ),
+                                                border: Border.all(
+                                                  color: Colors.white
+                                                      .withOpacity(0.8),
+                                                  width: 2,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: const Color(
+                                                      0xFFDBEAFE,
+                                                    ).withOpacity(0.6),
+                                                    blurRadius: 30,
+                                                    spreadRadius: 0,
+                                                  ),
+                                                  BoxShadow(
+                                                    color: const Color(
+                                                      0xFFFCE7F3,
+                                                    ).withOpacity(0.4),
+                                                    blurRadius: 60,
+                                                    spreadRadius: 0,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Stack(
+                                                children: [
+                                                  // Inner gradient overlay
+                                                  Positioned.fill(
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        gradient: LinearGradient(
+                                                          begin: Alignment
+                                                              .topCenter,
+                                                          end: Alignment
+                                                              .bottomCenter,
+                                                          colors: [
+                                                            Colors.white
+                                                                .withOpacity(
+                                                                  0.4,
+                                                                ),
+                                                            Colors.transparent,
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  // Play icon
+                                                  Center(
+                                                    child: Icon(
+                                                      Icons.play_arrow,
+                                                      size: 80,
+                                                      color: const Color(
+                                                        0xFF475569,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 64),
+                                            const Text(
+                                              'START',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 4.0,
+                                                color: Color(0xFF94A3B8),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    // Waiting state
+                                    if (_isPlaying &&
+                                        _isWaitingForColor &&
+                                        !_isColorVisible &&
+                                        _errorMessage == null &&
+                                        _reactionTimeMessage == null)
+                                      const Center(
+                                        child: Text(
+                                          'WAIT...',
+                                          style: TextStyle(
+                                            fontSize: 32,
+                                            fontWeight: FontWeight.w900,
+                                            color: Color(0xFF94A3B8),
+                                            letterSpacing: 4.0,
+                                          ),
+                                        ),
+                                      ),
+                                    // Background blur pattern
+                                    if (!_isColorVisible &&
+                                        _errorMessage == null &&
+                                        _reactionTimeMessage == null)
+                                      Positioned.fill(
+                                        child: Opacity(
+                                          opacity: 0.03,
+                                          child: Center(
+                                            child: Icon(
+                                              Icons.blur_circular,
+                                              size: 400,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Best session indicator
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: BackdropFilter(
+                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: const Color(0xFFDBEAFE),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFFDBEAFE,
+                                        ).withOpacity(0.8),
+                                        blurRadius: 8,
+                                        spreadRadius: 0,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'BEST SESSION: ${_bestSession}MS',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.5,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Bottom indicator
+              Padding(
+                padding: const EdgeInsets.only(bottom: 32),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 40,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(3),
+                        color: const Color(0xFF94A3B8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

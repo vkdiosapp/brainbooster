@@ -8,7 +8,12 @@ import '../language_settings.dart';
 import 'terms_webview_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool isEditMode;
+  
+  const LoginPage({
+    super.key,
+    this.isEditMode = false,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -24,6 +29,24 @@ class _LoginPageState extends State<LoginPage> {
   String? _lastNameError;
   String? _birthdateError;
   String? _termsError;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isEditMode) {
+      _loadExistingData();
+    }
+  }
+
+  Future<void> _loadExistingData() async {
+    final data = await LoginService.getLoginData();
+    setState(() {
+      _firstNameController.text = data['firstName'] ?? '';
+      _lastNameController.text = data['lastName'] ?? '';
+      _birthdateController.text = data['birthdate'] ?? '';
+      _acceptTerms = true; // Auto-accept in edit mode
+    });
+  }
 
   @override
   void dispose() {
@@ -82,8 +105,8 @@ class _LoginPageState extends State<LoginPage> {
         _birthdateError = 'Please select your birthdate';
       }
 
-      // Validate terms
-      if (!_acceptTerms) {
+      // Validate terms (only if not in edit mode)
+      if (!widget.isEditMode && !_acceptTerms) {
         _termsError = 'Please accept Terms and Conditions';
       }
     });
@@ -92,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
     if (_firstNameError == null &&
         _lastNameError == null &&
         _birthdateError == null &&
-        _termsError == null) {
+        (widget.isEditMode || _termsError == null)) {
       _saveLogin();
     }
   }
@@ -104,11 +127,15 @@ class _LoginPageState extends State<LoginPage> {
       birthdate: _birthdateController.text,
     );
 
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    }
+      if (mounted) {
+        if (widget.isEditMode) {
+          Navigator.of(context).pop(); // Go back to home page
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
+      }
   }
 
   @override
@@ -175,12 +202,82 @@ class _LoginPageState extends State<LoginPage> {
           SafeArea(
             child: Column(
               children: [
+                // App bar for edit mode (similar to language page)
+                if (widget.isEditMode)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      children: [
+                        // Back button - left aligned with frosted glass effect
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.4),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.6),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                                BoxShadow(
+                                  color: Colors.white.withOpacity(0.8),
+                                  blurRadius: 1,
+                                  offset: const Offset(0, 1),
+                                  blurStyle: BlurStyle.inner,
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                                child: const Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFF475569),
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Spacer to center the title
+                        const Spacer(),
+                        // Title - centered on screen
+                        const Text(
+                          'Edit Profile',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        // Spacer to balance the back button
+                        const Spacer(),
+                        // Invisible placeholder to balance the back button width
+                        const SizedBox(width: 40),
+                      ],
+                    ),
+                  ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(
                       left: 32,
                       right: 32,
-                      top: 48,
+                      top: widget.isEditMode ? 16 : 48,
                       bottom: 32,
                     ),
                     child: Form(
@@ -188,109 +285,111 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title section with mb-12
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Welcome to',
-                                          style: TextStyle(
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: -0.025,
-                                            color: Color(0xFF0F172A),
-                                            height: 1.2,
-                                          ),
-                                        ),
-                                        const Text(
-                                          'Brain Booster',
-                                          style: TextStyle(
-                                            fontSize: 42,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: -0.025,
-                                            color: Color(0xFF0F172A),
-                                            height: 1.2,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Language selector in top right
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => const LanguageSelectionPage(),
-                                        ),
-                                      ).then((_) {
-                                        // Rebuild the page when language changes
-                                        if (mounted) {
-                                          setState(() {});
-                                        }
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(999),
-                                        border: Border.all(
-                                          color: const Color(0xFFF1F5F9),
-                                          width: 1,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.05),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                          // Title section (hidden in edit mode)
+                          if (!widget.isEditMode) ...[
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Icon(
-                                            Icons.language,
-                                            color: Color(0xFF6366F1),
-                                            size: 18,
+                                          const Text(
+                                            'Welcome to',
+                                            style: TextStyle(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.025,
+                                              color: Color(0xFF0F172A),
+                                              height: 1.2,
+                                            ),
                                           ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            currentLanguageName,
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF334155),
+                                          const Text(
+                                            'Brain Booster',
+                                            style: TextStyle(
+                                              fontSize: 42,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.025,
+                                              color: Color(0xFF0F172A),
+                                              height: 1.2,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Please fill in your details to continue',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[500],
+                                    // Language selector in top right
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => const LanguageSelectionPage(),
+                                          ),
+                                        ).then((_) {
+                                          // Rebuild the page when language changes
+                                          if (mounted) {
+                                            setState(() {});
+                                          }
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(999),
+                                          border: Border.all(
+                                            color: const Color(0xFFF1F5F9),
+                                            width: 1,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.05),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.language,
+                                              color: Color(0xFF6366F1),
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              currentLanguageName,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF334155),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 48),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Please fill in your details to continue',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 48),
+                          ],
                           // First Name
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,105 +622,107 @@ class _LoginPageState extends State<LoginPage> {
                               ],
                             ],
                           ),
-                            const SizedBox(height: 24),
-                            // Terms and Conditions
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _acceptTerms = !_acceptTerms;
-                                            // Clear error when checkbox is checked
-                                            if (_acceptTerms) {
-                                              _termsError = null;
-                                            }
-                                          });
-                                        },
-                                        child: Container(
-                                          width: 24,
-                                          height: 24,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(
+                            // Terms and Conditions (hidden in edit mode)
+                            if (!widget.isEditMode) ...[
+                              const SizedBox(height: 24),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _acceptTerms = !_acceptTerms;
+                                              // Clear error when checkbox is checked
+                                              if (_acceptTerms) {
+                                                _termsError = null;
+                                              }
+                                            });
+                                          },
+                                          child: Container(
+                                            width: 24,
+                                            height: 24,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: _acceptTerms
+                                                    ? const Color(0xFF6366F1)
+                                                    : const Color(0xFFCBD5E1),
+                                                width: 2,
+                                              ),
                                               color: _acceptTerms
                                                   ? const Color(0xFF6366F1)
-                                                  : const Color(0xFFCBD5E1),
-                                              width: 2,
+                                                  : Colors.white,
                                             ),
-                                            color: _acceptTerms
-                                                ? const Color(0xFF6366F1)
-                                                : Colors.white,
+                                            child: _acceptTerms
+                                                ? const Icon(
+                                                    Icons.check,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  )
+                                                : null,
                                           ),
-                                          child: _acceptTerms
-                                              ? const Icon(
-                                                  Icons.check,
-                                                  color: Colors.white,
-                                                  size: 16,
-                                                )
-                                              : null,
                                         ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const TermsWebViewPage(
-                                                  url: 'https://www.google.com',
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          child: RichText(
-                                            text: TextSpan(
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[600],
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              children: [
-                                                const TextSpan(text: 'I Accept '),
-                                                TextSpan(
-                                                  text: 'Terms and Conditions',
-                                                  style: const TextStyle(
-                                                    color: Color(0xFF6366F1),
-                                                    fontWeight: FontWeight.w500,
-                                                    decoration:
-                                                        TextDecoration.underline,
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const TermsWebViewPage(
+                                                    url: 'https://www.google.com',
                                                   ),
                                                 ),
-                                              ],
+                                              );
+                                            },
+                                            child: RichText(
+                                              text: TextSpan(
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[600],
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                children: [
+                                                  const TextSpan(text: 'I Accept '),
+                                                  TextSpan(
+                                                    text: 'Terms and Conditions',
+                                                    style: const TextStyle(
+                                                      color: Color(0xFF6366F1),
+                                                      fontWeight: FontWeight.w500,
+                                                      decoration:
+                                                          TextDecoration.underline,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (_termsError != null) ...[
-                                  const SizedBox(height: 8),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 44),
-                                    child: Text(
-                                      _termsError!,
-                                      style: const TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                      ],
                                     ),
                                   ),
+                                  if (_termsError != null) ...[
+                                    const SizedBox(height: 8),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 44),
+                                      child: Text(
+                                        _termsError!,
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
-                            ),
+                              ),
+                            ],
                             const SizedBox(height: 16),
                               // Login Button - Always enabled
                             Material(
@@ -651,10 +752,10 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     ],
                                   ),
-                                  child: const Center(
+                                  child: Center(
                                     child: Text(
-                                      'Login',
-                                      style: TextStyle(
+                                      widget.isEditMode ? 'Save' : 'Login',
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800,
