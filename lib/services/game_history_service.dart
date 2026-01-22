@@ -56,14 +56,16 @@ class GameHistoryService {
   }
 
   // Get average reaction time from all sessions
+  // This calculates the average of session averages (not average of all individual rounds)
   static Future<int> getAverageTime(String gameId) async {
     final sessions = await getSessions(gameId);
     if (sessions.isEmpty) return 0;
     
-    final allTimes = sessions.expand((s) => s.roundResults.map((r) => r.reactionTime)).toList();
-    if (allTimes.isEmpty) return 0;
+    // Calculate average of all session averages
+    final sessionAverages = sessions.map((s) => s.averageTime).toList();
+    if (sessionAverages.isEmpty) return 0;
     
-    return allTimes.reduce((a, b) => a + b) ~/ allTimes.length;
+    return sessionAverages.reduce((a, b) => a + b) ~/ sessionAverages.length;
   }
 
   // Get best time from all sessions

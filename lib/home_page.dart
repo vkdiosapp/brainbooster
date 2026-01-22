@@ -125,7 +125,11 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _selectedTab == 3 ? 'Edit Profile' : 'Exercises',
+                          _selectedTab == 3
+                              ? 'Edit Profile'
+                              : _selectedTab == 2
+                              ? 'Game Analytics'
+                              : 'Exercises',
                           style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
@@ -135,6 +139,8 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           _selectedTab == 3
                               ? 'Update your personal information'
+                              : _selectedTab == 2
+                              ? 'Performance Analysis'
                               : 'Train your brain today',
                           style: TextStyle(
                             fontSize: 14,
@@ -827,19 +833,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Game Analytics',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'View detailed statistics for each game',
-              style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
-            ),
             const SizedBox(height: 24),
             ...gamesWithAnalytics.map((game) {
               return GestureDetector(

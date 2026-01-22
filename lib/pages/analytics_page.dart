@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import 'package:intl/intl.dart';
@@ -33,7 +34,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     final sessions = await GameHistoryService.getSessions(widget.gameId);
     final last10 = await GameHistoryService.getLast10Sessions(widget.gameId);
     final average = await GameHistoryService.getAverageTime(widget.gameId);
@@ -70,10 +71,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     // Get average of sessions 2-10 (excluding the most recent)
     final previousSessions = _last10Sessions.skip(1).take(9).toList();
     if (previousSessions.isEmpty) return _averageTime;
-    
-    final allTimes = previousSessions.expand((s) => s.roundResults.map((r) => r.reactionTime)).toList();
+
+    final allTimes = previousSessions
+        .expand((s) => s.roundResults.map((r) => r.reactionTime))
+        .toList();
     if (allTimes.isEmpty) return _averageTime;
-    
+
     return allTimes.reduce((a, b) => a + b) ~/ allTimes.length;
   }
 
@@ -88,7 +91,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 children: [
                   // Header
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -109,13 +115,27 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            widget.gameName,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F172A),
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.gameName,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              const Text(
+                                'PERFORMANCE ANALYSIS',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF64748B),
+                                  letterSpacing: 2.0,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Container(
@@ -141,6 +161,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const SizedBox(height: 24),
                           // Chart card
                           Container(
                             width: double.infinity,
@@ -152,15 +173,17 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 width: 1,
                               ),
                             ),
-                            padding: const EdgeInsets.all(20),
+                            padding: const EdgeInsets.all(24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         const Text(
                                           'Reaction Time (ms)',
@@ -171,84 +194,85 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           ),
                                         ),
                                         const SizedBox(height: 4),
-                                        const Text(
-                                          'Last 10 sessions',
-                                          style: TextStyle(
-                                            fontSize: 10,
+                                        Text(
+                                          _last10Sessions.isEmpty
+                                              ? 'No sessions yet'
+                                              : _last10Sessions.length < 10
+                                              ? 'Last ${_last10Sessions.length} ${_last10Sessions.length == 1 ? 'session' : 'sessions'}'
+                                              : 'Last 10 sessions',
+                                          style: const TextStyle(
+                                            fontSize: 12,
                                             color: Color(0xFF94A3B8),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEEF2FF),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(
-                                        Icons.show_chart,
-                                        size: 16,
-                                        color: Color(0xFF6366F1),
-                                      ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF6366F1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 24),
-                                SizedBox(
-                                  height: 176,
-                                  child: _buildChart(),
-                                ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 16),
+                                SizedBox(height: 192, child: _buildChart()),
+                                const SizedBox(height: 16),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'S.${_last10Sessions.length >= 1 ? _last10Sessions.length : "01"}',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Color(0xFF94A3B8),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      'S.${_last10Sessions.length >= 5 ? "05" : "01"}',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Color(0xFF94A3B8),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      'S.${_last10Sessions.length >= 10 ? "10" : _last10Sessions.length.toString().padLeft(2, "0")}',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Color(0xFF94A3B8),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: _last10Sessions.isEmpty
+                                      ? [
+                                          Text(
+                                            'Ses 01',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Color(0xFF94A3B8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ]
+                                      : _last10Sessions.asMap().entries.map((
+                                          entry,
+                                        ) {
+                                          return Text(
+                                            'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              color: Color(0xFF94A3B8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          );
+                                        }).toList(),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          // Average and Best cards
+                          const SizedBox(height: 24),
+                          // Stats cards - 3 in a row
                           Row(
                             children: [
                               Expanded(
                                 child: Container(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(32),
+                                    borderRadius: BorderRadius.circular(24),
                                     border: Border.all(
                                       color: const Color(0xFFF1F5F9),
                                       width: 1,
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       const Text(
                                         'AVERAGE',
@@ -259,28 +283,28 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           letterSpacing: 1.0,
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            '$_averageTime',
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w900,
-                                              color: Color(0xFF0F172A),
+                                      const SizedBox(height: 4),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: '$_averageTime',
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w900,
+                                                color: Color(0xFF0F172A),
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            'ms',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFF94A3B8),
+                                            const TextSpan(
+                                              text: 'ms',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Color(0xFF94A3B8),
+                                                fontWeight: FontWeight.normal,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -289,20 +313,24 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Container(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF6366F1),
-                                    borderRadius: BorderRadius.circular(32),
+                                    borderRadius: BorderRadius.circular(24),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF6366F1).withOpacity(0.3),
+                                        color: const Color(
+                                          0xFF6366F1,
+                                        ).withOpacity(0.2),
                                         blurRadius: 16,
                                         offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       const Text(
                                         'BEST',
@@ -313,28 +341,82 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           letterSpacing: 1.0,
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            '$_bestTime',
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w900,
-                                              color: Colors.white,
+                                      const SizedBox(height: 4),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: '$_bestTime',
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            'ms',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFFC7D2FE),
+                                            const TextSpan(
+                                              text: 'ms',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Color(0xFFC7D2FE),
+                                                fontWeight: FontWeight.normal,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color: const Color(0xFFF1F5F9),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'CONSISTENCY',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF94A3B8),
+                                          letterSpacing: 1.0,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text:
+                                                  '${_consistency.toStringAsFixed(0)}',
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w900,
+                                                color: Color(0xFF0F172A),
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '%',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: const Color(0xFF0F172A),
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -343,77 +425,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          // Consistency card
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color: const Color(0xFFF1F5F9),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'CONSISTENCY',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF94A3B8),
-                                        letterSpacing: 1.0,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${_consistency.toStringAsFixed(0)}%',
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  width: 48,
-                                  height: 48,
-                                  child: Stack(
-                                    children: [
-                                      CircularProgressIndicator(
-                                        value: _consistency / 100,
-                                        strokeWidth: 4,
-                                        backgroundColor: const Color(0xFF6366F1).withOpacity(0.2),
-                                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
-                                      ),
-                                      Center(
-                                        child: Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.white,
-                                          ),
-                                          child: const Icon(
-                                            Icons.verified,
-                                            size: 20,
-                                            color: Color(0xFF6366F1),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 24),
                           // Progress Insight card
                           Container(
                             width: double.infinity,
@@ -427,13 +439,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ),
                             ),
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  width: 40,
-                                  height: 40,
+                                  width: 48,
+                                  height: 48,
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF10B981),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: const Icon(
                                     Icons.trending_up,
@@ -444,7 +457,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Progress Insight',
@@ -457,11 +471,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                       const SizedBox(height: 4),
                                       Text(
                                         _sessions.length >= 2
-                                            ? 'You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your average!'
+                                            ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
                                             : 'Keep playing to see your progress!',
                                         style: const TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 14,
                                           color: Color(0xFF047857),
+                                          height: 1.5,
                                         ),
                                       ),
                                     ],
@@ -470,22 +485,21 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          // Recent Sessions
+                          const SizedBox(height: 24),
+                          // Session History
                           const Text(
-                            'RECENT SESSIONS',
+                            'Session History',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF94A3B8),
-                              letterSpacing: 2.0,
+                              color: Color(0xFF0F172A),
                             ),
                           ),
                           const SizedBox(height: 12),
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(32),
+                              borderRadius: BorderRadius.circular(24),
                               border: Border.all(
                                 color: const Color(0xFFF1F5F9),
                                 width: 1,
@@ -508,15 +522,25 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 : Column(
                                     children: _sessions.take(10).map((session) {
                                       final index = _sessions.indexOf(session);
-                                      final isLast = index == _sessions.take(10).length - 1;
-                                      final previousSession = index < _sessions.length - 1
+                                      final isLast =
+                                          index ==
+                                          _sessions.take(10).length - 1;
+                                      final previousSession =
+                                          index < _sessions.length - 1
                                           ? _sessions[index + 1]
                                           : null;
-                                      final previousAvg = previousSession != null
-                                          ? (previousSession.roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/ previousSession.roundResults.length)
+                                      final previousAvg =
+                                          previousSession != null
+                                          ? (previousSession.roundResults
+                                                    .map((r) => r.reactionTime)
+                                                    .reduce((a, b) => a + b) ~/
+                                                previousSession
+                                                    .roundResults
+                                                    .length)
                                           : session.averageTime;
-                                      final diff = session.averageTime - previousAvg;
-                                      
+                                      final diff =
+                                          session.averageTime - previousAvg;
+
                                       return Container(
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
@@ -524,13 +548,16 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                               ? null
                                               : Border(
                                                   bottom: BorderSide(
-                                                    color: const Color(0xFFF8FAFC),
+                                                    color: const Color(
+                                                      0xFFF8FAFC,
+                                                    ),
                                                     width: 1,
                                                   ),
                                                 ),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Row(
                                               children: [
@@ -539,37 +566,53 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                   height: 32,
                                                   decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
-                                                    color: const Color(0xFFF1F5F9),
+                                                    color: const Color(
+                                                      0xFFF1F5F9,
+                                                    ),
                                                   ),
                                                   child: Center(
                                                     child: Text(
-                                                      session.sessionNumber.toString().padLeft(2, '0'),
+                                                      session.sessionNumber
+                                                          .toString()
+                                                          .padLeft(2, '0'),
                                                       style: const TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Color(0xFF64748B),
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Color(
+                                                          0xFF64748B,
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
                                                 const SizedBox(width: 12),
                                                 Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      _formatDate(session.timestamp),
+                                                      _formatDate(
+                                                        session.timestamp,
+                                                      ),
                                                       style: const TextStyle(
                                                         fontSize: 14,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Color(0xFF0F172A),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Color(
+                                                          0xFF0F172A,
+                                                        ),
                                                       ),
                                                     ),
                                                     Text(
                                                       'Session #${session.sessionNumber.toString().padLeft(2, "0")}',
                                                       style: const TextStyle(
                                                         fontSize: 10,
-                                                        color: Color(0xFF94A3B8),
-                                                        fontWeight: FontWeight.w500,
+                                                        color: Color(
+                                                          0xFF94A3B8,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
                                                   ],
@@ -577,7 +620,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                               ],
                                             ),
                                             Column(
-                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
                                               children: [
                                                 Text(
                                                   '${session.averageTime}ms',
@@ -585,8 +629,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.bold,
                                                     color: diff < 0
-                                                        ? const Color(0xFF6366F1)
-                                                        : const Color(0xFF0F172A),
+                                                        ? const Color(
+                                                            0xFF6366F1,
+                                                          )
+                                                        : const Color(
+                                                            0xFF0F172A,
+                                                          ),
                                                   ),
                                                 ),
                                                 if (previousSession != null)
@@ -594,10 +642,15 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                     '${diff < 0 ? "-" : "+"}${diff.abs()}ms',
                                                     style: TextStyle(
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       color: diff < 0
-                                                          ? const Color(0xFF10B981)
-                                                          : const Color(0xFFEF4444),
+                                                          ? const Color(
+                                                              0xFF10B981,
+                                                            )
+                                                          : const Color(
+                                                              0xFFEF4444,
+                                                            ),
                                                     ),
                                                   ),
                                               ],
@@ -608,7 +661,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     }).toList(),
                                   ),
                           ),
-                          const SizedBox(height: 100),
+                          const SizedBox(height: 96),
                         ],
                       ),
                     ),
@@ -622,28 +675,27 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   Widget _buildChart() {
     if (_last10Sessions.isEmpty) {
       return Center(
-        child: Text(
-          'No data yet',
-          style: TextStyle(color: Colors.grey[400]),
-        ),
+        child: Text('No data yet', style: TextStyle(color: Colors.grey[400])),
       );
     }
 
     // Get average times for each session
-    final dataPoints = _last10Sessions.map((session) {
-      if (session.roundResults.isEmpty) return 0.0;
-      final sum = session.roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b);
-      final count = session.roundResults.length;
-      if (count == 0) return 0.0;
-      return sum / count;
-    }).where((point) => point.isFinite && !point.isNaN).toList();
+    final dataPoints = _last10Sessions
+        .map((session) {
+          if (session.roundResults.isEmpty) return 0.0;
+          final sum = session.roundResults
+              .map((r) => r.reactionTime)
+              .reduce((a, b) => a + b);
+          final count = session.roundResults.length;
+          if (count == 0) return 0.0;
+          return sum / count;
+        })
+        .where((point) => point.isFinite && !point.isNaN)
+        .toList();
 
     if (dataPoints.isEmpty) {
       return Center(
-        child: Text(
-          'No valid data',
-          style: TextStyle(color: Colors.grey[400]),
-        ),
+        child: Text('No valid data', style: TextStyle(color: Colors.grey[400])),
       );
     }
 
@@ -651,7 +703,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     final maxTime = dataPoints.reduce((a, b) => a > b ? a : b);
     final minTime = dataPoints.reduce((a, b) => a < b ? a : b);
     final range = maxTime - minTime;
-    
+
     final normalizedPoints = dataPoints.map((point) {
       if (range == 0 || !range.isFinite) return 50.0;
       // Invert: lower reaction time = higher on chart
@@ -662,9 +714,56 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       return normalized.clamp(0.0, 100.0);
     }).toList();
 
-    return CustomPaint(
-      painter: ChartPainter(normalizedPoints),
-      child: Container(),
+    // Calculate Y-axis labels (4 evenly spaced values from max to min)
+    final yAxisLabels = <int>[];
+    if (range > 0 && maxTime.isFinite && minTime.isFinite) {
+      // Round to nearest 10 for cleaner labels
+      final roundedMax = ((maxTime / 10).ceil() * 10).toInt();
+      final roundedMin = ((minTime / 10).floor() * 10).toInt();
+      final step = (roundedMax - roundedMin) / 3;
+      for (int i = 0; i < 4; i++) {
+        yAxisLabels.add((roundedMax - (step * i)).round());
+      }
+    } else {
+      // Default values if range is 0
+      final singleValue = maxTime.round();
+      yAxisLabels.addAll([
+        singleValue + 50,
+        singleValue + 25,
+        singleValue,
+        singleValue - 25,
+      ]);
+    }
+
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 24),
+          child: CustomPaint(
+            painter: ChartPainter(normalizedPoints),
+            child: Container(),
+          ),
+        ),
+        // Y-axis labels
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: yAxisLabels.map((value) {
+              return Text(
+                value.toString(),
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFF94A3B8),
+                  fontWeight: FontWeight.w500,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -682,14 +781,25 @@ class ChartPainter extends CustomPainter {
     final validPoints = points.where((p) => p.isFinite && !p.isNaN).toList();
     if (validPoints.isEmpty) return;
 
+    // Create gradient paint
     final paint = Paint()
-      ..color = const Color(0xFF3B82F6)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
+      ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
+    // Create gradient shader
+    final gradient = ui.Gradient.linear(
+      const Offset(0, 0),
+      Offset(size.width, 0),
+      const [
+        Color(0xFF8B5CF6), // Purple
+        Color(0xFF3B82F6), // Blue
+      ],
+    );
+    paint.shader = gradient;
+
     final path = Path();
-    
+
     // Handle single point case
     if (validPoints.length == 1) {
       final x = size.width / 2;
@@ -699,14 +809,14 @@ class ChartPainter extends CustomPainter {
         canvas.drawPath(path, paint);
         canvas.drawCircle(
           Offset(x, y),
-          3.5,
+          6,
           Paint()
             ..color = const Color(0xFF3B82F6)
             ..style = PaintingStyle.fill,
         );
         canvas.drawCircle(
           Offset(x, y),
-          3.5,
+          6,
           Paint()
             ..color = Colors.white
             ..style = PaintingStyle.stroke
@@ -732,53 +842,50 @@ class ChartPainter extends CustomPainter {
         // Smooth curve
         final prevX = (i - 1) * stepX;
         final prevY = size.height - (validPoints[i - 1] / 100 * size.height);
-        
+
         // Validate all control points
-        if (!prevX.isFinite || prevX.isNaN || !prevY.isFinite || prevY.isNaN) continue;
-        
+        if (!prevX.isFinite || prevX.isNaN || !prevY.isFinite || prevY.isNaN)
+          continue;
+
         final controlX1 = prevX + stepX * 0.5;
         final controlY1 = prevY;
         final controlX2 = x - stepX * 0.5;
         final controlY2 = y;
-        
+
         // Validate control points
-        if (controlX1.isFinite && !controlX1.isNaN &&
-            controlY1.isFinite && !controlY1.isNaN &&
-            controlX2.isFinite && !controlX2.isNaN &&
-            controlY2.isFinite && !controlY2.isNaN) {
+        if (controlX1.isFinite &&
+            !controlX1.isNaN &&
+            controlY1.isFinite &&
+            !controlY1.isNaN &&
+            controlX2.isFinite &&
+            !controlX2.isNaN &&
+            controlY2.isFinite &&
+            !controlY2.isNaN) {
           path.cubicTo(controlX1, controlY1, controlX2, controlY2, x, y);
         } else {
           path.lineTo(x, y);
         }
       }
+
+      // Draw circle on every data point
+      canvas.drawCircle(
+        Offset(x, y),
+        6,
+        Paint()
+          ..color = const Color(0xFF3B82F6)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        Offset(x, y),
+        6,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5,
+      );
     }
 
     canvas.drawPath(path, paint);
-
-    // Draw point on last data point
-    if (validPoints.isNotEmpty) {
-      final lastX = (validPoints.length - 1) * stepX;
-      final lastY = size.height - (validPoints.last / 100 * size.height);
-      
-      // Validate before drawing circle
-      if (lastX.isFinite && !lastX.isNaN && lastY.isFinite && !lastY.isNaN) {
-        canvas.drawCircle(
-          Offset(lastX, lastY),
-          3.5,
-          Paint()
-            ..color = const Color(0xFF3B82F6)
-            ..style = PaintingStyle.fill,
-        );
-        canvas.drawCircle(
-          Offset(lastX, lastY),
-          3.5,
-          Paint()
-            ..color = Colors.white
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.5,
-        );
-      }
-    }
 
     // Draw grid lines
     final gridPaint = Paint()
