@@ -100,4 +100,22 @@ class GameHistoryService {
     if (sessions.isEmpty) return 1;
     return sessions.length + 1;
   }
+
+  // Clear all analytics data for all games
+  static Future<void> clearAllAnalyticsData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys();
+      
+      // Remove all keys that start with the history prefix
+      for (final key in keys) {
+        if (key.startsWith(_historyKeyPrefix)) {
+          await prefs.remove(key);
+        }
+      }
+    } catch (e) {
+      print('Error clearing analytics data: $e');
+      rethrow;
+    }
+  }
 }

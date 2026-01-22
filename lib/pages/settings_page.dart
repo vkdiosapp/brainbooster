@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../language_selection_page.dart';
 import '../game_settings.dart';
+import '../services/game_history_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -268,6 +269,117 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         );
                       },
+                    ),
+                  ),
+                  // Clear Analytics Data option
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildSettingsCard(
+                      onTap: () async {
+                        // Show confirmation dialog
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            title: const Text(
+                              'Clear Analytics Data',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            content: const Text(
+                              'Are you sure you want to delete all analytics data for all games? This action cannot be undone.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text(
+                                  'Clear',
+                                  style: TextStyle(
+                                    color: Color(0xFFEF4444),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == true) {
+                          try {
+                            await GameHistoryService.clearAllAnalyticsData();
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Analytics data cleared successfully'),
+                                  backgroundColor: Color(0xFF10B981),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error clearing data: $e'),
+                                  backgroundColor: const Color(0xFFEF4444),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEF4444).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.delete_outline,
+                              color: Color(0xFFEF4444),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Text(
+                              'Clear Analytics Data',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

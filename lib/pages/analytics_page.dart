@@ -109,27 +109,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.gameName,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                              const Text(
-                                'BENTO ANALYSIS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF94A3B8),
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            widget.gameName,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
                           ),
                         ),
                         Container(
