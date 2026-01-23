@@ -110,202 +110,247 @@ class _HomePageState extends State<HomePage> {
       canPop: false, // Prevent back navigation
       child: Scaffold(
         backgroundColor: GradientBackground.backgroundColor,
+        extendBody: true,
         body: GradientBackground(
           child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _selectedTab == 3
-                              ? 'Edit Profile'
-                              : _selectedTab == 2
-                              ? 'Game Analytics'
-                              : 'Exercises',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        Text(
-                          _selectedTab == 3
-                              ? 'Update your personal information'
-                              : _selectedTab == 2
-                              ? 'Performance Analysis'
-                              : 'Train your brain today',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            _showSearchField ? Icons.close : Icons.search,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _showSearchField = !_showSearchField;
-                              if (!_showSearchField) {
-                                _searchController.clear();
-                                _isSearching = false;
-                                _filteredExercises = _allExercises;
-                                // Restart auto-scroll when search is closed
-                                _startBannerAutoScroll();
-                              } else {
-                                // Stop auto-scroll when search is opened
-                                _stopBannerAutoScroll();
-                                // Focus on search field when shown
-                                Future.delayed(
-                                  const Duration(milliseconds: 100),
-                                  () {
-                                    FocusScope.of(
-                                      context,
-                                    ).requestFocus(FocusNode());
-                                  },
-                                );
-                              }
-                            });
-                          },
-                          style: IconButton.styleFrom(
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            shape: const CircleBorder(),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        IconButton(
-                          icon: const Icon(Icons.settings),
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const SettingsPage(),
-                              ),
-                            );
-                          },
-                          style: IconButton.styleFrom(
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            shape: const CircleBorder(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Search field (appears below header when search button is tapped)
-              if (_showSearchField && _selectedTab == 0)
+            child: Column(
+              children: [
+                // Header
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                  child: TextField(
-                    controller: _searchController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: 'Search exercises...',
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: Color(0xFF94A3B8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _selectedTab == 3
+                                ? 'Edit Profile'
+                                : _selectedTab == 2
+                                ? 'Game Analytics'
+                                : 'Exercises',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          Text(
+                            _selectedTab == 3
+                                ? 'Update your personal information'
+                                : _selectedTab == 2
+                                ? 'Performance Analysis'
+                                : 'Train your brain today',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              _showSearchField ? Icons.close : Icons.search,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _showSearchField = !_showSearchField;
+                                if (!_showSearchField) {
+                                  _searchController.clear();
+                                  _isSearching = false;
+                                  _filteredExercises = _allExercises;
+                                  // Restart auto-scroll when search is closed
+                                  _startBannerAutoScroll();
+                                } else {
+                                  // Stop auto-scroll when search is opened
+                                  _stopBannerAutoScroll();
+                                  // Focus on search field when shown
+                                  Future.delayed(
+                                    const Duration(milliseconds: 100),
+                                    () {
+                                      FocusScope.of(
+                                        context,
+                                      ).requestFocus(FocusNode());
+                                    },
+                                  );
+                                }
+                              });
+                            },
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFFF1F5F9),
+                              shape: const CircleBorder(),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          IconButton(
+                            icon: const Icon(Icons.settings),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const SettingsPage(),
+                                ),
+                              );
+                            },
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFFF1F5F9),
+                              shape: const CircleBorder(),
+                            ),
+                          ),
+                        ],
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                    ),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    ],
                   ),
                 ),
-              Expanded(
-                child: _selectedTab == 3
-                    ? const LoginPage(isEditMode: true)
-                    : _selectedTab == 2
-                    ? _buildStatsView()
-                    : SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Banner section
-                            if (!_isSearching && !_showSearchField) ...[
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
+                // Search field (appears below header when search button is tapped)
+                if (_showSearchField && _selectedTab == 0)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Search exercises...',
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: _selectedTab == 3
+                      ? const LoginPage(isEditMode: true)
+                      : _selectedTab == 2
+                      ? _buildStatsView()
+                      : SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Banner section
+                              if (!_isSearching && !_showSearchField) ...[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  child: SizedBox(
+                                    height:
+                                        MediaQuery.of(context).size.height *
+                                        0.5,
+                                    child: PageView.builder(
+                                      controller: _bannerController,
+                                      onPageChanged: (index) {
+                                        setState(() {
+                                          _currentBannerIndex = index;
+                                        });
+                                      },
+                                      itemCount: _randomExercises.length,
+                                      itemBuilder: (context, index) {
+                                        final exercise =
+                                            _randomExercises[index];
+                                        return _buildBannerCard(exercise);
+                                      },
+                                    ),
+                                  ),
                                 ),
-                                child: SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.5,
-                                  child: PageView.builder(
-                                    controller: _bannerController,
-                                    onPageChanged: (index) {
-                                      setState(() {
-                                        _currentBannerIndex = index;
-                                      });
-                                    },
-                                    itemCount: _randomExercises.length,
+                                const SizedBox(height: 24),
+                                // Banner indicators
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    _randomExercises.length,
+                                    (index) => Container(
+                                      width: index == _currentBannerIndex
+                                          ? 24
+                                          : 6,
+                                      height: 6,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: index == _currentBannerIndex
+                                            ? const Color(0xFF6366F1)
+                                            : Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 40),
+                                // Categories section
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Categories',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // Categories horizontal list
+                                SizedBox(
+                                  height: 100,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
+                                    itemCount: _categories.length,
                                     itemBuilder: (context, index) {
-                                      final exercise = _randomExercises[index];
-                                      return _buildBannerCard(exercise);
+                                      final category = _categories[index];
+                                      return _buildCategoryButton(
+                                        category,
+                                        index,
+                                      );
                                     },
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Banner indicators
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(
-                                  _randomExercises.length,
-                                  (index) => Container(
-                                    width: index == _currentBannerIndex
-                                        ? 24
-                                        : 6,
-                                    height: 6,
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: index == _currentBannerIndex
-                                          ? const Color(0xFF6366F1)
-                                          : Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 40),
-                              // Categories section
+                                const SizedBox(height: 40),
+                              ],
+                              // All Exercises section
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24,
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Categories',
-                                      style: TextStyle(
+                                      _isSearching
+                                          ? 'Search Results'
+                                          : 'All Exercises',
+                                      style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -314,108 +359,65 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              // Categories horizontal list
-                              SizedBox(
-                                height: 100,
+                              // Exercise list
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
                                 child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                  ),
-                                  itemCount: _categories.length,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _filteredExercises.length,
                                   itemBuilder: (context, index) {
-                                    final category = _categories[index];
-                                    return _buildCategoryButton(
-                                      category,
-                                      index,
+                                    final exercise = _filteredExercises[index];
+                                    return _buildExerciseTile(
+                                      exercise,
+                                      index + 1,
                                     );
                                   },
                                 ),
                               ),
-                              const SizedBox(height: 40),
+                              const SizedBox(height: 100),
                             ],
-                            // All Exercises section
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _isSearching
-                                        ? 'Search Results'
-                                        : 'All Exercises',
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            // Exercise list
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: _filteredExercises.length,
-                                itemBuilder: (context, index) {
-                                  final exercise = _filteredExercises[index];
-                                  return _buildExerciseTile(
-                                    exercise,
-                                    index + 1,
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 100),
-                          ],
+                          ),
                         ),
-                      ),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      // Bottom Navigation
-      bottomNavigationBar: Container(
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
-            border: Border(top: BorderSide(color: Colors.grey[200]!, width: 1)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(Icons.home, 'Home', _selectedTab == 0, () {
-                setState(() {
-                  _selectedTab = 0;
-                });
-              }),
-              _buildNavItem(Icons.bar_chart, 'Stats', _selectedTab == 2, () {
-                setState(() {
-                  _selectedTab = 2;
-                });
-              }),
-              _buildNavItem(Icons.person, 'Profile', _selectedTab == 3, () {
-                setState(() {
-                  _selectedTab = 3;
-                  // Close search field when switching to profile
-                  if (_showSearchField) {
-                    _showSearchField = false;
-                    _searchController.clear();
-                    _isSearching = false;
-                    _filteredExercises = _allExercises;
-                  }
-                });
-              }),
-            ],
+        // Bottom Navigation
+        bottomNavigationBar: Material(
+          color: Colors.white.withOpacity(0.7),
+          child: Container(
+            height: 80,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(Icons.home, 'Home', _selectedTab == 0, () {
+                  setState(() {
+                    _selectedTab = 0;
+                  });
+                }),
+                _buildNavItem(Icons.bar_chart, 'Stats', _selectedTab == 2, () {
+                  setState(() {
+                    _selectedTab = 2;
+                  });
+                }),
+                _buildNavItem(Icons.person, 'Profile', _selectedTab == 3, () {
+                  setState(() {
+                    _selectedTab = 3;
+                    // Close search field when switching to profile
+                    if (_showSearchField) {
+                      _showSearchField = false;
+                      _searchController.clear();
+                      _isSearching = false;
+                      _filteredExercises = _allExercises;
+                    }
+                  });
+                }),
+              ],
+            ),
           ),
         ),
       ),
@@ -701,7 +703,7 @@ class _HomePageState extends State<HomePage> {
   /// This automatically builds the list from exercises that have gameIds
   List<Map<String, String>> _getGamesWithAnalytics() {
     final games = <Map<String, String>>[];
-    
+
     // Get all exercises and check which ones have analytics
     for (final exercise in _allExercises) {
       final gameId = _getGameIdFromExerciseId(exercise.id);
@@ -712,7 +714,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
-    
+
     return games;
   }
 
