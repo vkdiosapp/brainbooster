@@ -6,6 +6,7 @@ import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../widgets/game_container.dart';
 import 'color_change_results_page.dart';
 
 class ColorChangePage extends StatefulWidget {
@@ -393,34 +394,10 @@ class _ColorChangePageState extends State<ColorChangePage> {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
-                            borderRadius: BorderRadius.circular(56),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 32,
-                                offset: const Offset(0, 16),
-                              ),
-                            ],
-                          ),
-                          child: GestureDetector(
-                            onTap: _handleTap,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(56),
-                              child: BackdropFilter(
-                                filter: ui.ImageFilter.blur(
-                                  sigmaX: 24,
-                                  sigmaY: 24,
-                                ),
-                                child: Stack(
+                        child: GameContainer(
+                          onTap: _handleTap,
+                          useBackdropFilter: true,
+                          child: Stack(
                                   children: [
                                     // Background gradient blur effect (when not showing color)
                                     if (!_isColorVisible)
@@ -524,9 +501,6 @@ class _ColorChangePageState extends State<ColorChangePage> {
                                       ),
                                   ],
                                 ),
-                              ),
-                            ),
-                          ),
                         ),
                       ),
                     ),

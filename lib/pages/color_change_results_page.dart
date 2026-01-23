@@ -16,9 +16,7 @@ class ColorChangeResultsPage extends StatelessWidget {
   int _calculateAverage() {
     if (roundResults.isEmpty) return 0;
     // Include all rounds (including failed ones with penalty) in average
-    return roundResults
-        .map((r) => r.reactionTime)
-        .reduce((a, b) => a + b) ~/
+    return roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
         roundResults.length;
   }
 
@@ -33,8 +31,10 @@ class ColorChangeResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final averageTime = _calculateAverage();
     // Get Color Change exercise (id: 1) to get timeRequired
-    final colorChangeExercise = ExerciseData.getExercises()
-        .firstWhere((e) => e.id == 1, orElse: () => ExerciseData.getExercises().first);
+    final colorChangeExercise = ExerciseData.getExercises().firstWhere(
+      (e) => e.id == 1,
+      orElse: () => ExerciseData.getExercises().first,
+    );
     final timeRequired = colorChangeExercise.timeRequired;
 
     return Scaffold(
@@ -44,10 +44,7 @@ class ColorChangeResultsPage extends StatelessWidget {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
                 children: [
                   // Back button - left aligned with frosted glass effect
@@ -238,7 +235,9 @@ class ColorChangeResultsPage extends StatelessWidget {
                       child: InkWell(
                         onTap: () {
                           // Navigate to home page
-                          Navigator.of(context).popUntil((route) => route.isFirst);
+                          Navigator.of(
+                            context,
+                          ).popUntil((route) => route.isFirst);
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Container(

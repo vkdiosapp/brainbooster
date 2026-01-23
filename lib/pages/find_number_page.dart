@@ -6,6 +6,7 @@ import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../widgets/game_container.dart';
 import 'color_change_results_page.dart';
 
 class FindNumberPage extends StatefulWidget {
@@ -429,66 +430,12 @@ class _FindNumberPageState extends State<FindNumberPage> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
-                    // Instructions box (only when not playing)
-                    if (!_isPlaying)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: const Color(0xFFE2E8F0),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Text(
-                            'IN EACH ROUND, THE WORD WILL CHANGE - CLICK ON THE APPROPRIATE NUMBER AS QUICKLY AS POSSIBLE',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF0F172A),
-                              height: 1.4,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    if (!_isPlaying) const SizedBox(height: 16),
                     // Game content area
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
-                            borderRadius: BorderRadius.circular(56),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 32,
-                                offset: const Offset(0, 16),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(56),
-                            child: Stack(
+                        child: GameContainer(
+                          child: Stack(
                               children: [
                                 // Main content - Column for active round, gradient for idle
                                 if (_isRoundActive && _gridNumbers.isNotEmpty)
@@ -759,7 +706,6 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                   ),
                               ],
                             ),
-                          ),
                         ),
                       ),
                     ),
