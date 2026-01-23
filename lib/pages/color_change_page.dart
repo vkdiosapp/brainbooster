@@ -7,10 +7,13 @@ import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../widgets/game_container.dart';
+import '../widgets/category_header.dart';
 import 'color_change_results_page.dart';
 
 class ColorChangePage extends StatefulWidget {
-  const ColorChangePage({super.key});
+  final String? categoryName;
+
+  const ColorChangePage({super.key, this.categoryName});
 
   @override
   State<ColorChangePage> createState() => _ColorChangePageState();
@@ -361,16 +364,9 @@ class _ColorChangePageState extends State<ColorChangePage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    // Variant text
-                    const Text(
-                      'VARIANT: HOLOGRAPHIC SILVER',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF94A3B8),
-                        letterSpacing: 2.5,
-                      ),
-                      textAlign: TextAlign.center,
+                    // Category header
+                    CategoryHeader(
+                      categoryName: widget.categoryName ?? 'Reaction',
                     ),
                     const SizedBox(height: 4),
                     // Title
