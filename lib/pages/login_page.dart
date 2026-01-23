@@ -5,7 +5,6 @@ import '../services/login_service.dart';
 import '../home_page.dart';
 import '../language_selection_page.dart';
 import '../language_settings.dart';
-import '../widgets/gradient_background.dart';
 import 'terms_webview_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -23,6 +22,8 @@ class _LoginPageState extends State<LoginPage> {
   final _lastNameController = TextEditingController();
   final _birthdateController = TextEditingController();
   bool _acceptTerms = false;
+  bool _shouldNavigateToHome =
+      false; // Flag to control navigation to home in edit mode
   String? _firstNameError;
   String? _lastNameError;
   String? _birthdateError;
@@ -33,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     if (widget.isEditMode) {
       _loadExistingData();
+      _shouldNavigateToHome = true; // Set flag to navigate to home in edit mode
     }
   }
 
@@ -127,7 +129,14 @@ class _LoginPageState extends State<LoginPage> {
 
     if (mounted) {
       if (widget.isEditMode) {
-        Navigator.of(context).pop(); // Go back to home page
+        // Only navigate to home if flag is set
+        if (_shouldNavigateToHome) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          Navigator.of(context).pop(); // Go back to previous page
+        }
       } else {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -144,82 +153,10 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
-      body: GradientBackground(
-        child: Stack(
-          children: [
-            // Gradient overlay filling whole page
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.3,
-                child: Container(
-                  child: Stack(
-                    children: [
-                      // Blurred gradient circle - matches HTML blur-3xl rounded-full
-                      Positioned(
-                        top: -192, // -top-48 = -192px
-                        left: -96, // -left-24 = -96px
-                        child: Container(
-                          width:
-                              MediaQuery.of(context).size.width *
-                              1.5, // w-[150%]
-                          height:
-                              MediaQuery.of(context).size.width *
-                              1.5, // h-[150%]
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                const Color(
-                                  0xFFA5B4FC,
-                                ).withOpacity(0.4), // darker purple
-                                const Color(
-                                  0xFFC4B5FD,
-                                ).withOpacity(0.4), // darker purple
-                                const Color(
-                                  0xFFB8A5F8,
-                                ).withOpacity(0.4), // darker purple
-                              ],
-                            ),
-                          ),
-                          child: ClipOval(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 64,
-                                sigmaY: 64,
-                              ), // blur-3xl
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      const Color(
-                                        0xFFA5B4FC,
-                                      ).withOpacity(0.4), // darker purple
-                                      const Color(
-                                        0xFFC4B5FD,
-                                      ).withOpacity(0.4), // darker purple
-                                      const Color(
-                                        0xFFB8A5F8,
-                                      ).withOpacity(0.4), // darker purple
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SafeArea(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          SafeArea(
               child: Column(
                 children: [
                   // App bar for edit mode - hidden when shown in tab bar
@@ -768,7 +705,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ],
         ),
-      ),
     );
   }
 }

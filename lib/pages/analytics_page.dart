@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../widgets/gradient_background.dart';
 import 'package:intl/intl.dart';
 
 class AnalyticsPage extends StatefulWidget {
@@ -83,12 +84,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
-              child: Column(
-                children: [
+      backgroundColor: GradientBackground.backgroundColor,
+      body: GradientBackground(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SafeArea(
+                child: Column(
+                  children: [
                   // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -669,6 +671,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 ],
               ),
             ),
+      ),
     );
   }
 
