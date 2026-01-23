@@ -531,6 +531,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
     final displayColor = _currentDisplayColor; // Use current display color (could be target or wrong)
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (_targetColorName != null)
           Padding(
@@ -652,7 +653,11 @@ class _CatchColorPageState extends State<CatchColorPage> {
         },
         contentBuilder: (s, context) {
           if (s.isRoundActive) {
-            return _buildGrid();
+            return Positioned.fill(
+              child: Center(
+                child: _buildGrid(),
+              ),
+            );
           }
           // idle background similar to FindColor
           return Positioned.fill(
