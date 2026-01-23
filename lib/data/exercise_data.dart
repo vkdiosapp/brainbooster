@@ -49,9 +49,9 @@ class ExerciseData {
       Exercise(
         id: 5,
         categoryId: 4,
-        name: 'Schulte Table',
-        desc: 'Expand your peripheral vision',
-        timeRequired: 500,
+        name: 'Catch Color',
+        desc: 'Tap the correct colored tile as fast as you can.',
+        timeRequired: 450,
       ),
       Exercise(
         id: 6,

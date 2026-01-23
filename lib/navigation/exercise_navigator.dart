@@ -3,6 +3,7 @@ import '../pages/color_change_page.dart';
 import '../pages/find_number_page.dart';
 import '../pages/find_color_page.dart';
 import '../pages/catch_ball_page.dart';
+import '../pages/catch_color_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -51,6 +52,14 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => FindColorPage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 5:
+        // Catch Color game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => CatchColorPage(categoryName: category.name),
           ),
         );
         break;
