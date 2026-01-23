@@ -8,6 +8,7 @@ import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
+import '../widgets/gradient_background.dart';
 import 'color_change_results_page.dart';
 
 class ColorChangePage extends StatefulWidget {
@@ -280,21 +281,8 @@ class _ColorChangePageState extends State<ColorChangePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topLeft,
-            radius: 1.5,
-            colors: [
-              Color(0xFFE2E8F0),
-              Color(0xFFF8FAFC),
-              Color(0xFFDBEAFE),
-              Color(0xFFFCE7F3),
-            ],
-            stops: [0.0, 0.3, 0.7, 1.0],
-          ),
-        ),
+      backgroundColor: GradientBackground.backgroundColor,
+      body: GradientBackground(
         child: SafeArea(
           child: Column(
             children: [

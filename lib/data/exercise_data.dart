@@ -44,7 +44,6 @@ class ExerciseData {
         categoryId: 4,
         name: 'Find Color',
         desc: 'Advanced visual differentiation',
-        isPro: true,
         timeRequired: 450,
       ),
       Exercise(

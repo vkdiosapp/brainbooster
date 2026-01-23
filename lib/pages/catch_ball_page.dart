@@ -17,8 +17,7 @@ class CatchBallPage extends StatefulWidget {
   State<CatchBallPage> createState() => _CatchBallPageState();
 }
 
-class _CatchBallPageState extends State<CatchBallPage>
-    with SingleTickerProviderStateMixin {
+class _CatchBallPageState extends State<CatchBallPage> {
   int _currentRound = 0;
   int _completedRounds = 0;
   int _bestSession = 300; // in milliseconds
@@ -33,33 +32,20 @@ class _CatchBallPageState extends State<CatchBallPage>
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
 
-  // Ball position and animation
+  // Ball position and velocity
   Offset _ballPosition = Offset.zero;
-  Offset _targetPosition = Offset.zero;
-  late AnimationController _animationController;
-  late Animation<Offset> _ballAnimation;
+  Offset _ballVelocity = Offset.zero; // Velocity in pixels per frame
+  Timer? _ballMovementTimer;
   double _currentSpeed = 1.8; // Base speed multiplier (moderate speed)
   Size? _containerSize;
 
   // Ball properties
-  static const double _ballRadius = 30.0;
+  static const double _ballRadius = 80.0; // Blue ball radius (outer circle)
+  static const double _blackBallRadius = 40.0; // Black ball radius (inner circle - target)
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900), // Base animation duration (moderate)
-    );
-
-    _ballAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
     _resetGame();
   }
 
@@ -68,7 +54,7 @@ class _CatchBallPageState extends State<CatchBallPage>
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
     _reactionTimeDisplayTimer?.cancel();
-    _animationController.dispose();
+    _ballMovementTimer?.cancel();
     super.dispose();
   }
 
@@ -80,7 +66,7 @@ class _CatchBallPageState extends State<CatchBallPage>
     _isBallVisible = false;
     _ballAppearedTime = null;
     _ballPosition = Offset.zero;
-    _targetPosition = Offset.zero;
+    _ballVelocity = Offset.zero;
     _currentSpeed = 1.8; // Reset to moderate speed
     _errorMessage = null;
     _reactionTimeMessage = null;
@@ -88,8 +74,7 @@ class _CatchBallPageState extends State<CatchBallPage>
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
     _reactionTimeDisplayTimer?.cancel();
-    _animationController.stop();
-    _animationController.reset();
+    _ballMovementTimer?.cancel();
   }
 
   void _startGame() {
@@ -134,20 +119,22 @@ class _CatchBallPageState extends State<CatchBallPage>
 
     final random = math.Random();
     
-    // Calculate safe area for ball (accounting for ball radius)
-    final safeWidth = _containerSize!.width - (_ballRadius * 2);
-    final safeHeight = _containerSize!.height - (_ballRadius * 2);
+    // Calculate safe area for ball (using black ball radius so it can touch edges)
+    final safeWidth = _containerSize!.width - (_blackBallRadius * 2);
+    final safeHeight = _containerSize!.height - (_blackBallRadius * 2);
 
     // Set initial position (random within safe area)
     _ballPosition = Offset(
-      _ballRadius + random.nextDouble() * safeWidth,
-      _ballRadius + random.nextDouble() * safeHeight,
+      _blackBallRadius + random.nextDouble() * safeWidth,
+      _blackBallRadius + random.nextDouble() * safeHeight,
     );
 
-    // Set target position (random within safe area)
-    _targetPosition = Offset(
-      _ballRadius + random.nextDouble() * safeWidth,
-      _ballRadius + random.nextDouble() * safeHeight,
+    // Set initial velocity (random direction with speed based on _currentSpeed)
+    final baseSpeed = 3.0 * _currentSpeed; // Base speed in pixels per frame
+    final angle = random.nextDouble() * 2 * math.pi; // Random angle
+    _ballVelocity = Offset(
+      math.cos(angle) * baseSpeed,
+      math.sin(angle) * baseSpeed,
     );
 
     setState(() {
@@ -156,60 +143,57 @@ class _CatchBallPageState extends State<CatchBallPage>
       _ballAppearedTime = DateTime.now();
     });
 
-    // Start continuous movement
-    _moveBallToTarget();
+    // Start continuous bouncing movement
+    _startBallMovement();
   }
 
-  void _moveBallToTarget() {
+  void _startBallMovement() {
     if (!_isBallVisible || _containerSize == null) return;
 
-    // Calculate animation duration based on current speed
-    // Faster speed = shorter duration
-    final baseDuration = 900.0; // Moderate base duration
-    final duration = (baseDuration / _currentSpeed).clamp(500.0, 1200.0); // Moderate range
-
-    _ballAnimation = Tween<Offset>(
-      begin: _ballPosition,
-      end: _targetPosition,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-
-    _animationController.duration = Duration(milliseconds: duration.toInt());
-    _animationController.reset();
-    _animationController.forward().then((_) {
-      if (_isBallVisible && mounted) {
-        // Ball reached target, move to next random position
-        _selectNewTarget();
-        _moveBallToTarget();
+    _ballMovementTimer?.cancel();
+    _ballMovementTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!_isBallVisible || _containerSize == null || !mounted) {
+        timer.cancel();
+        return;
       }
-    });
 
-    // Update position during animation
-    _ballAnimation.addListener(() {
+      // Update ball position
+      _ballPosition = Offset(
+        _ballPosition.dx + _ballVelocity.dx,
+        _ballPosition.dy + _ballVelocity.dy,
+      );
+
+      // Check for collisions with container edges and bounce (using black ball radius)
+      final minX = _blackBallRadius;
+      final maxX = _containerSize!.width - _blackBallRadius;
+      final minY = _blackBallRadius;
+      final maxY = _containerSize!.height - _blackBallRadius;
+
+      // Bounce off left or right edge
+      if (_ballPosition.dx <= minX || _ballPosition.dx >= maxX) {
+        _ballVelocity = Offset(-_ballVelocity.dx, _ballVelocity.dy);
+        // Clamp position to prevent going outside
+        _ballPosition = Offset(
+          _ballPosition.dx.clamp(minX, maxX),
+          _ballPosition.dy,
+        );
+      }
+
+      // Bounce off top or bottom edge
+      if (_ballPosition.dy <= minY || _ballPosition.dy >= maxY) {
+        _ballVelocity = Offset(_ballVelocity.dx, -_ballVelocity.dy);
+        // Clamp position to prevent going outside
+        _ballPosition = Offset(
+          _ballPosition.dx,
+          _ballPosition.dy.clamp(minY, maxY),
+        );
+      }
+
+      // Update UI
       if (mounted) {
-        setState(() {
-          _ballPosition = _ballAnimation.value;
-        });
+        setState(() {});
       }
     });
-  }
-
-  void _selectNewTarget() {
-    if (_containerSize == null) return;
-
-    final random = math.Random();
-    final safeWidth = _containerSize!.width - (_ballRadius * 2);
-    final safeHeight = _containerSize!.height - (_ballRadius * 2);
-
-    _targetPosition = Offset(
-      _ballRadius + random.nextDouble() * safeWidth,
-      _ballRadius + random.nextDouble() * safeHeight,
-    );
-
-    // Gradually increase speed for difficulty
-    _currentSpeed = (_currentSpeed + 0.05).clamp(1.8, 2.5); // Moderate speed range
   }
 
   void _handleTap(Offset tapPosition) {
@@ -218,13 +202,17 @@ class _CatchBallPageState extends State<CatchBallPage>
     // If ball is not visible yet, ignore the tap (no penalty for early taps)
     if (!_isBallVisible) return;
 
-    // Check if tap is within ball radius
+    // Calculate distance from tap to ball center
     final distance = (tapPosition - _ballPosition).distance;
-    if (distance <= _ballRadius) {
-      // Ball caught!
+    
+    if (distance <= _blackBallRadius) {
+      // Black ball tapped - caught it!
       _catchBall();
+    } else if (distance <= _ballRadius) {
+      // Blue ball area tapped (but not black ball) - do nothing
+      return;
     } else {
-      // Missed - penalty (only when ball is visible and tap is outside)
+      // Missed - tapped outside the blue ball - penalty
       _handleMiss();
     }
   }
@@ -236,7 +224,7 @@ class _CatchBallPageState extends State<CatchBallPage>
       _ballAppearedTime = null;
     });
 
-    _animationController.stop();
+    _ballMovementTimer?.cancel();
 
     // Mark round as failed with penalty
     _roundResults.add(
@@ -288,7 +276,7 @@ class _CatchBallPageState extends State<CatchBallPage>
       }
     });
 
-    _animationController.stop();
+    _ballMovementTimer?.cancel();
 
     // Show reaction time for 1 second, then start next round
     _reactionTimeDisplayTimer?.cancel();
@@ -308,7 +296,7 @@ class _CatchBallPageState extends State<CatchBallPage>
       _isBallVisible = false;
     });
 
-    _animationController.stop();
+    _ballMovementTimer?.cancel();
 
     if (_roundResults.isEmpty) {
       _resetGame();
@@ -453,21 +441,24 @@ class _CatchBallPageState extends State<CatchBallPage>
                     children: [
                       if (state.isRoundActive && _isBallVisible)
                         Positioned(
-                          left: _ballPosition.dx - _ballRadius,
-                          top: _ballPosition.dy - _ballRadius,
+                          left: _ballPosition.dx - _blackBallRadius,
+                          top: _ballPosition.dy - _blackBallRadius,
                           child: Container(
-                            width: _ballRadius * 2,
-                            height: _ballRadius * 2,
+                            width: _blackBallRadius * 2,
+                            height: _blackBallRadius * 2,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFF6366F1),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF6366F1).withOpacity(0.5),
-                                  blurRadius: 12,
-                                  spreadRadius: 2,
+                              color: Colors.transparent, // Blue ball is transparent (used only for radius)
+                            ),
+                            child: Center(
+                              child: Container(
+                                width: _blackBallRadius * 2, // Black ball diameter
+                                height: _blackBallRadius * 2,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black,
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),

@@ -9,6 +9,7 @@ import 'pages/login_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/analytics_page.dart';
 import 'navigation/exercise_navigator.dart';
+import 'widgets/gradient_background.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -108,8 +109,9 @@ class _HomePageState extends State<HomePage> {
     return PopScope(
       canPop: false, // Prevent back navigation
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        body: SafeArea(
+        backgroundColor: GradientBackground.backgroundColor,
+        body: GradientBackground(
+          child: SafeArea(
           child: Column(
             children: [
               // Header
@@ -380,8 +382,9 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        // Bottom Navigation
-        bottomNavigationBar: Container(
+      ),
+      // Bottom Navigation
+      bottomNavigationBar: Container(
           height: 80,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.8),
@@ -659,14 +662,58 @@ class _HomePageState extends State<HomePage> {
 
   String? _getGameIdFromExerciseId(int exerciseId) {
     // Map exercise IDs to game IDs
+    // IMPORTANT: When adding a new game with analytics, add it here
+    // All games that save sessions should be included here
     switch (exerciseId) {
       case 1:
         return 'color_change';
       case 2:
         return 'find_number';
+      case 3:
+        return 'catch_ball';
+      case 4:
+        return 'find_color';
       default:
-        return null; // Other games don't have analytics yet
+        return null; // Games without analytics yet
     }
+  }
+
+  /// Get game name from game ID
+  /// This ensures consistency between gameId and gameName
+  String? _getGameNameFromGameId(String gameId) {
+    // Map game IDs to game names
+    // IMPORTANT: When adding a new game with analytics, add it here
+    switch (gameId) {
+      case 'color_change':
+        return 'Color Change';
+      case 'find_number':
+        return 'Find Number';
+      case 'catch_ball':
+        return 'Catch The Ball';
+      case 'find_color':
+        return 'Find Color';
+      default:
+        return null;
+    }
+  }
+
+  /// Get all games that have analytics support
+  /// This automatically builds the list from exercises that have gameIds
+  List<Map<String, String>> _getGamesWithAnalytics() {
+    final games = <Map<String, String>>[];
+    
+    // Get all exercises and check which ones have analytics
+    for (final exercise in _allExercises) {
+      final gameId = _getGameIdFromExerciseId(exercise.id);
+      if (gameId != null) {
+        final gameName = _getGameNameFromGameId(gameId);
+        if (gameName != null) {
+          games.add({'id': gameId, 'name': gameName});
+        }
+      }
+    }
+    
+    return games;
   }
 
   Widget _buildExerciseTile(Exercise exercise, int number) {
@@ -822,10 +869,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildStatsView() {
-    final gamesWithAnalytics = [
-      {'id': 'color_change', 'name': 'Color Change'},
-      {'id': 'find_number', 'name': 'Find Number'},
-    ];
+    // Automatically get all games with analytics from exercises
+    // When adding a new game:
+    // 1. Add gameId mapping in _getGameIdFromExerciseId()
+    // 2. Add game name mapping in _getGameNameFromGameId()
+    // 3. The game will automatically appear here!
+    final gamesWithAnalytics = _getGamesWithAnalytics();
 
     return SingleChildScrollView(
       child: Padding(

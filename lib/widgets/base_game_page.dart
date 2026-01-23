@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'game_container.dart';
 import 'category_header.dart';
+import 'gradient_background.dart';
 import '../game_settings.dart';
 
 /// Configuration for a game page
@@ -95,21 +96,8 @@ class BaseGamePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topLeft,
-            radius: 1.5,
-            colors: [
-              Color(0xFFE2E8F0),
-              Color(0xFFF8FAFC),
-              Color(0xFFDBEAFE),
-              Color(0xFFFCE7F3),
-            ],
-            stops: [0.0, 0.3, 0.7, 1.0],
-          ),
-        ),
+      backgroundColor: GradientBackground.backgroundColor,
+      body: GradientBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -121,9 +109,7 @@ class BaseGamePage extends StatelessWidget {
                   children: [
                     const SizedBox(height: 16),
                     // Category header
-                    CategoryHeader(
-                      categoryName: config.categoryName,
-                    ),
+                    CategoryHeader(categoryName: config.categoryName),
                     const SizedBox(height: 4),
                     // Title
                     Text(
@@ -272,18 +258,13 @@ class BaseGamePage extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 24,
-        vertical: 16,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         children: [
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.transparent,
-            ),
+            style: IconButton.styleFrom(backgroundColor: Colors.transparent),
           ),
           const Spacer(),
           Text(

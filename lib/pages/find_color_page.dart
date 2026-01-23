@@ -11,25 +11,25 @@ import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
 import 'color_change_results_page.dart';
 
-class FindNumberPage extends StatefulWidget {
+class FindColorPage extends StatefulWidget {
   final String? categoryName;
 
-  const FindNumberPage({super.key, this.categoryName});
+  const FindColorPage({super.key, this.categoryName});
 
   @override
-  State<FindNumberPage> createState() => _FindNumberPageState();
+  State<FindColorPage> createState() => _FindColorPageState();
 }
 
-class _FindNumberPageState extends State<FindNumberPage> {
+class _FindColorPageState extends State<FindColorPage> {
   int _currentRound = 0;
   int _completedRounds = 0;
   int _bestSession = 240; // in milliseconds
   bool _isPlaying = false;
   bool _isWaitingForRound = false;
   bool _isRoundActive = false;
-  int? _targetNumber;
-  String? _targetNumberWord;
-  List<int> _gridNumbers = [];
+  Color? _targetColor;
+  String? _targetColorName;
+  List<Color> _gridColors = [];
   DateTime? _roundStartTime;
   Timer? _delayTimer;
   Timer? _errorDisplayTimer;
@@ -38,19 +38,35 @@ class _FindNumberPageState extends State<FindNumberPage> {
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
 
-  // Number word mapping
-  final Map<int, String> _numberWords = {
-    0: 'ZERO',
-    1: 'ONE',
-    2: 'TWO',
-    3: 'THREE',
-    4: 'FOUR',
-    5: 'FIVE',
-    6: 'SIX',
-    7: 'SEVEN',
-    8: 'EIGHT',
-    9: 'NINE',
+  // Color mapping - using exact colors specified
+  final List<Color> _availableColors = [
+    Colors.red,
+    Colors.orange,
+    Colors.yellow,
+    Colors.green,
+    Colors.blue,
+    Colors.purple,
+    Colors.pink,
+    Colors.brown,
+    Colors.black,
+    Colors.grey,
+  ];
+
+  final Map<Color, String> _colorNames = {
+    Colors.red: 'RED',
+    Colors.orange: 'ORANGE',
+    Colors.yellow: 'YELLOW',
+    Colors.green: 'GREEN',
+    Colors.blue: 'BLUE',
+    Colors.purple: 'PURPLE',
+    Colors.pink: 'PINK',
+    Colors.brown: 'BROWN',
+    Colors.black: 'BLACK',
+    Colors.grey: 'GRAY',
   };
+
+  // Track which colors have been used to ensure no repeats until all are used
+  List<Color> _remainingColors = [];
 
   @override
   void initState() {
@@ -72,13 +88,15 @@ class _FindNumberPageState extends State<FindNumberPage> {
     _isPlaying = false;
     _isWaitingForRound = false;
     _isRoundActive = false;
-    _targetNumber = null;
-    _targetNumberWord = null;
-    _gridNumbers.clear();
+    _targetColor = null;
+    _targetColorName = null;
+    _gridColors.clear();
     _roundStartTime = null;
     _errorMessage = null;
     _reactionTimeMessage = null;
     _roundResults.clear();
+    _remainingColors = List<Color>.from(_availableColors);
+    _remainingColors.shuffle(math.Random());
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
   }
@@ -89,6 +107,9 @@ class _FindNumberPageState extends State<FindNumberPage> {
       _currentRound = 0;
       _completedRounds = 0;
       _roundResults.clear();
+      // Reset color pool when starting a new game
+      _remainingColors = List<Color>.from(_availableColors);
+      _remainingColors.shuffle(math.Random());
     });
     _startNextRound();
   }
@@ -103,9 +124,9 @@ class _FindNumberPageState extends State<FindNumberPage> {
       _currentRound++;
       _isWaitingForRound = true;
       _isRoundActive = false;
-      _targetNumber = null;
-      _targetNumberWord = null;
-      _gridNumbers.clear();
+      _targetColor = null;
+      _targetColorName = null;
+      _gridColors.clear();
       _roundStartTime = null;
       _errorMessage = null;
     });
@@ -121,22 +142,29 @@ class _FindNumberPageState extends State<FindNumberPage> {
   void _showRound() {
     final random = math.Random();
 
-    // Generate random target number (0-9)
-    _targetNumber = random.nextInt(10);
-    _targetNumberWord = _numberWords[_targetNumber];
+    // If all colors have been used, reset the pool
+    if (_remainingColors.isEmpty) {
+      _remainingColors = List<Color>.from(_availableColors);
+      _remainingColors.shuffle(random);
+    }
 
-    // Generate grid with random numbers 0-9 (ensuring target is included)
-    final numbers = List.generate(10, (index) => index);
-    numbers.shuffle(random);
-    _gridNumbers = numbers.take(9).toList();
+    // Get next color from remaining pool (ensures no repeat until all are used)
+    _targetColor = _remainingColors.removeAt(0);
+    _targetColorName = _colorNames[_targetColor];
 
-    // Ensure target number is in the grid
-    if (!_gridNumbers.contains(_targetNumber)) {
-      _gridNumbers[random.nextInt(9)] = _targetNumber!;
+    // Generate grid with random colors (ensuring target is included)
+    // Use all available colors for the grid
+    final colors = List<Color>.from(_availableColors);
+    colors.shuffle(random);
+    _gridColors = colors.take(9).toList();
+
+    // Ensure target color is in the grid
+    if (!_gridColors.contains(_targetColor)) {
+      _gridColors[random.nextInt(9)] = _targetColor!;
     }
 
     // Shuffle again to randomize position
-    _gridNumbers.shuffle(random);
+    _gridColors.shuffle(random);
 
     setState(() {
       _isWaitingForRound = false;
@@ -145,10 +173,10 @@ class _FindNumberPageState extends State<FindNumberPage> {
     });
   }
 
-  void _handleNumberTap(int tappedNumber) {
+  void _handleColorTap(Color tappedColor) {
     if (!_isRoundActive || _roundStartTime == null) return;
 
-    if (tappedNumber == _targetNumber) {
+    if (tappedColor == _targetColor) {
       // Correct tap - calculate reaction time
       final reactionTime = DateTime.now()
           .difference(_roundStartTime!)
@@ -187,12 +215,12 @@ class _FindNumberPageState extends State<FindNumberPage> {
     });
   }
 
-  Widget _buildNumberCell(int number) {
+  Widget _buildColorCell(Color color) {
     return GestureDetector(
-      onTap: () => _handleNumberTap(number),
+      onTap: () => _handleColorTap(color),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: color,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
           boxShadow: [
@@ -202,16 +230,6 @@ class _FindNumberPageState extends State<FindNumberPage> {
               offset: const Offset(0, 2),
             ),
           ],
-        ),
-        child: Center(
-          child: Text(
-            number.toString(),
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF0F172A),
-            ),
-          ),
         ),
       ),
     );
@@ -281,11 +299,11 @@ class _FindNumberPageState extends State<FindNumberPage> {
     // Save game session
     if (_roundResults.isNotEmpty) {
       final sessionNumber = await GameHistoryService.getNextSessionNumber(
-        'find_number',
+        'find_color',
       );
       final session = GameSession(
-        gameId: 'find_number',
-        gameName: 'Find Number',
+        gameId: 'find_color',
+        gameName: 'Find Color',
         timestamp: DateTime.now(),
         sessionNumber: sessionNumber,
         roundResults: List.from(_roundResults),
@@ -343,7 +361,7 @@ class _FindNumberPageState extends State<FindNumberPage> {
                     ),
                     const Spacer(),
                     const Text(
-                      'FIND NUMBER',
+                      'FIND COLOR',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
@@ -394,18 +412,18 @@ class _FindNumberPageState extends State<FindNumberPage> {
                     const SizedBox(height: 16),
                     // Category header
                     CategoryHeader(
-                      categoryName: widget.categoryName ?? 'Memory',
+                      categoryName: widget.categoryName ?? 'Visual',
                     ),
                     const SizedBox(height: 4),
                     // Title
                     Text(
                       _isPlaying
                           ? (_isWaitingForRound
-                                ? 'Wait for the number...'
+                                ? 'Wait for the color...'
                                 : (_isRoundActive
                                       ? 'TAP NOW!'
                                       : 'Round $_currentRound'))
-                          : 'Tap the correct number',
+                          : 'Tap the correct color',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -422,11 +440,11 @@ class _FindNumberPageState extends State<FindNumberPage> {
                           child: Stack(
                               children: [
                                 // Main content - Column for active round, gradient for idle
-                                if (_isRoundActive && _gridNumbers.isNotEmpty)
+                                if (_isRoundActive && _gridColors.isNotEmpty)
                                   Column(
                                     children: [
-                                      // Target number word banner
-                                      if (_targetNumberWord != null)
+                                      // Target color name banner
+                                      if (_targetColorName != null)
                                         Padding(
                                           padding: const EdgeInsets.fromLTRB(
                                             12,
@@ -454,7 +472,7 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                               ],
                                             ),
                                             child: Text(
-                                              _targetNumberWord!,
+                                              _targetColorName!,
                                               style: const TextStyle(
                                                 fontSize: 24,
                                                 fontWeight: FontWeight.w900,
@@ -465,7 +483,7 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                             ),
                                           ),
                                         ),
-                                      // Number grid - fills remaining space
+                                      // Color grid - fills remaining space
                                       Expanded(
                                         child: Padding(
                                           padding: const EdgeInsets.all(20),
@@ -481,8 +499,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[0],
+                                                        child: _buildColorCell(
+                                                          _gridColors[0],
                                                         ),
                                                       ),
                                                     ),
@@ -492,8 +510,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[1],
+                                                        child: _buildColorCell(
+                                                          _gridColors[1],
                                                         ),
                                                       ),
                                                     ),
@@ -503,8 +521,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[2],
+                                                        child: _buildColorCell(
+                                                          _gridColors[2],
                                                         ),
                                                       ),
                                                     ),
@@ -521,8 +539,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[3],
+                                                        child: _buildColorCell(
+                                                          _gridColors[3],
                                                         ),
                                                       ),
                                                     ),
@@ -532,8 +550,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[4],
+                                                        child: _buildColorCell(
+                                                          _gridColors[4],
                                                         ),
                                                       ),
                                                     ),
@@ -543,8 +561,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[5],
+                                                        child: _buildColorCell(
+                                                          _gridColors[5],
                                                         ),
                                                       ),
                                                     ),
@@ -561,8 +579,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[6],
+                                                        child: _buildColorCell(
+                                                          _gridColors[6],
                                                         ),
                                                       ),
                                                     ),
@@ -572,8 +590,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[7],
+                                                        child: _buildColorCell(
+                                                          _gridColors[7],
                                                         ),
                                                       ),
                                                     ),
@@ -583,8 +601,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                                             const EdgeInsets.all(
                                                               3,
                                                             ),
-                                                        child: _buildNumberCell(
-                                                          _gridNumbers[8],
+                                                        child: _buildColorCell(
+                                                          _gridColors[8],
                                                         ),
                                                       ),
                                                     ),

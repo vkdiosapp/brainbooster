@@ -4,6 +4,7 @@ import 'language_settings.dart';
 import 'home_page.dart';
 import 'app_localizations_helper.dart';
 import 'pages/login_page.dart';
+import 'widgets/gradient_background.dart';
 
 class LanguageSelectionPage extends StatefulWidget {
   const LanguageSelectionPage({super.key});
@@ -152,8 +153,9 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
     final sortedKeys = _groupedLanguages.keys.toList()..sort();
 
     return Scaffold(
-      backgroundColor: Colors.white,
-        body: SafeArea(
+      backgroundColor: GradientBackground.backgroundColor,
+      body: GradientBackground(
+        child: SafeArea(
           child: Column(
             children: [
               // Header with back button
@@ -395,6 +397,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
             ],
           ),
         ),
+      ),
     );
   }
 }
