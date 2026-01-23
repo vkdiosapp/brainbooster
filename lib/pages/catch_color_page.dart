@@ -20,9 +20,12 @@ class CatchColorPage extends StatefulWidget {
 class _CatchColorPageState extends State<CatchColorPage> {
   static const int _gridSize = 4; // 4x4
   static const int _turnsPerRound = 7;
-  static const int _correctTurnsPerRound = 3; // Out of 7 turns, 3 will have correct color
-  static const int _turnTimeLimitMs = 3000; // Correct color turn timeout (3 seconds)
-  static const int _wrongColorTurnTimeoutMs = 2000; // Wrong color turn auto-advance (2 seconds)
+  static const int _correctTurnsPerRound =
+      3; // Out of 7 turns, 3 will have correct color
+  static const int _turnTimeLimitMs =
+      3000; // Correct color turn timeout (3 seconds)
+  static const int _wrongColorTurnTimeoutMs =
+      2000; // Wrong color turn auto-advance (2 seconds)
   static const int _wrongTapPenaltyMs = 1000;
 
   int _currentRound = 0;
@@ -36,8 +39,10 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
   Color? _targetColor;
   String? _targetColorName;
-  List<int> _correctTurnIndices = []; // Which turns (0-6) will show the correct color
-  Color? _currentDisplayColor; // The color currently displayed (target or wrong)
+  List<int> _correctTurnIndices =
+      []; // Which turns (0-6) will show the correct color
+  Color?
+  _currentDisplayColor; // The color currently displayed (target or wrong)
 
   int? _activeIndex; // which tile currently shows the color
   int _currentTurnInRound = 0; // 0..6
@@ -54,7 +59,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
   String? _reactionTimeMessage;
 
   final List<int> _turnTimesMs = []; // All turn times (for tracking)
-  final List<int> _tappedTurnTimesMs = []; // Only tapped turns (for average - max 3)
+  final List<int> _tappedTurnTimesMs =
+      []; // Only tapped turns (for average - max 3)
   final List<RoundResult> _roundResults = [];
 
   final List<Color> _availableColors = [
@@ -113,21 +119,21 @@ class _CatchColorPageState extends State<CatchColorPage> {
     _isWaitingForRound = false;
     _isRoundActive = false;
     _isWaitingForTurn = false;
-      _targetColor = null;
-      _targetColorName = null;
-      _correctTurnIndices.clear();
-      _currentDisplayColor = null;
-      _activeIndex = null;
-      _currentTurnInRound = 0;
-      _currentTurnPenaltyMs = 0;
-      _turnStartTime = null;
-      _errorMessage = null;
-      _reactionTimeMessage = null;
-      _turnTimesMs.clear();
-      _tappedTurnTimesMs.clear();
-      _roundResults.clear();
+    _targetColor = null;
+    _targetColorName = null;
+    _correctTurnIndices.clear();
+    _currentDisplayColor = null;
+    _activeIndex = null;
+    _currentTurnInRound = 0;
+    _currentTurnPenaltyMs = 0;
+    _turnStartTime = null;
+    _errorMessage = null;
+    _reactionTimeMessage = null;
+    _turnTimesMs.clear();
+    _tappedTurnTimesMs.clear();
+    _roundResults.clear();
 
-      _remainingColors = List<Color>.from(_availableColors)..shuffle(_rand);
+    _remainingColors = List<Color>.from(_availableColors)..shuffle(_rand);
   }
 
   void _startGame() {
@@ -214,13 +220,15 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
       // Determine if this turn should show the correct color or a wrong color
       final isCorrectTurn = _correctTurnIndices.contains(_currentTurnInRound);
-      
+
       if (isCorrectTurn) {
         // Show the target color
         _currentDisplayColor = _targetColor;
       } else {
         // Show a random wrong color (different from target)
-        final wrongColors = _availableColors.where((c) => c != _targetColor).toList();
+        final wrongColors = _availableColors
+            .where((c) => c != _targetColor)
+            .toList();
         wrongColors.shuffle(_rand);
         _currentDisplayColor = wrongColors.first;
       }
@@ -232,7 +240,9 @@ class _CatchColorPageState extends State<CatchColorPage> {
       });
 
       // Set different timeout based on turn type
-      final timeoutMs = isCorrectTurn ? _turnTimeLimitMs : _wrongColorTurnTimeoutMs;
+      final timeoutMs = isCorrectTurn
+          ? _turnTimeLimitMs
+          : _wrongColorTurnTimeoutMs;
       _turnTimeoutTimer = Timer(
         Duration(milliseconds: timeoutMs),
         _handleTurnTimeout,
@@ -267,7 +277,10 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
   void _handleTileTap(int index) {
     // Don't allow taps during the 1-second delay (all white boxes)
-    if (!_isRoundActive || _isWaitingForTurn || _turnStartTime == null || _activeIndex == null) {
+    if (!_isRoundActive ||
+        _isWaitingForTurn ||
+        _turnStartTime == null ||
+        _activeIndex == null) {
       return;
     }
 
@@ -279,10 +292,10 @@ class _CatchColorPageState extends State<CatchColorPage> {
         // Correct tap on correct color - calculate reaction time
         final rt =
             DateTime.now().difference(_turnStartTime!).inMilliseconds +
-                _currentTurnPenaltyMs;
+            _currentTurnPenaltyMs;
         _turnTimesMs.add(rt);
         _tappedTurnTimesMs.add(rt);
-        
+
         // Check if we've completed 3 taps - if so, end round immediately
         if (_tappedTurnTimesMs.length >= 3) {
           _endRoundEarly();
@@ -302,11 +315,11 @@ class _CatchColorPageState extends State<CatchColorPage> {
   void _handleWrongTap() {
     // Mark that this round had a penalty
     _hadPenaltyThisRound = true;
-    
+
     // Record penalty time (1000ms) as the score for this turn
     _turnTimesMs.add(_wrongTapPenaltyMs);
     _tappedTurnTimesMs.add(_wrongTapPenaltyMs);
-    
+
     // Check if we've completed 3 taps - if so, end round immediately
     if (_tappedTurnTimesMs.length >= 3) {
       _turnTimeoutTimer?.cancel();
@@ -321,14 +334,14 @@ class _CatchColorPageState extends State<CatchColorPage> {
       });
       return;
     }
-    
+
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
     });
 
     _turnTimeoutTimer?.cancel();
     _overlayTimer?.cancel();
-    
+
     // Show error briefly, then advance to next turn
     _overlayTimer = Timer(const Duration(milliseconds: 500), () {
       if (!mounted) return;
@@ -340,12 +353,12 @@ class _CatchColorPageState extends State<CatchColorPage> {
   void _handleWrongColorTap() {
     // Mark that this round had a penalty
     _hadPenaltyThisRound = true;
-    
+
     // User tapped on a wrong color tile - add penalty and advance to next turn
     // Record penalty time (1000ms) as the score for this turn
     _turnTimesMs.add(_wrongTapPenaltyMs);
     _tappedTurnTimesMs.add(_wrongTapPenaltyMs);
-    
+
     // Check if we've completed 3 taps - if so, end round immediately
     if (_tappedTurnTimesMs.length >= 3) {
       _turnTimeoutTimer?.cancel();
@@ -360,14 +373,14 @@ class _CatchColorPageState extends State<CatchColorPage> {
       });
       return;
     }
-    
+
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
     });
 
     _turnTimeoutTimer?.cancel();
     _overlayTimer?.cancel();
-    
+
     // Show error briefly, then advance to next turn
     _overlayTimer = Timer(const Duration(milliseconds: 500), () {
       if (!mounted) return;
@@ -391,7 +404,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
     // Calculate average of only the tapped turns (up to 3)
     final roundAvg = _tappedTurnTimesMs.isEmpty
         ? 0
-        : (_tappedTurnTimesMs.reduce((a, b) => a + b) ~/ _tappedTurnTimesMs.length);
+        : (_tappedTurnTimesMs.reduce((a, b) => a + b) ~/
+              _tappedTurnTimesMs.length);
 
     _roundResults.add(
       RoundResult(
@@ -429,7 +443,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
     // Round completed normally (all 7 turns done): store average of only tapped turns (up to 3)
     final roundAvg = _tappedTurnTimesMs.isEmpty
         ? 0
-        : (_tappedTurnTimesMs.reduce((a, b) => a + b) ~/ _tappedTurnTimesMs.length);
+        : (_tappedTurnTimesMs.reduce((a, b) => a + b) ~/
+              _tappedTurnTimesMs.length);
 
     _roundResults.add(
       RoundResult(
@@ -478,7 +493,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
     if (successfulRounds.isNotEmpty) {
       averageTime =
           successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              successfulRounds.length;
+          successfulRounds.length;
       bestTime = successfulRounds
           .map((r) => r.reactionTime)
           .reduce((a, b) => a < b ? a : b);
@@ -488,12 +503,13 @@ class _CatchColorPageState extends State<CatchColorPage> {
     } else if (_roundResults.isNotEmpty) {
       averageTime =
           _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              _roundResults.length;
+          _roundResults.length;
     }
 
     if (_roundResults.isNotEmpty) {
-      final sessionNumber =
-          await GameHistoryService.getNextSessionNumber('catch_color');
+      final sessionNumber = await GameHistoryService.getNextSessionNumber(
+        'catch_color',
+      );
       final session = GameSession(
         gameId: 'catch_color',
         gameName: 'Catch Color',
@@ -527,11 +543,16 @@ class _CatchColorPageState extends State<CatchColorPage> {
   }
 
   Widget _buildGrid() {
-    final activeIndex = _isWaitingForTurn ? null : _activeIndex; // Hide color during 1-second delay
-    final displayColor = _currentDisplayColor; // Use current display color (could be target or wrong)
+    final activeIndex = _isWaitingForTurn
+        ? null
+        : _activeIndex; // Hide color during 1-second delay
+    final displayColor =
+        _currentDisplayColor; // Use current display color (could be target or wrong)
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
       children: [
         if (_targetColorName != null)
           Padding(
@@ -599,20 +620,21 @@ class _CatchColorPageState extends State<CatchColorPage> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(
-            _isRoundActive
-                ? 'TURN ${_currentTurnInRound + 1} / $_turnsPerRound'
-                : '',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2.0,
-              color: Color(0xFF94A3B8),
-            ),
-          ),
-        ),
+        //DONT REMOVE THIS CODE. WE WILL USE IN FUTURE
+        // Padding(
+        //   padding: const EdgeInsets.only(bottom: 4),
+        //   child: Text(
+        //     _isRoundActive
+        //         ? 'TURN ${_currentTurnInRound + 1} / $_turnsPerRound'
+        //         : '',
+        //     style: const TextStyle(
+        //       fontSize: 12,
+        //       fontWeight: FontWeight.w800,
+        //       letterSpacing: 2.0,
+        //       color: Color(0xFF94A3B8),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
@@ -653,11 +675,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
         },
         contentBuilder: (s, context) {
           if (s.isRoundActive) {
-            return Positioned.fill(
-              child: Center(
-                child: _buildGrid(),
-              ),
-            );
+            return Positioned.fill(child: _buildGrid());
           }
           // idle background similar to FindColor
           return Positioned.fill(
@@ -686,4 +704,3 @@ class _CatchColorPageState extends State<CatchColorPage> {
     );
   }
 }
-

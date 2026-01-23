@@ -60,20 +60,6 @@ class ExerciseData {
         desc: 'Solve math problems rapidly',
         timeRequired: 600,
       ),
-      Exercise(
-        id: 7,
-        categoryId: 2,
-        name: 'Memory Sequence',
-        desc: 'Remember and recall patterns',
-        timeRequired: 550,
-      ),
-      Exercise(
-        id: 8,
-        categoryId: 5,
-        name: 'Logic Puzzle',
-        desc: 'Solve complex logical problems',
-        timeRequired: 700,
-      ),
     ];
   }
 

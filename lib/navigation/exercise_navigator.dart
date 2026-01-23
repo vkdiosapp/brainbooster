@@ -4,6 +4,7 @@ import '../pages/find_number_page.dart';
 import '../pages/find_color_page.dart';
 import '../pages/catch_ball_page.dart';
 import '../pages/catch_color_page.dart';
+import '../pages/quick_math_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -60,6 +61,14 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => CatchColorPage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 6:
+        // Quick Math game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => QuickMathPage(categoryName: category.name),
           ),
         );
         break;

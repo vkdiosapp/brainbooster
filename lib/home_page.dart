@@ -677,6 +677,8 @@ class _HomePageState extends State<HomePage> {
         return 'find_color';
       case 5:
         return 'catch_color';
+      case 6:
+        return 'quick_math';
       default:
         return null; // Games without analytics yet
     }
@@ -698,6 +700,8 @@ class _HomePageState extends State<HomePage> {
         return 'Find Color';
       case 'catch_color':
         return 'Catch Color';
+      case 'quick_math':
+        return 'Quick Math';
       default:
         return null;
     }
@@ -808,43 +812,33 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(width: 8),
-            // Graph icon (only if game has history)
+            // Graph icon (show for all games with analytics support)
             if (gameId != null)
-              FutureBuilder<List<dynamic>>(
-                future: GameHistoryService.getSessions(gameId),
-                builder: (context, snapshot) {
-                  final hasHistory =
-                      snapshot.hasData && snapshot.data!.isNotEmpty;
-                  if (!hasHistory) {
-                    return const SizedBox.shrink();
-                  }
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => AnalyticsPage(
-                            gameId: gameId,
-                            gameName: exercise.name,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEF2FF),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.show_chart,
-                        color: Color(0xFF6366F1),
-                        size: 20,
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => AnalyticsPage(
+                        gameId: gameId,
+                        gameName: exercise.name,
                       ),
                     ),
                   );
                 },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.show_chart,
+                    color: Color(0xFF6366F1),
+                    size: 20,
+                  ),
+                ),
               ),
             exercise.isPro
                 ? Container(
