@@ -30,6 +30,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
   bool _isPlaying = false;
   bool _isWaitingForRound = false;
   bool _isRoundActive = false;
+  bool _isWaitingForTurn = false; // 1-second delay before turn starts
 
   Color? _targetColor;
   String? _targetColorName;
@@ -39,10 +40,10 @@ class _CatchColorPageState extends State<CatchColorPage> {
   int _currentTurnPenaltyMs = 0;
   DateTime? _turnStartTime;
   Timer? _roundDelayTimer;
+  Timer? _turnStartDelayTimer; // 1-second delay before showing colored tile
   Timer? _turnTimeoutTimer;
   Timer? _overlayTimer;
   bool _hadTimeoutThisRound = false;
-  DateTime? _lastPenaltyUiShownAt;
 
   String? _errorMessage;
   String? _reactionTimeMessage;
@@ -88,6 +89,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
   @override
   void dispose() {
     _roundDelayTimer?.cancel();
+    _turnStartDelayTimer?.cancel();
     _turnTimeoutTimer?.cancel();
     _overlayTimer?.cancel();
     super.dispose();
@@ -95,6 +97,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
   void _resetGame() {
     _roundDelayTimer?.cancel();
+    _turnStartDelayTimer?.cancel();
     _turnTimeoutTimer?.cancel();
     _overlayTimer?.cancel();
 
@@ -103,6 +106,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
     _isPlaying = false;
     _isWaitingForRound = false;
     _isRoundActive = false;
+    _isWaitingForTurn = false;
     _targetColor = null;
     _targetColorName = null;
     _activeIndex = null;
@@ -135,6 +139,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
     }
 
     _roundDelayTimer?.cancel();
+    _turnStartDelayTimer?.cancel();
     _turnTimeoutTimer?.cancel();
     _overlayTimer?.cancel();
 
@@ -142,6 +147,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
       _currentRound++;
       _isWaitingForRound = true;
       _isRoundActive = false;
+      _isWaitingForTurn = false;
       _errorMessage = null;
       _reactionTimeMessage = null;
       _turnTimesMs.clear();
@@ -175,18 +181,31 @@ class _CatchColorPageState extends State<CatchColorPage> {
   }
 
   void _startTurn() {
+    _turnStartDelayTimer?.cancel();
     _turnTimeoutTimer?.cancel();
 
+    // First: show all white boxes for 1 second
     setState(() {
+      _isWaitingForTurn = true;
       _currentTurnPenaltyMs = 0;
-      _turnStartTime = DateTime.now();
-      _activeIndex = _rand.nextInt(_gridSize * _gridSize);
+      _activeIndex = null; // No colored tile visible yet
     });
 
-    _turnTimeoutTimer = Timer(
-      const Duration(milliseconds: _turnTimeLimitMs),
-      _handleTurnTimeout,
-    );
+    // After 1 second, show the colored tile and start the turn
+    _turnStartDelayTimer = Timer(const Duration(seconds: 1), () {
+      if (!mounted || !_isRoundActive) return;
+
+      setState(() {
+        _isWaitingForTurn = false;
+        _turnStartTime = DateTime.now();
+        _activeIndex = _rand.nextInt(_gridSize * _gridSize);
+      });
+
+      _turnTimeoutTimer = Timer(
+        const Duration(milliseconds: _turnTimeLimitMs),
+        _handleTurnTimeout,
+      );
+    });
   }
 
   void _handleTurnTimeout() {
@@ -205,7 +224,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
   }
 
   void _handleTileTap(int index) {
-    if (!_isRoundActive || _turnStartTime == null || _activeIndex == null) {
+    // Don't allow taps during the 1-second delay (all white boxes)
+    if (!_isRoundActive || _isWaitingForTurn || _turnStartTime == null || _activeIndex == null) {
       return;
     }
 
@@ -288,6 +308,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
   Future<void> _endGame() async {
     _roundDelayTimer?.cancel();
+    _turnStartDelayTimer?.cancel();
     _turnTimeoutTimer?.cancel();
     _overlayTimer?.cancel();
 
@@ -295,6 +316,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
       _isPlaying = false;
       _isWaitingForRound = false;
       _isRoundActive = false;
+      _isWaitingForTurn = false;
       _activeIndex = null;
     });
 
@@ -355,7 +377,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
   }
 
   Widget _buildGrid() {
-    final activeIndex = _activeIndex;
+    final activeIndex = _isWaitingForTurn ? null : _activeIndex; // Hide color during 1-second delay
     final targetColor = _targetColor;
 
     return Column(
