@@ -19,8 +19,10 @@ class CatchColorPage extends StatefulWidget {
 
 class _CatchColorPageState extends State<CatchColorPage> {
   static const int _gridSize = 4; // 4x4
-  static const int _turnsPerRound = 3;
-  static const int _turnTimeLimitMs = 3000; // user said "3 ms" -> treated as 3 seconds
+  static const int _turnsPerRound = 7;
+  static const int _correctTurnsPerRound = 3; // Out of 7 turns, 3 will have correct color
+  static const int _turnTimeLimitMs = 3000; // Correct color turn timeout (3 seconds)
+  static const int _wrongColorTurnTimeoutMs = 2000; // Wrong color turn auto-advance (2 seconds)
   static const int _wrongTapPenaltyMs = 1000;
 
   int _currentRound = 0;
@@ -34,9 +36,11 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
   Color? _targetColor;
   String? _targetColorName;
+  List<int> _correctTurnIndices = []; // Which turns (0-6) will show the correct color
+  Color? _currentDisplayColor; // The color currently displayed (target or wrong)
 
   int? _activeIndex; // which tile currently shows the color
-  int _currentTurnInRound = 0; // 0..2
+  int _currentTurnInRound = 0; // 0..6
   int _currentTurnPenaltyMs = 0;
   DateTime? _turnStartTime;
   Timer? _roundDelayTimer;
@@ -44,11 +48,13 @@ class _CatchColorPageState extends State<CatchColorPage> {
   Timer? _turnTimeoutTimer;
   Timer? _overlayTimer;
   bool _hadTimeoutThisRound = false;
+  bool _hadPenaltyThisRound = false;
 
   String? _errorMessage;
   String? _reactionTimeMessage;
 
-  final List<int> _turnTimesMs = [];
+  final List<int> _turnTimesMs = []; // All turn times (for tracking)
+  final List<int> _tappedTurnTimesMs = []; // Only tapped turns (for average - max 3)
   final List<RoundResult> _roundResults = [];
 
   final List<Color> _availableColors = [
@@ -107,18 +113,21 @@ class _CatchColorPageState extends State<CatchColorPage> {
     _isWaitingForRound = false;
     _isRoundActive = false;
     _isWaitingForTurn = false;
-    _targetColor = null;
-    _targetColorName = null;
-    _activeIndex = null;
-    _currentTurnInRound = 0;
-    _currentTurnPenaltyMs = 0;
-    _turnStartTime = null;
-    _errorMessage = null;
-    _reactionTimeMessage = null;
-    _turnTimesMs.clear();
-    _roundResults.clear();
+      _targetColor = null;
+      _targetColorName = null;
+      _correctTurnIndices.clear();
+      _currentDisplayColor = null;
+      _activeIndex = null;
+      _currentTurnInRound = 0;
+      _currentTurnPenaltyMs = 0;
+      _turnStartTime = null;
+      _errorMessage = null;
+      _reactionTimeMessage = null;
+      _turnTimesMs.clear();
+      _tappedTurnTimesMs.clear();
+      _roundResults.clear();
 
-    _remainingColors = List<Color>.from(_availableColors)..shuffle(_rand);
+      _remainingColors = List<Color>.from(_availableColors)..shuffle(_rand);
   }
 
   void _startGame() {
@@ -151,11 +160,14 @@ class _CatchColorPageState extends State<CatchColorPage> {
       _errorMessage = null;
       _reactionTimeMessage = null;
       _turnTimesMs.clear();
+      _tappedTurnTimesMs.clear();
       _currentTurnInRound = 0;
       _currentTurnPenaltyMs = 0;
       _turnStartTime = null;
       _activeIndex = null;
+      _currentDisplayColor = null;
       _hadTimeoutThisRound = false;
+      _hadPenaltyThisRound = false;
     });
 
     _roundDelayTimer = Timer(const Duration(milliseconds: 500), () {
@@ -171,6 +183,11 @@ class _CatchColorPageState extends State<CatchColorPage> {
     }
     _targetColor = _remainingColors.removeAt(0);
     _targetColorName = _colorNames[_targetColor];
+
+    // Randomly select 3 turns out of 7 that will show the correct color
+    final allTurns = List.generate(_turnsPerRound, (i) => i);
+    allTurns.shuffle(_rand);
+    _correctTurnIndices = allTurns.take(_correctTurnsPerRound).toList()..sort();
 
     setState(() {
       _isWaitingForRound = false;
@@ -195,14 +212,29 @@ class _CatchColorPageState extends State<CatchColorPage> {
     _turnStartDelayTimer = Timer(const Duration(seconds: 1), () {
       if (!mounted || !_isRoundActive) return;
 
+      // Determine if this turn should show the correct color or a wrong color
+      final isCorrectTurn = _correctTurnIndices.contains(_currentTurnInRound);
+      
+      if (isCorrectTurn) {
+        // Show the target color
+        _currentDisplayColor = _targetColor;
+      } else {
+        // Show a random wrong color (different from target)
+        final wrongColors = _availableColors.where((c) => c != _targetColor).toList();
+        wrongColors.shuffle(_rand);
+        _currentDisplayColor = wrongColors.first;
+      }
+
       setState(() {
         _isWaitingForTurn = false;
         _turnStartTime = DateTime.now();
         _activeIndex = _rand.nextInt(_gridSize * _gridSize);
       });
 
+      // Set different timeout based on turn type
+      final timeoutMs = isCorrectTurn ? _turnTimeLimitMs : _wrongColorTurnTimeoutMs;
       _turnTimeoutTimer = Timer(
-        const Duration(milliseconds: _turnTimeLimitMs),
+        Duration(milliseconds: timeoutMs),
         _handleTurnTimeout,
       );
     });
@@ -211,16 +243,26 @@ class _CatchColorPageState extends State<CatchColorPage> {
   void _handleTurnTimeout() {
     if (!mounted || !_isRoundActive || _turnStartTime == null) return;
 
-    // IMPORTANT (per requirement):
-    // Do NOT move the colored tile to another box until the user taps it.
-    // So on timeout we just apply a penalty and restart the timer, keeping the same index.
-    _hadTimeoutThisRound = true;
-    _applyPenalty(showUi: false);
-    _turnTimeoutTimer?.cancel();
-    _turnTimeoutTimer = Timer(
-      const Duration(milliseconds: _turnTimeLimitMs),
-      _handleTurnTimeout,
-    );
+    // Check if this is a correct color turn or wrong color turn
+    final isCorrectTurn = _correctTurnIndices.contains(_currentTurnInRound);
+
+    if (isCorrectTurn) {
+      // For correct color turns: timeout means user didn't tap in time - apply penalty
+      // IMPORTANT (per requirement):
+      // Do NOT move the colored tile to another box until the user taps it.
+      // So on timeout we just apply a penalty and restart the timer, keeping the same index.
+      _hadTimeoutThisRound = true;
+      _applyPenalty(showUi: false);
+      _turnTimeoutTimer?.cancel();
+      _turnTimeoutTimer = Timer(
+        const Duration(milliseconds: _turnTimeLimitMs),
+        _handleTurnTimeout,
+      );
+    } else {
+      // For wrong color turns: auto-advance after 2 seconds (user should not tap)
+      // Don't add to correct turn times - wrong color turns don't count in average
+      _advanceTurn(isTimeout: true);
+    }
   }
 
   void _handleTileTap(int index) {
@@ -229,13 +271,28 @@ class _CatchColorPageState extends State<CatchColorPage> {
       return;
     }
 
+    // Check if this turn should have the correct color
+    final isCorrectTurn = _correctTurnIndices.contains(_currentTurnInRound);
+
     if (index == _activeIndex) {
-      // Correct tap - calculate reaction time
-      final rt =
-          DateTime.now().difference(_turnStartTime!).inMilliseconds +
-              _currentTurnPenaltyMs;
-      _turnTimesMs.add(rt);
-      _advanceTurn(isTimeout: false);
+      if (isCorrectTurn && _currentDisplayColor == _targetColor) {
+        // Correct tap on correct color - calculate reaction time
+        final rt =
+            DateTime.now().difference(_turnStartTime!).inMilliseconds +
+                _currentTurnPenaltyMs;
+        _turnTimesMs.add(rt);
+        _tappedTurnTimesMs.add(rt);
+        
+        // Check if we've completed 3 taps - if so, end round immediately
+        if (_tappedTurnTimesMs.length >= 3) {
+          _endRoundEarly();
+        } else {
+          _advanceTurn(isTimeout: false);
+        }
+      } else {
+        // Tapped on wrong color tile (should not tap on wrong colors)
+        _handleWrongColorTap();
+      }
     } else {
       // Wrong tap - end turn immediately with penalty time as score
       _handleWrongTap();
@@ -243,8 +300,66 @@ class _CatchColorPageState extends State<CatchColorPage> {
   }
 
   void _handleWrongTap() {
+    // Mark that this round had a penalty
+    _hadPenaltyThisRound = true;
+    
     // Record penalty time (1000ms) as the score for this turn
     _turnTimesMs.add(_wrongTapPenaltyMs);
+    _tappedTurnTimesMs.add(_wrongTapPenaltyMs);
+    
+    // Check if we've completed 3 taps - if so, end round immediately
+    if (_tappedTurnTimesMs.length >= 3) {
+      _turnTimeoutTimer?.cancel();
+      _overlayTimer?.cancel();
+      setState(() {
+        _errorMessage = 'PENALTY +1 SECOND';
+      });
+      _overlayTimer = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        setState(() => _errorMessage = null);
+        _endRoundEarly();
+      });
+      return;
+    }
+    
+    setState(() {
+      _errorMessage = 'PENALTY +1 SECOND';
+    });
+
+    _turnTimeoutTimer?.cancel();
+    _overlayTimer?.cancel();
+    
+    // Show error briefly, then advance to next turn
+    _overlayTimer = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      setState(() => _errorMessage = null);
+      _advanceTurn(isTimeout: false);
+    });
+  }
+
+  void _handleWrongColorTap() {
+    // Mark that this round had a penalty
+    _hadPenaltyThisRound = true;
+    
+    // User tapped on a wrong color tile - add penalty and advance to next turn
+    // Record penalty time (1000ms) as the score for this turn
+    _turnTimesMs.add(_wrongTapPenaltyMs);
+    _tappedTurnTimesMs.add(_wrongTapPenaltyMs);
+    
+    // Check if we've completed 3 taps - if so, end round immediately
+    if (_tappedTurnTimesMs.length >= 3) {
+      _turnTimeoutTimer?.cancel();
+      _overlayTimer?.cancel();
+      setState(() {
+        _errorMessage = 'PENALTY +1 SECOND';
+      });
+      _overlayTimer = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        setState(() => _errorMessage = null);
+        _endRoundEarly();
+      });
+      return;
+    }
     
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
@@ -268,6 +383,39 @@ class _CatchColorPageState extends State<CatchColorPage> {
     });
   }
 
+  void _endRoundEarly() {
+    _turnTimeoutTimer?.cancel();
+    _turnStartDelayTimer?.cancel();
+    _overlayTimer?.cancel();
+
+    // Calculate average of only the tapped turns (up to 3)
+    final roundAvg = _tappedTurnTimesMs.isEmpty
+        ? 0
+        : (_tappedTurnTimesMs.reduce((a, b) => a + b) ~/ _tappedTurnTimesMs.length);
+
+    _roundResults.add(
+      RoundResult(
+        roundNumber: _currentRound,
+        reactionTime: roundAvg,
+        isFailed: _hadTimeoutThisRound || _hadPenaltyThisRound,
+      ),
+    );
+
+    setState(() {
+      _isRoundActive = false;
+      _completedRounds++;
+      _reactionTimeMessage = '$roundAvg ms';
+      _activeIndex = null;
+      _currentDisplayColor = null;
+    });
+
+    _overlayTimer = Timer(const Duration(milliseconds: 1000), () {
+      if (!mounted) return;
+      setState(() => _reactionTimeMessage = null);
+      _startNextRound();
+    });
+  }
+
   void _advanceTurn({required bool isTimeout}) {
     _turnTimeoutTimer?.cancel();
 
@@ -278,16 +426,16 @@ class _CatchColorPageState extends State<CatchColorPage> {
       return;
     }
 
-    // Round completed: store average of the 3 turns as the round's reaction time
-    final roundAvg = _turnTimesMs.isEmpty
+    // Round completed normally (all 7 turns done): store average of only tapped turns (up to 3)
+    final roundAvg = _tappedTurnTimesMs.isEmpty
         ? 0
-        : (_turnTimesMs.reduce((a, b) => a + b) ~/ _turnTimesMs.length);
+        : (_tappedTurnTimesMs.reduce((a, b) => a + b) ~/ _tappedTurnTimesMs.length);
 
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
         reactionTime: roundAvg,
-        isFailed: _hadTimeoutThisRound,
+        isFailed: _hadTimeoutThisRound || _hadPenaltyThisRound,
       ),
     );
 
@@ -296,6 +444,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
       _completedRounds++;
       _reactionTimeMessage = '$roundAvg ms';
       _activeIndex = null;
+      _currentDisplayColor = null;
     });
 
     _overlayTimer?.cancel();
@@ -318,6 +467,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
       _isRoundActive = false;
       _isWaitingForTurn = false;
       _activeIndex = null;
+      _currentDisplayColor = null;
     });
 
     // Calculate average/best (ignore failed rounds for best session calc)
@@ -378,7 +528,7 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
   Widget _buildGrid() {
     final activeIndex = _isWaitingForTurn ? null : _activeIndex; // Hide color during 1-second delay
-    final targetColor = _targetColor;
+    final displayColor = _currentDisplayColor; // Use current display color (could be target or wrong)
 
     return Column(
       children: [
@@ -423,12 +573,12 @@ class _CatchColorPageState extends State<CatchColorPage> {
               ),
               itemCount: _gridSize * _gridSize,
               itemBuilder: (context, index) {
-                final isActive = activeIndex == index && targetColor != null;
+                final isActive = activeIndex == index && displayColor != null;
                 return GestureDetector(
                   onTap: () => _handleTileTap(index),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isActive ? targetColor : Colors.white,
+                      color: isActive ? displayColor : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: const Color(0xFFE2E8F0),
