@@ -5,6 +5,7 @@ import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
@@ -218,6 +219,8 @@ class _CatchBallPageState extends State<CatchBallPage> {
   }
 
   void _handleMiss() {
+    // Play penalty sound for missed tap
+    SoundService.playPenaltySound();
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
       _isBallVisible = false;
@@ -250,6 +253,9 @@ class _CatchBallPageState extends State<CatchBallPage> {
   void _catchBall() {
     if (!_isBallVisible || _ballAppearedTime == null) return;
 
+    // Play tap sound for successful catch
+    SoundService.playTapSound();
+    
     // Calculate reaction time from when ball appeared
     final reactionTime = DateTime.now()
         .difference(_ballAppearedTime!)
