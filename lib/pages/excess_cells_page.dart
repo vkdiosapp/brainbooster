@@ -514,7 +514,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
           return const SizedBox.shrink();
         },
         contentBuilder: (s, context) {
-          if (s.isRoundActive || s.isWaiting) {
+          if (s.isRoundActive && !s.isWaiting) {
             return Positioned.fill(child: _buildGrid());
           }
           // idle background

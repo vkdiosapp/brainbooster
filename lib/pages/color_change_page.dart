@@ -6,6 +6,7 @@ import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
@@ -141,6 +142,8 @@ class _ColorChangePageState extends State<ColorChangePage> {
     }
 
     if (_isColorVisible && _colorAppearedTime != null) {
+      // Play tap sound for successful tap
+      SoundService.playTapSound();
       // Calculate reaction time
       final reactionTime = DateTime.now()
           .difference(_colorAppearedTime!)
@@ -150,6 +153,8 @@ class _ColorChangePageState extends State<ColorChangePage> {
   }
 
   void _handleEarlyTap() {
+    // Play penalty sound for early tap
+    SoundService.playPenaltySound();
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
       _isWaitingForColor = false;
