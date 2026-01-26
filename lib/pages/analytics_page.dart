@@ -100,19 +100,20 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
       // Save to temporary file
       final tempDir = Directory.systemTemp;
-      final file = await File('${tempDir.path}/analytics_screenshot.png').create();
+      final file = await File(
+        '${tempDir.path}/analytics_screenshot.png',
+      ).create();
       await file.writeAsBytes(image);
 
       // Share the screenshot
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: '${widget.gameName} - Performance Analysis',
-      );
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: '${widget.gameName} - Performance Analysis');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sharing: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error sharing: $e')));
       }
     }
   }
@@ -129,593 +130,617 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 child: SafeArea(
                   child: Column(
                     children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.transparent,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new,
-                              size: 20,
-                              color: Color(0xFF0F172A),
-                            ),
-                          ),
+                      // Header
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.transparent,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new,
+                                  size: 20,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.gameName,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  const Text(
+                                    'PERFORMANCE ANALYSIS',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF64748B),
+                                      letterSpacing: 2.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: _shareScreenshot,
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(0xFFF1F5F9),
+                                ),
+                                child: const Icon(
+                                  Icons.share,
+                                  size: 20,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Main content
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.gameName,
-                                style: const TextStyle(
-                                  fontSize: 20,
+                              const SizedBox(height: 24),
+                              // Chart card
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(40),
+                                  border: Border.all(
+                                    color: const Color(0xFFF1F5F9),
+                                    width: 1,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Reaction Time (ms)',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF64748B),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _last10Sessions.isEmpty
+                                                  ? 'No sessions yet'
+                                                  : _last10Sessions.length < 10
+                                                  ? 'Last ${_last10Sessions.length} ${_last10Sessions.length == 1 ? 'session' : 'sessions'}'
+                                                  : 'Last 10 sessions',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Color(0xFF94A3B8),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF6366F1),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    SizedBox(height: 192, child: _buildChart()),
+                                    const SizedBox(height: 16),
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 24),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: _last10Sessions.isEmpty
+                                            ? [
+                                                Text(
+                                                  'Ses 01',
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: Color(0xFF94A3B8),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ]
+                                            : _last10Sessions.asMap().entries.map((
+                                                entry,
+                                              ) {
+                                                return Text(
+                                                  'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: Color(0xFF94A3B8),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                );
+                                              }).toList(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Stats cards - 3 in a row
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(
+                                          color: const Color(0xFFF1F5F9),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'AVERAGE',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF94A3B8),
+                                              letterSpacing: 1.0,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: '$_averageTime',
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: Color(0xFF0F172A),
+                                                  ),
+                                                ),
+                                                const TextSpan(
+                                                  text: 'ms',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Color(0xFF94A3B8),
+                                                    fontWeight:
+                                                        FontWeight.normal,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF6366F1),
+                                        borderRadius: BorderRadius.circular(24),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(
+                                              0xFF6366F1,
+                                            ).withOpacity(0.2),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'BEST',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFC7D2FE),
+                                              letterSpacing: 1.0,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: '$_bestTime',
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                const TextSpan(
+                                                  text: 'ms',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Color(0xFFC7D2FE),
+                                                    fontWeight:
+                                                        FontWeight.normal,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(
+                                          color: const Color(0xFFF1F5F9),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'CONSISTENCY',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF94A3B8),
+                                              letterSpacing: 1.0,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text:
+                                                      '${_consistency.toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: Color(0xFF0F172A),
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: '%',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: const Color(
+                                                      0xFF0F172A,
+                                                    ),
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              const SizedBox(height: 24),
+                              // Progress Insight card
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFECFDF5),
+                                  borderRadius: BorderRadius.circular(32),
+                                  border: Border.all(
+                                    color: const Color(0xFFD1FAE5),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF10B981),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: const Icon(
+                                        Icons.trending_up,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Progress Insight',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF065F46),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _sessions.length >= 2
+                                                ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
+                                                : 'Keep playing to see your progress!',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Color(0xFF047857),
+                                              height: 1.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Session History
+                              const Text(
+                                'Session History',
+                                style: TextStyle(
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF0F172A),
                                 ),
                               ),
-                              const Text(
-                                'PERFORMANCE ANALYSIS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF64748B),
-                                  letterSpacing: 2.0,
+                              const SizedBox(height: 12),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: const Color(0xFFF1F5F9),
+                                    width: 1,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: _shareScreenshot,
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: const Color(0xFFF1F5F9),
-                            ),
-                            child: const Icon(
-                              Icons.share,
-                              size: 20,
-                              color: Color(0xFF0F172A),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Main content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 24),
-                          // Chart card
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(40),
-                              border: Border.all(
-                                color: const Color(0xFFF1F5F9),
-                                width: 1,
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Reaction Time (ms)',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF64748B),
+                                child: _sessions.isEmpty
+                                    ? Padding(
+                                        padding: const EdgeInsets.all(40),
+                                        child: Center(
+                                          child: Text(
+                                            'No sessions yet.\nPlay the game to see your stats!',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _last10Sessions.isEmpty
-                                              ? 'No sessions yet'
-                                              : _last10Sessions.length < 10
-                                              ? 'Last ${_last10Sessions.length} ${_last10Sessions.length == 1 ? 'session' : 'sessions'}'
-                                              : 'Last 10 sessions',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Color(0xFF94A3B8),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF6366F1),
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                SizedBox(height: 192, child: _buildChart()),
-                                const SizedBox(height: 16),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 24),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: _last10Sessions.isEmpty
-                                        ? [
-                                            Text(
-                                              'Ses 01',
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Color(0xFF94A3B8),
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ]
-                                        : _last10Sessions.asMap().entries.map((
-                                            entry,
-                                          ) {
-                                            return Text(
-                                              'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Color(0xFF94A3B8),
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            );
-                                          }).toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          // Stats cards - 3 in a row
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color: const Color(0xFFF1F5F9),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        'AVERAGE',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF94A3B8),
-                                          letterSpacing: 1.0,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: '$_averageTime',
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w900,
-                                                color: Color(0xFF0F172A),
-                                              ),
-                                            ),
-                                            const TextSpan(
-                                              text: 'ms',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Color(0xFF94A3B8),
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF6366F1),
-                                    borderRadius: BorderRadius.circular(24),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFF6366F1,
-                                        ).withOpacity(0.2),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        'BEST',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFFC7D2FE),
-                                          letterSpacing: 1.0,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: '$_bestTime',
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            const TextSpan(
-                                              text: 'ms',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Color(0xFFC7D2FE),
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color: const Color(0xFFF1F5F9),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        'CONSISTENCY',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF94A3B8),
-                                          letterSpacing: 1.0,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text:
-                                                  '${_consistency.toStringAsFixed(0)}',
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w900,
-                                                color: Color(0xFF0F172A),
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: '%',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: const Color(0xFF0F172A),
-                                                fontWeight: FontWeight.w900,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          const SizedBox(height: 24),
-                          // Progress Insight card
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFECFDF5),
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color: const Color(0xFFD1FAE5),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Icon(
-                                    Icons.trending_up,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Progress Insight',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF065F46),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _sessions.length >= 2
-                                            ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
-                                            : 'Keep playing to see your progress!',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Color(0xFF047857),
-                                          height: 1.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          // Session History
-                          const Text(
-                            'Session History',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F172A),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: const Color(0xFFF1F5F9),
-                                width: 1,
-                              ),
-                            ),
-                            child: _sessions.isEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.all(40),
-                                    child: Center(
-                                      child: Text(
-                                        'No sessions yet.\nPlay the game to see your stats!',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Colors.grey[400],
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Column(
-                                    children: _sessions.take(10).map((session) {
-                                      final index = _sessions.indexOf(session);
-                                      final isLast =
-                                          index ==
-                                          _sessions.take(10).length - 1;
-                                      final previousSession =
-                                          index < _sessions.length - 1
-                                          ? _sessions[index + 1]
-                                          : null;
-                                      final previousAvg =
-                                          previousSession != null
-                                          ? (previousSession.roundResults
-                                                    .map((r) => r.reactionTime)
-                                                    .reduce((a, b) => a + b) ~/
-                                                previousSession
-                                                    .roundResults
-                                                    .length)
-                                          : session.averageTime;
-                                      final diff =
-                                          session.averageTime - previousAvg;
+                                      )
+                                    : Column(
+                                        children: _sessions.take(10).map((
+                                          session,
+                                        ) {
+                                          final index = _sessions.indexOf(
+                                            session,
+                                          );
+                                          final isLast =
+                                              index ==
+                                              _sessions.take(10).length - 1;
+                                          final previousSession =
+                                              index < _sessions.length - 1
+                                              ? _sessions[index + 1]
+                                              : null;
+                                          final previousAvg =
+                                              previousSession != null
+                                              ? (previousSession.roundResults
+                                                        .map(
+                                                          (r) => r.reactionTime,
+                                                        )
+                                                        .reduce(
+                                                          (a, b) => a + b,
+                                                        ) ~/
+                                                    previousSession
+                                                        .roundResults
+                                                        .length)
+                                              : session.averageTime;
+                                          final diff =
+                                              session.averageTime - previousAvg;
 
-                                      return Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          border: isLast
-                                              ? null
-                                              : Border(
-                                                  bottom: BorderSide(
-                                                    color: const Color(
-                                                      0xFFF8FAFC,
+                                          return Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              border: isLast
+                                                  ? null
+                                                  : Border(
+                                                      bottom: BorderSide(
+                                                        color: const Color(
+                                                          0xFFF8FAFC,
+                                                        ),
+                                                        width: 1,
+                                                      ),
                                                     ),
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
-                                                Container(
-                                                  width: 32,
-                                                  height: 32,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: const Color(
-                                                      0xFFF1F5F9,
-                                                    ),
-                                                  ),
-                                                  child: Center(
-                                                    child: Text(
-                                                      session.sessionNumber
-                                                          .toString()
-                                                          .padLeft(2, '0'),
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Color(
-                                                          0xFF64748B,
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 32,
+                                                      height: 32,
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: const Color(
+                                                          0xFFF1F5F9,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          session.sessionNumber
+                                                              .toString()
+                                                              .padLeft(2, '0'),
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                  0xFF64748B,
+                                                                ),
+                                                              ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
+                                                    const SizedBox(width: 12),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          _formatDate(
+                                                            session.timestamp,
+                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                  0xFF0F172A,
+                                                                ),
+                                                              ),
+                                                        ),
+                                                        Text(
+                                                          'Session #${session.sessionNumber.toString().padLeft(2, "0")}',
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 10,
+                                                                color: Color(
+                                                                  0xFF94A3B8,
+                                                                ),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
                                                 ),
-                                                const SizedBox(width: 12),
                                                 Column(
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                      CrossAxisAlignment.end,
                                                   children: [
                                                     Text(
-                                                      _formatDate(
-                                                        session.timestamp,
-                                                      ),
-                                                      style: const TextStyle(
+                                                      '${session.averageTime}ms',
+                                                      style: TextStyle(
                                                         fontSize: 14,
                                                         fontWeight:
                                                             FontWeight.bold,
-                                                        color: Color(
-                                                          0xFF0F172A,
-                                                        ),
+                                                        color: diff < 0
+                                                            ? const Color(
+                                                                0xFF6366F1,
+                                                              )
+                                                            : const Color(
+                                                                0xFF0F172A,
+                                                              ),
                                                       ),
                                                     ),
-                                                    Text(
-                                                      'Session #${session.sessionNumber.toString().padLeft(2, "0")}',
-                                                      style: const TextStyle(
-                                                        fontSize: 10,
-                                                        color: Color(
-                                                          0xFF94A3B8,
+                                                    if (previousSession != null)
+                                                      Text(
+                                                        '${diff < 0 ? "-" : "+"}${diff.abs()}ms',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: diff < 0
+                                                              ? const Color(
+                                                                  0xFF10B981,
+                                                                )
+                                                              : const Color(
+                                                                  0xFFEF4444,
+                                                                ),
                                                         ),
-                                                        fontWeight:
-                                                            FontWeight.w500,
                                                       ),
-                                                    ),
                                                   ],
                                                 ),
                                               ],
                                             ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  '${session.averageTime}ms',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: diff < 0
-                                                        ? const Color(
-                                                            0xFF6366F1,
-                                                          )
-                                                        : const Color(
-                                                            0xFF0F172A,
-                                                          ),
-                                                  ),
-                                                ),
-                                                if (previousSession != null)
-                                                  Text(
-                                                    '${diff < 0 ? "-" : "+"}${diff.abs()}ms',
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: diff < 0
-                                                          ? const Color(
-                                                              0xFF10B981,
-                                                            )
-                                                          : const Color(
-                                                              0xFFEF4444,
-                                                            ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
+                                          );
+                                        }).toList(),
+                                      ),
+                              ),
+                              const SizedBox(height: 96),
+                            ],
                           ),
-                          const SizedBox(height: 96),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
       ),
     );
   }
@@ -747,60 +772,57 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       );
     }
 
-    // Normalize data points to fit in 0-100 range (inverted for chart - lower is better)
+    // Normalize data points to fit in 0-100 range (higher values = higher on chart)
     final maxTime = dataPoints.reduce((a, b) => a > b ? a : b);
     final minTime = dataPoints.reduce((a, b) => a < b ? a : b);
     final range = maxTime - minTime;
 
     final normalizedPoints = dataPoints.map((point) {
       if (range == 0 || !range.isFinite) return 50.0;
-      // Invert: lower reaction time = higher on chart
-      final normalized = 100 - ((point - minTime) / range * 80 + 10);
+      // Higher reaction time = higher on chart (normal orientation)
+      final normalized = ((point - minTime) / range * 80 + 10);
       // Ensure the value is valid
       if (!normalized.isFinite || normalized.isNaN) return 50.0;
       // Clamp between 0 and 100
       return normalized.clamp(0.0, 100.0);
     }).toList();
 
-    // Calculate Y-axis labels (4 evenly spaced values from min to max)
-    // Since chart is inverted (lower time = higher on chart), labels go from min (top) to max (bottom)
+    // Calculate Y-axis labels (4 evenly spaced values from max (top) to min (bottom))
     final yAxisLabelData = <Map<String, double>>[];
-    
+
     if (range > 0 && maxTime.isFinite && minTime.isFinite) {
       // Round to nearest 10 for cleaner labels
       final roundedMax = ((maxTime / 10).ceil() * 10).toDouble();
       final roundedMin = ((minTime / 10).floor() * 10).toDouble();
       final step = (roundedMax - roundedMin) / 3;
-      
-      // Calculate 4 label values from min (top) to max (bottom)
+
+      // Calculate 4 label values from max (top) to min (bottom) - reversed order
       for (int i = 0; i < 4; i++) {
-        final labelValue = roundedMin + (step * i);
-        
+        // Reverse: start from max and go down to min
+        final labelValue = roundedMax - (step * i);
+
         // Calculate normalized position for this label value (same formula as data points)
-        // Lower time = higher normalized value = higher on chart
-        final normalized = 100 - ((labelValue - minTime) / range * 80 + 10);
+        // Higher time = higher normalized value = higher on chart
+        final normalized = ((labelValue - minTime) / range * 80 + 10);
         final clampedNormalized = normalized.clamp(0.0, 100.0);
-        
+
         // Convert normalized (0-100) to Y position in pixels
-        // normalized 100 = top (y=0), normalized 0 = bottom (y=192)
+        // normalized 100 (max) = top (y=0), normalized 0 (min) = bottom (y=192)
         final yPosition = 192 - (clampedNormalized / 100 * 192);
-        
-        yAxisLabelData.add({
-          'value': labelValue,
-          'yPosition': yPosition,
-        });
+
+        yAxisLabelData.add({'value': labelValue, 'yPosition': yPosition});
       }
     } else {
       // Default values if range is 0
       final singleValue = maxTime.toDouble();
       final defaultValues = [
-        singleValue - 25,
-        singleValue - 12.5,
-        singleValue,
         singleValue + 12.5,
+        singleValue,
+        singleValue - 12.5,
+        singleValue - 25,
       ];
-      // For zero range, space evenly from top to bottom
-      final positions = [0.0, 64.0, 128.0, 192.0];
+      // For zero range, space evenly from top to bottom (reversed)
+      final positions = [192.0, 128.0, 64.0, 0.0];
       for (int i = 0; i < 4; i++) {
         yAxisLabelData.add({
           'value': defaultValues[i],
@@ -828,7 +850,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               children: yAxisLabelData.map((labelData) {
                 final value = labelData['value']!;
                 final yPos = labelData['yPosition']!;
-                
+
                 return Positioned(
                   top: yPos - 8, // Center the text vertically (text height ~16)
                   child: Text(
@@ -866,7 +888,7 @@ class ChartPainter extends CustomPainter {
     // Calculate chart area (excluding left padding)
     final chartWidth = (size.width - leftPadding).clamp(0.0, double.infinity);
     final chartStartX = leftPadding;
-    
+
     // Safety check: ensure we have valid chart dimensions
     if (chartWidth <= 0) return;
 
@@ -990,11 +1012,7 @@ class ChartPainter extends CustomPainter {
 
     for (int i = 1; i < 3; i++) {
       final y = size.height / 3 * i;
-      canvas.drawLine(
-        Offset(chartStartX, y),
-        Offset(size.width, y),
-        gridPaint,
-      );
+      canvas.drawLine(Offset(chartStartX, y), Offset(size.width, y), gridPaint);
     }
   }
 
