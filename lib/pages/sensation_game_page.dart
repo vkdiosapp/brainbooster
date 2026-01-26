@@ -36,9 +36,6 @@ class _SensationGamePageState extends State<SensationGamePage> {
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
 
-  // Vibration duration - fixed at 2 seconds
-  static const int _vibrationDuration = 2000; // 2 seconds in milliseconds
-  
   // Platform channel for native vibration
   static const MethodChannel _vibrationChannel = MethodChannel('com.vkd.brainbooster/vibration');
 
@@ -108,16 +105,11 @@ class _SensationGamePageState extends State<SensationGamePage> {
   Future<void> _playVibration() async {
     if (!_isWaitingForVibration) return;
 
-    // Use native iOS vibration via platform channel
-    // This uses AudioServicesPlaySystemSound which works independently of system haptic settings
+    // Trigger continuous 2-second vibration via platform channel
     try {
-      // Call native iOS vibration method for continuous 2-second vibration
-      await _vibrationChannel.invokeMethod('vibrate', {
-        'duration': _vibrationDuration, // 2 seconds in milliseconds
-      });
+      await _vibrationChannel.invokeMethod('vibrate');
     } catch (e) {
-      // If platform channel fails, the vibration just won't play
-      // This is fine - the game will continue
+      // If platform channel fails, continue without vibration
     }
 
     setState(() {

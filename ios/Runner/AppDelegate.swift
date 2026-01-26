@@ -1,14 +1,20 @@
 import Flutter
 import UIKit
+import CoreHaptics
 import AudioToolbox
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
+  private var hapticEngine: CHHapticEngine?
+  
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+    
+    // Initialize haptic engine
+    createHapticEngine()
     
     // Set up vibration method channel after window is created
     if let controller = window?.rootViewController as? FlutterViewController {
@@ -19,13 +25,8 @@ import AudioToolbox
       
       vibrationChannel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in
         if call.method == "vibrate" {
-          if let args = call.arguments as? [String: Any],
-             let duration = args["duration"] as? Int {
-            self?.startContinuousVibration(duration: duration)
-            result(true)
-          } else {
-            result(FlutterError(code: "INVALID_ARGUMENT", message: "Duration is required", details: nil))
-          }
+          self?.startContinuousVibration()
+          result(true)
         } else {
           result(FlutterMethodNotImplemented)
         }
@@ -35,27 +36,61 @@ import AudioToolbox
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
   
-  private var vibrationTimer: Timer?
-  
-  private func startContinuousVibration(duration: Int) {
-    // Stop any existing vibration
-    vibrationTimer?.invalidate()
-    
-    // Calculate number of vibrations needed (vibrate every 100ms)
-    let vibrationCount = duration / 100
-    var currentCount = 0
-    
-    // Use AudioServicesPlaySystemSound which works independently of haptic settings
-    vibrationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
-      // Play system sound vibration (kSystemSoundID_Vibrate = 4095)
-      // This works even when System Haptics is OFF
-      AudioServicesPlaySystemSound(4095)
+  private func createHapticEngine() {
+    do {
+      hapticEngine = try CHHapticEngine()
       
-      currentCount += 1
-      if currentCount >= vibrationCount {
-        timer.invalidate()
-        self?.vibrationTimer = nil
+      hapticEngine?.stoppedHandler = { [weak self] reason in
+        print("Haptic engine stopped: \(reason)")
+        self?.hapticEngine = nil
       }
+      
+      hapticEngine?.resetHandler = { [weak self] in
+        print("Haptic engine reset")
+        self?.createHapticEngine()
+      }
+      
+      try hapticEngine?.start()
+    } catch {
+      print("Failed to create haptic engine: \(error)")
+    }
+  }
+  
+  private func startContinuousVibration() {
+    // Ensure haptic engine exists and is started
+    if hapticEngine == nil {
+      createHapticEngine()
+    }
+    
+    guard let engine = hapticEngine else {
+      // If haptic engine is not available, fallback to system vibration
+      AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+      return
+    }
+    
+    do {
+      // Ensure engine is started
+      try engine.start()
+      
+      // Create a continuous haptic event for 2 seconds
+      let hapticEvent = CHHapticEvent(
+        eventType: .hapticContinuous,
+        parameters: [
+          CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+          CHHapticEventParameter(parameterID: .hapticSharpness, value: 1.0)
+        ],
+        relativeTime: 0,
+        duration: 2.0
+      )
+      
+      let pattern = try CHHapticPattern(events: [hapticEvent], parameters: [])
+      let player = try engine.makePlayer(with: pattern)
+      
+      try player.start(atTime: 0)
+    } catch {
+      print("Failed to play haptic: \(error)")
+      // Fallback to system vibration
+      AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
     }
   }
 }

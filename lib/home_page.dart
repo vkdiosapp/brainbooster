@@ -687,6 +687,10 @@ class _HomePageState extends State<HomePage> {
         return 'sensation';
       case 10:
         return 'sequence_rush';
+      case 11:
+        return 'ball_rush';
+      case 12:
+        return 'ball_track';
       default:
         return null; // Games without analytics yet
     }
@@ -718,6 +722,10 @@ class _HomePageState extends State<HomePage> {
         return 'Sensation';
       case 'sequence_rush':
         return 'Sequence Rush';
+      case 'ball_rush':
+        return 'Ball Rush';
+      case 'ball_track':
+        return 'Ball Track';
       default:
         return null;
     }

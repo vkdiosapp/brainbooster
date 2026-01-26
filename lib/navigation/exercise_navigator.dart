@@ -9,6 +9,8 @@ import '../pages/figure_change_page.dart';
 import '../pages/sound_game_page.dart';
 import '../pages/sensation_game_page.dart';
 import '../pages/sequence_rush_page.dart';
+import '../pages/ball_rush_page.dart';
+import '../pages/ball_track_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -105,6 +107,22 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SequenceRushPage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 11:
+        // Ball Rush game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => BallRushPage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 12:
+        // Ball Track game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => BallTrackPage(categoryName: category.name),
           ),
         );
         break;

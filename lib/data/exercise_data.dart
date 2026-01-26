@@ -88,6 +88,20 @@ class ExerciseData {
         desc: 'Tap numbers in sequence as fast as you can',
         timeRequired: 5000,
       ),
+      Exercise(
+        id: 11,
+        categoryId: 1,
+        name: 'Ball Rush',
+        desc: 'Catch all 10 balls as they move around',
+        timeRequired: 3000,
+      ),
+      Exercise(
+        id: 12,
+        categoryId: 2,
+        name: 'Ball Track',
+        desc: 'Memorize the red ball and tap it after they stop',
+        timeRequired: 4000,
+      ),
     ];
   }
 
