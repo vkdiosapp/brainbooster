@@ -717,25 +717,51 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       return normalized.clamp(0.0, 100.0);
     }).toList();
 
-    // Calculate Y-axis labels (4 evenly spaced values from max to min)
-    final yAxisLabels = <int>[];
+    // Calculate Y-axis labels (4 evenly spaced values from min to max)
+    // Since chart is inverted (lower time = higher on chart), labels go from min (top) to max (bottom)
+    final yAxisLabelData = <Map<String, double>>[];
+    
     if (range > 0 && maxTime.isFinite && minTime.isFinite) {
       // Round to nearest 10 for cleaner labels
-      final roundedMax = ((maxTime / 10).ceil() * 10).toInt();
-      final roundedMin = ((minTime / 10).floor() * 10).toInt();
+      final roundedMax = ((maxTime / 10).ceil() * 10).toDouble();
+      final roundedMin = ((minTime / 10).floor() * 10).toDouble();
       final step = (roundedMax - roundedMin) / 3;
+      
+      // Calculate 4 label values from min (top) to max (bottom)
       for (int i = 0; i < 4; i++) {
-        yAxisLabels.add((roundedMax - (step * i)).round());
+        final labelValue = roundedMin + (step * i);
+        
+        // Calculate normalized position for this label value (same formula as data points)
+        // Lower time = higher normalized value = higher on chart
+        final normalized = 100 - ((labelValue - minTime) / range * 80 + 10);
+        final clampedNormalized = normalized.clamp(0.0, 100.0);
+        
+        // Convert normalized (0-100) to Y position in pixels
+        // normalized 100 = top (y=0), normalized 0 = bottom (y=192)
+        final yPosition = 192 - (clampedNormalized / 100 * 192);
+        
+        yAxisLabelData.add({
+          'value': labelValue,
+          'yPosition': yPosition,
+        });
       }
     } else {
       // Default values if range is 0
-      final singleValue = maxTime.round();
-      yAxisLabels.addAll([
-        singleValue + 50,
-        singleValue + 25,
-        singleValue,
+      final singleValue = maxTime.toDouble();
+      final defaultValues = [
         singleValue - 25,
-      ]);
+        singleValue - 12.5,
+        singleValue,
+        singleValue + 12.5,
+      ];
+      // For zero range, space evenly from top to bottom
+      final positions = [0.0, 64.0, 128.0, 192.0];
+      for (int i = 0; i < 4; i++) {
+        yAxisLabelData.add({
+          'value': defaultValues[i],
+          'yPosition': positions[i],
+        });
+      }
     }
 
     return Stack(
@@ -747,23 +773,31 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             child: Container(),
           ),
         ),
-        // Y-axis labels
+        // Y-axis labels positioned at correct chart positions
         Positioned(
           left: 0,
           top: 0,
           bottom: 0,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: yAxisLabels.map((value) {
-              return Text(
-                value.toString(),
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Color(0xFF94A3B8),
-                  fontWeight: FontWeight.w500,
-                ),
-              );
-            }).toList(),
+          child: SizedBox(
+            height: 192, // Match chart height
+            child: Stack(
+              children: yAxisLabelData.map((labelData) {
+                final value = labelData['value']!;
+                final yPos = labelData['yPosition']!;
+                
+                return Positioned(
+                  top: yPos - 8, // Center the text vertically (text height ~16)
+                  child: Text(
+                    value.round().toString(),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ],
