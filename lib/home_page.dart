@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../models/exercise.dart';
@@ -387,39 +388,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         // Bottom Navigation
-        bottomNavigationBar: Material(
-          color: Colors.white.withOpacity(0.7),
-          child: Container(
-            height: 80,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.home, 'Home', _selectedTab == 0, () {
-                  setState(() {
-                    _selectedTab = 0;
-                  });
-                }),
-                _buildNavItem(Icons.bar_chart, 'Stats', _selectedTab == 2, () {
-                  setState(() {
-                    _selectedTab = 2;
-                  });
-                }),
-                _buildNavItem(Icons.person, 'Profile', _selectedTab == 3, () {
-                  setState(() {
-                    _selectedTab = 3;
-                    // Close search field when switching to profile
-                    if (_showSearchField) {
-                      _showSearchField = false;
-                      _searchController.clear();
-                      _isSearching = false;
-                      _filteredExercises = _allExercises;
-                    }
-                  });
-                }),
-              ],
-            ),
-          ),
-        ),
+        bottomNavigationBar: _buildPillNavigationBar(),
       ),
     );
   }
@@ -969,31 +938,120 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavItem(
+  Widget _buildPillNavigationBar() {
+    return Container(
+      height: 100,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      child: Center(
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxWidth: 400),
+          height: 70,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(35),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(35),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(35),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildPillNavItem(
+                      Icons.home_rounded,
+                      'Home',
+                      _selectedTab == 0,
+                      () {
+                        setState(() {
+                          _selectedTab = 0;
+                        });
+                      },
+                    ),
+                    _buildPillNavItem(
+                      Icons.bar_chart_rounded,
+                      'Stats',
+                      _selectedTab == 2,
+                      () {
+                        setState(() {
+                          _selectedTab = 2;
+                        });
+                      },
+                    ),
+                    _buildPillNavItem(
+                      Icons.person_rounded,
+                      'Profile',
+                      _selectedTab == 3,
+                      () {
+                        setState(() {
+                          _selectedTab = 3;
+                          // Close search field when switching to profile
+                          if (_showSearchField) {
+                            _showSearchField = false;
+                            _searchController.clear();
+                            _isSearching = false;
+                            _filteredExercises = _allExercises;
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPillNavItem(
     IconData icon,
     String label,
     bool isActive,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? const Color(0xFF6366F1) : Colors.grey[400],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: isActive ? const Color(0xFF6366F1) : Colors.grey[400],
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: isActive
+                  ? const Color(0xFF6366F1) // Purple for active (same as login button)
+                  : const Color(0xFF64748B), // Grey for inactive
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isActive
+                    ? const Color(0xFF6366F1) // Purple for active (same as login button)
+                    : const Color(0xFF64748B), // Grey for inactive
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
