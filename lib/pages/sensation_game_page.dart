@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../services/vibration_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
@@ -35,9 +35,7 @@ class _SensationGamePageState extends State<SensationGamePage> {
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
-
-  // Platform channel for native vibration
-  static const MethodChannel _vibrationChannel = MethodChannel('com.vkd.brainbooster/vibration');
+  Timer? _vibrationTimer;
 
   @override
   void initState() {
@@ -50,6 +48,7 @@ class _SensationGamePageState extends State<SensationGamePage> {
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
     _reactionTimeDisplayTimer?.cancel();
+    _vibrationTimer?.cancel();
     super.dispose();
   }
 
@@ -64,6 +63,7 @@ class _SensationGamePageState extends State<SensationGamePage> {
     _roundResults.clear();
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
+    _vibrationTimer?.cancel();
   }
 
   void _startGame() {
@@ -105,12 +105,27 @@ class _SensationGamePageState extends State<SensationGamePage> {
   Future<void> _playVibration() async {
     if (!_isWaitingForVibration) return;
 
-    // Trigger continuous 2-second vibration via platform channel
-    try {
-      await _vibrationChannel.invokeMethod('vibrate');
-    } catch (e) {
-      // If platform channel fails, continue without vibration
-    }
+    // Cancel any existing vibration timer
+    _vibrationTimer?.cancel();
+
+    // Start continuous 2-second vibration using VibrationService
+    // This bypasses System Haptics toggle and works until Accessibility Master Switch is off
+    final startTime = DateTime.now();
+    const vibrationDuration = Duration(seconds: 2);
+    const vibrationInterval = Duration(milliseconds: 50); // Vibrate every 50ms for smooth continuous feel
+
+    _vibrationTimer = Timer.periodic(vibrationInterval, (timer) {
+      final elapsed = DateTime.now().difference(startTime);
+      
+      if (elapsed >= vibrationDuration) {
+        timer.cancel();
+        _vibrationTimer = null;
+      } else {
+        // Trigger vibration continuously using AudioServicesPlaySystemSound
+        // This bypasses System Haptics toggle
+        VibrationService.playStandardVibration();
+      }
+    });
 
     setState(() {
       _isVibrationPlayed = true;
