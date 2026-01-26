@@ -101,14 +101,10 @@ class _SensationGamePageState extends State<SensationGamePage> {
 
   Future<void> _playVibration() async {
     if (!_isWaitingForVibration) {
-      print("_playVibration: Not waiting for vibration, returning");
       return;
     }
 
-    print("_playVibration: Starting continuous 2-second vibration");
-
-    // Trigger continuous 2-second vibration via iOS native timer
-    // This bypasses System Haptics toggle and works until Accessibility Master Switch is off
+    // Trigger single vibration
     await VibrationService.playStandardVibration();
 
     setState(() {

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/game_session.dart';
@@ -69,7 +70,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
     _gridSize = 4; // Reset to default
     _isReverse = false; // Reset reverse checkbox
     _numberPositions.clear();
-    _nextExpectedNumber = 1;
+    _nextExpectedNumber = _isReverse ? _totalNumbers : 1;
     _roundStartTime = null;
     _errorMessage = null;
     _reactionTimeMessage = null;
@@ -101,7 +102,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
       _isRoundActive = false;
       _errorMessage = null;
       _reactionTimeMessage = null;
-      _nextExpectedNumber = 1;
+      _nextExpectedNumber = _isReverse ? _totalNumbers : 1;
       _roundStartTime = null;
     });
 
@@ -112,7 +113,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   }
 
   void _showRound() {
-    // Generate random positions for numbers 1-16
+    // Generate random positions for numbers 1-16 (or 1-25 for 5x5)
     final numbers = List.generate(_totalNumbers, (i) => i + 1);
     numbers.shuffle(_rand);
     _numberPositions = numbers;
@@ -121,7 +122,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
       _isWaitingForRound = false;
       _isRoundActive = true;
       _roundStartTime = DateTime.now();
-      _nextExpectedNumber = 1;
+      _nextExpectedNumber = _isReverse ? _totalNumbers : 1;
     });
   }
 
@@ -135,12 +136,22 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
     if (tappedNumber == _nextExpectedNumber) {
       // Correct tap - move to next number
       setState(() {
-        _nextExpectedNumber++;
+        if (_isReverse) {
+          _nextExpectedNumber--;
+        } else {
+          _nextExpectedNumber++;
+        }
       });
 
       // Check if round is complete (all numbers tapped)
-      if (_nextExpectedNumber > _totalNumbers) {
-        _completeRound();
+      if (_isReverse) {
+        if (_nextExpectedNumber < 1) {
+          _completeRound();
+        }
+      } else {
+        if (_nextExpectedNumber > _totalNumbers) {
+          _completeRound();
+        }
       }
     } else {
       // Wrong tap - show error
@@ -272,100 +283,125 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   Widget _buildGridSizeSelector() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _gridSize = 4;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: _gridSize == 4 ? const Color(0xFF475569) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFE2E8F0),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.4),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _gridSize = 4;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _gridSize == 4 ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '4x4',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _gridSize == 4 ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
                   ),
-                ],
-              ),
-              child: Text(
-                '4x4',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: _gridSize == 4 ? Colors.white : const Color(0xFF475569),
                 ),
-              ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _gridSize = 5;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _gridSize == 5 ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '5x5',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _gridSize == 5 ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isReverse,
+                      onChanged: (value) {
+                        setState(() {
+                          _isReverse = value ?? false;
+                        });
+                      },
+                      activeColor: const Color(0xFF475569),
+                      checkColor: Colors.white,
+                    ),
+                    const Text(
+                      'Reverse',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 16),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _gridSize = 5;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: _gridSize == 5 ? const Color(0xFF475569) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFE2E8F0),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Text(
-                '5x5',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: _gridSize == 5 ? Colors.white : const Color(0xFF475569),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Row(
-            children: [
-              Checkbox(
-                value: _isReverse,
-                onChanged: (value) {
-                  setState(() {
-                    _isReverse = value ?? false;
-                  });
-                },
-                activeColor: const Color(0xFF475569),
-                checkColor: Colors.white,
-              ),
-              const Text(
-                'Reverse',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF475569),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

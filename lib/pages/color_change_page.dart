@@ -382,109 +382,108 @@ class _ColorChangePageState extends State<ColorChangePage> {
                           onTap: _handleTap,
                           useBackdropFilter: true,
                           child: Stack(
-                                  children: [
-                                    // Background gradient blur effect (when not showing color)
-                                    if (!_isColorVisible)
-                                      Positioned.fill(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                const Color(
-                                                  0xFFDBEAFE,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFE2E8F0,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFFCE7F3,
-                                                ).withOpacity(0.4),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
+                            children: [
+                              // Background gradient blur effect (when not showing color)
+                              if (!_isColorVisible)
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          const Color(
+                                            0xFFDBEAFE,
+                                          ).withOpacity(0.4),
+                                          const Color(
+                                            0xFFE2E8F0,
+                                          ).withOpacity(0.4),
+                                          const Color(
+                                            0xFFFCE7F3,
+                                          ).withOpacity(0.4),
+                                        ],
                                       ),
-                                    // Random color display
-                                    if (_isColorVisible &&
-                                        _currentColor != null)
-                                      Positioned.fill(
-                                        child: Container(color: _currentColor),
-                                      ),
-                                    // Error message overlay
-                                    if (_errorMessage != null)
-                                      Positioned.fill(
-                                        child: Container(
-                                          color: Colors.red.withOpacity(0.9),
-                                          child: Center(
-                                            child: Text(
-                                              _errorMessage!,
-                                              style: const TextStyle(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                                letterSpacing: 2.0,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    // Reaction time message
-                                    if (_reactionTimeMessage != null)
-                                      Positioned.fill(
-                                        child: Container(
-                                          color: Colors.green.withOpacity(0.8),
-                                          child: Center(
-                                            child: Text(
-                                              _reactionTimeMessage!,
-                                              style: const TextStyle(
-                                                fontSize: 32,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                                letterSpacing: 2.0,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    // Start button
-                                    if (!_isPlaying &&
-                                        _errorMessage == null &&
-                                        _reactionTimeMessage == null)
-                                      Center(
-                                        child: GestureDetector(
-                                          onTap: _handleTap,
-                                          child: const Text(
-                                            'START',
-                                            style: TextStyle(
-                                              fontSize: 48,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 4.0,
-                                              color: Color(0xFF475569),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    // Waiting state
-                                    if (_isPlaying &&
-                                        _isWaitingForColor &&
-                                        !_isColorVisible &&
-                                        _errorMessage == null &&
-                                        _reactionTimeMessage == null)
-                                      const Center(
-                                        child: Text(
-                                          'WAIT...',
-                                          style: TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900,
-                                            color: Color(0xFF94A3B8),
-                                            letterSpacing: 4.0,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
+                                    ),
+                                  ),
                                 ),
+                              // Random color display
+                              if (_isColorVisible && _currentColor != null)
+                                Positioned.fill(
+                                  child: Container(color: _currentColor),
+                                ),
+                              // Error message overlay
+                              if (_errorMessage != null)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.red.withOpacity(0.9),
+                                    child: Center(
+                                      child: Text(
+                                        _errorMessage!,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 2.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Reaction time message
+                              if (_reactionTimeMessage != null)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.green.withOpacity(0.8),
+                                    child: Center(
+                                      child: Text(
+                                        _reactionTimeMessage!,
+                                        style: const TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 2.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Start button
+                              if (!_isPlaying &&
+                                  _errorMessage == null &&
+                                  _reactionTimeMessage == null)
+                                Center(
+                                  child: GestureDetector(
+                                    onTap: _handleTap,
+                                    child: const Text(
+                                      'START',
+                                      style: TextStyle(
+                                        fontSize: 48,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 4.0,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Waiting state
+                              if (_isPlaying &&
+                                  _isWaitingForColor &&
+                                  !_isColorVisible &&
+                                  _errorMessage == null &&
+                                  _reactionTimeMessage == null)
+                                const Center(
+                                  child: Text(
+                                    'WAIT...',
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF94A3B8),
+                                      letterSpacing: 4.0,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -556,47 +555,47 @@ class _ColorChangePageState extends State<ColorChangePage> {
                 ),
               ),
               // Bottom indicator
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 40,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3),
-                        color: const Color(0xFF94A3B8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(bottom: 32),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 40,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           borderRadius: BorderRadius.circular(3),
+              //           color: const Color(0xFF94A3B8),
+              //           boxShadow: [
+              //             BoxShadow(
+              //               color: Colors.black.withOpacity(0.1),
+              //               blurRadius: 4,
+              //               offset: const Offset(0, 2),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),
