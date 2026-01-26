@@ -11,6 +11,7 @@ import '../pages/sensation_game_page.dart';
 import '../pages/sequence_rush_page.dart';
 import '../pages/ball_rush_page.dart';
 import '../pages/ball_track_page.dart';
+import '../pages/visual_memory_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -123,6 +124,14 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => BallTrackPage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 13:
+        // Visual Memory game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => VisualMemoryPage(categoryName: category.name),
           ),
         );
         break;

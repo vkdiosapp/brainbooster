@@ -102,6 +102,13 @@ class ExerciseData {
         desc: 'Memorize the red ball and tap it after they stop',
         timeRequired: 4000,
       ),
+      Exercise(
+        id: 13,
+        categoryId: 2,
+        name: 'Visual Memory',
+        desc: 'Memorize the red dots and tap them after they disappear',
+        timeRequired: 3000,
+      ),
     ];
   }
 

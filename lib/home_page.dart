@@ -691,6 +691,8 @@ class _HomePageState extends State<HomePage> {
         return 'ball_rush';
       case 12:
         return 'ball_track';
+      case 13:
+        return 'visual_memory';
       default:
         return null; // Games without analytics yet
     }
@@ -726,6 +728,8 @@ class _HomePageState extends State<HomePage> {
         return 'Ball Rush';
       case 'ball_track':
         return 'Ball Track';
+      case 'visual_memory':
+        return 'Visual Memory';
       default:
         return null;
     }
