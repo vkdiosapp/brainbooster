@@ -5,6 +5,7 @@ import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
@@ -251,6 +252,9 @@ class _BallRushPageState extends State<BallRushPage> {
   void _catchAllBalls() {
     if (!_areBallsVisible || _ballsAppearedTime == null) return;
 
+    // Play tap sound when all balls are caught
+    SoundService.playTapSound();
+    
     // Calculate reaction time from when balls appeared
     final reactionTime = DateTime.now()
         .difference(_ballsAppearedTime!)

@@ -5,6 +5,7 @@ import '../game_settings.dart';
 import '../models/game_session.dart';
 import '../models/round_result.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
@@ -289,6 +290,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
 
     if (index == _activeIndex) {
       if (isCorrectTurn && _currentDisplayColor == _targetColor) {
+        // Play tap sound for correct tap
+        SoundService.playTapSound();
         // Correct tap on correct color - calculate reaction time
         final rt =
             DateTime.now().difference(_turnStartTime!).inMilliseconds +
@@ -313,6 +316,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
   }
 
   void _handleWrongTap() {
+    // Play penalty sound for wrong tap
+    SoundService.playPenaltySound();
     // Mark that this round had a penalty
     _hadPenaltyThisRound = true;
 
@@ -351,6 +356,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
   }
 
   void _handleWrongColorTap() {
+    // Play penalty sound for wrong color tap
+    SoundService.playPenaltySound();
     // Mark that this round had a penalty
     _hadPenaltyThisRound = true;
 

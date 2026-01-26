@@ -6,6 +6,7 @@ import '../game_settings.dart';
 import '../models/game_session.dart';
 import '../models/round_result.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
@@ -134,6 +135,8 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
     final tappedNumber = _numberPositions[index];
 
     if (tappedNumber == _nextExpectedNumber) {
+      // Play tap sound for correct tap
+      SoundService.playTapSound();
       // Correct tap - move to next number
       setState(() {
         if (_isReverse) {
@@ -160,6 +163,8 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   }
 
   void _handleWrongTap() {
+    // Play penalty sound for wrong tap
+    SoundService.playPenaltySound();
     _overlayTimer?.cancel();
 
     // End round immediately with penalty
@@ -508,7 +513,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
           return const SizedBox.shrink();
         },
         contentBuilder: (s, context) {
-          if (s.isRoundActive || s.isWaiting) {
+          if (s.isRoundActive && !s.isWaiting) {
             return Positioned.fill(child: _buildGrid());
           }
           // idle background

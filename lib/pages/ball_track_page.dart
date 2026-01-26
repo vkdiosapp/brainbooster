@@ -5,6 +5,7 @@ import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
@@ -315,6 +316,8 @@ class _BallTrackPageState extends State<BallTrackPage> {
     final distance = (tapPosition - targetBall.position).distance;
     
     if (distance <= targetBall.radius) {
+      // Play tap sound for correct tap
+      SoundService.playTapSound();
       // Correct ball tapped!
       final reactionTime = DateTime.now()
           .difference(_timerStartTime!)
@@ -327,6 +330,8 @@ class _BallTrackPageState extends State<BallTrackPage> {
   }
 
   void _handleWrongTap() {
+    // Play penalty sound for wrong tap
+    SoundService.playPenaltySound();
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
       _isStoppedPhase = false;

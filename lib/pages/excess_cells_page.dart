@@ -6,6 +6,7 @@ import '../game_settings.dart';
 import '../models/game_session.dart';
 import '../models/round_result.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
@@ -172,6 +173,8 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
 
     // Check if this is one of the different direction positions
     if (_differentDirectionPositions.contains(index)) {
+      // Play tap sound for correct tap
+      SoundService.playTapSound();
       // Correct tap
       setState(() {
         _tappedPositions.add(index);
@@ -188,6 +191,8 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
   }
 
   void _handleWrongTap() {
+    // Play penalty sound for wrong tap
+    SoundService.playPenaltySound();
     _overlayTimer?.cancel();
 
     // End round immediately with penalty
