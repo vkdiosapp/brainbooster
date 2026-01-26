@@ -81,6 +81,13 @@ class ExerciseData {
         desc: 'Tap when you feel the vibration',
         timeRequired: 350,
       ),
+      Exercise(
+        id: 10,
+        categoryId: 2,
+        name: 'Sequence Rush',
+        desc: 'Tap numbers in sequence as fast as you can',
+        timeRequired: 5000,
+      ),
     ];
   }
 

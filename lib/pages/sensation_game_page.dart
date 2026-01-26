@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:vibration/vibration.dart';
 import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
@@ -39,6 +38,9 @@ class _SensationGamePageState extends State<SensationGamePage> {
 
   // Vibration duration - fixed at 2 seconds
   static const int _vibrationDuration = 2000; // 2 seconds in milliseconds
+  
+  // Platform channel for native vibration
+  static const MethodChannel _vibrationChannel = MethodChannel('com.vkd.brainbooster/vibration');
 
   @override
   void initState() {
@@ -106,39 +108,16 @@ class _SensationGamePageState extends State<SensationGamePage> {
   Future<void> _playVibration() async {
     if (!_isWaitingForVibration) return;
 
+    // Use native iOS vibration via platform channel
+    // This uses AudioServicesPlaySystemSound which works independently of system haptic settings
     try {
-      // For iOS, use HapticFeedback directly for stronger, more reliable vibration
-      // For Android, use Vibration package
-      try {
-        // Try heavy impact haptic feedback first (works best on iOS)
-        HapticFeedback.heavyImpact();
-
-        // Also try vibration package for additional feedback with 2 second duration
-        if (await Vibration.hasVibrator() ?? false) {
-          // Use maximum amplitude for strongest vibration, 2 second duration
-          await Vibration.vibrate(
-            duration: _vibrationDuration, // 2 seconds
-            amplitude: 255, // Maximum amplitude for strongest vibration (0-255)
-          );
-        }
-      } catch (e) {
-        // Fallback: Try medium impact and vibration
-        try {
-          HapticFeedback.mediumImpact();
-          if (await Vibration.hasVibrator() ?? false) {
-            await Vibration.vibrate(duration: _vibrationDuration);
-          }
-        } catch (e2) {
-          // Final fallback: Try light impact
-          try {
-            HapticFeedback.lightImpact();
-          } catch (e3) {
-            // If all else fails, just mark vibration as played
-          }
-        }
-      }
+      // Call native iOS vibration method for continuous 2-second vibration
+      await _vibrationChannel.invokeMethod('vibrate', {
+        'duration': _vibrationDuration, // 2 seconds in milliseconds
+      });
     } catch (e) {
-      // If all else fails, just mark vibration as played
+      // If platform channel fails, the vibration just won't play
+      // This is fine - the game will continue
     }
 
     setState(() {

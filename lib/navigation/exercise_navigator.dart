@@ -8,6 +8,7 @@ import '../pages/quick_math_page.dart';
 import '../pages/figure_change_page.dart';
 import '../pages/sound_game_page.dart';
 import '../pages/sensation_game_page.dart';
+import '../pages/sequence_rush_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -96,6 +97,14 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SensationGamePage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 10:
+        // Sequence Rush game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SequenceRushPage(categoryName: category.name),
           ),
         );
         break;
