@@ -109,6 +109,20 @@ class ExerciseData {
         desc: 'Memorize the red dots and tap them after they disappear',
         timeRequired: 3000,
       ),
+      Exercise(
+        id: 14,
+        categoryId: 1,
+        name: 'Swipe',
+        desc: 'Swipe in the correct direction as fast as you can',
+        timeRequired: 400,
+      ),
+      Exercise(
+        id: 15,
+        categoryId: 4,
+        name: 'Excess Cells',
+        desc: 'Find and tap the two triangles pointing in a different direction',
+        timeRequired: 500,
+      ),
     ];
   }
 

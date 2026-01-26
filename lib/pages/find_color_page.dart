@@ -438,276 +438,278 @@ class _FindColorPageState extends State<FindColorPage> {
                         padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
                         child: GameContainer(
                           child: Stack(
-                              children: [
-                                // Main content - Column for active round, gradient for idle
-                                if (_isRoundActive && _gridColors.isNotEmpty)
-                                  Column(
-                                    children: [
-                                      // Target color name banner
-                                      if (_targetColorName != null)
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                            12,
-                                            12,
-                                            12,
-                                            8,
-                                          ),
-                                          child: Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 10,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF475569),
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.1),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 4),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Text(
-                                              _targetColorName!,
-                                              style: const TextStyle(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                                letterSpacing: 2.0,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
+                            children: [
+                              // Main content - Column for active round, gradient for idle
+                              if (_isRoundActive && _gridColors.isNotEmpty)
+                                Column(
+                                  children: [
+                                    // Target color name banner
+                                    if (_targetColorName != null)
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          12,
+                                          12,
+                                          12,
+                                          8,
                                         ),
-                                      // Color grid - fills remaining space
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: Column(
-                                            children: [
-                                              // Row 1
-                                              Expanded(
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[0],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[1],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[2],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF475569),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
                                                 ),
-                                              ),
-                                              // Row 2
-                                              Expanded(
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[3],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[4],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[5],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // Row 3
-                                              Expanded(
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[6],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[7],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildColorCell(
-                                                          _gridColors[8],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
                                               ),
                                             ],
                                           ),
+                                          child: Text(
+                                            _targetColorName!,
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white,
+                                              letterSpacing: 2.0,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
                                       ),
-                                    ],
-                                  )
-                                else
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: !_isRoundActive && !_isPlaying
-                                          ? BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  const Color(
-                                                    0xFFDBEAFE,
-                                                  ).withOpacity(0.4),
-                                                  const Color(
-                                                    0xFFE2E8F0,
-                                                  ).withOpacity(0.4),
-                                                  const Color(
-                                                    0xFFFCE7F3,
-                                                  ).withOpacity(0.4),
+                                    // Color grid - fills remaining space
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          children: [
+                                            // Row 1
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[0],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[1],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[2],
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                // Waiting state
-                                if (_isWaitingForRound)
-                                  const Center(
-                                    child: Text(
-                                      'WAIT...',
-                                      style: TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF94A3B8),
-                                        letterSpacing: 4.0,
-                                      ),
-                                    ),
-                                  ),
-                                // Error message overlay
-                                if (_errorMessage != null)
-                                  Positioned.fill(
-                                    child: Container(
-                                      color: Colors.red.withOpacity(0.9),
-                                      child: Center(
-                                        child: Text(
-                                          _errorMessage!,
-                                          style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: 2.0,
-                                          ),
+                                            ),
+                                            // Row 2
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[3],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[4],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[5],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // Row 3
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[6],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[7],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildColorCell(
+                                                        _gridColors[8],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
+                                  ],
+                                )
+                              else
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: !_isRoundActive && !_isPlaying
+                                        ? BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                const Color(
+                                                  0xFFDBEAFE,
+                                                ).withOpacity(0.4),
+                                                const Color(
+                                                  0xFFE2E8F0,
+                                                ).withOpacity(0.4),
+                                                const Color(
+                                                  0xFFFCE7F3,
+                                                ).withOpacity(0.4),
+                                              ],
+                                            ),
+                                          )
+                                        : null,
                                   ),
-                                // Reaction time message
-                                if (_reactionTimeMessage != null)
-                                  Positioned.fill(
-                                    child: Container(
-                                      color: Colors.green.withOpacity(0.8),
-                                      child: Center(
-                                        child: Text(
-                                          _reactionTimeMessage!,
-                                          style: const TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: 2.0,
-                                          ),
-                                        ),
-                                      ),
+                                ),
+                              // Waiting state
+                              if (_isWaitingForRound)
+                                const Center(
+                                  child: Text(
+                                    'WAIT...',
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF94A3B8),
+                                      letterSpacing: 4.0,
                                     ),
                                   ),
-                                // Start button
-                                if (!_isPlaying &&
-                                    _errorMessage == null &&
-                                    _reactionTimeMessage == null)
-                                  Center(
-                                    child: GestureDetector(
-                                      onTap: _startGame,
-                                      child: const Text(
-                                        'START',
-                                        style: TextStyle(
-                                          fontSize: 48,
+                                ),
+                              // Error message overlay
+                              if (_errorMessage != null)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.red.withOpacity(0.9),
+                                    child: Center(
+                                      child: Text(
+                                        _errorMessage!,
+                                        style: const TextStyle(
+                                          fontSize: 24,
                                           fontWeight: FontWeight.w900,
-                                          letterSpacing: 4.0,
-                                          color: Color(0xFF475569),
+                                          color: Colors.white,
+                                          letterSpacing: 2.0,
                                         ),
                                       ),
                                     ),
                                   ),
-                              ],
-                            ),
+                                ),
+                              // Reaction time message
+                              if (_reactionTimeMessage != null)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.green.withOpacity(0.8),
+                                    child: Center(
+                                      child: Text(
+                                        _reactionTimeMessage!,
+                                        style: const TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 2.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Start button
+                              if (!_isPlaying &&
+                                  _errorMessage == null &&
+                                  _reactionTimeMessage == null)
+                                Center(
+                                  child: GestureDetector(
+                                    onTap: _startGame,
+                                    child: const Text(
+                                      'START',
+                                      style: TextStyle(
+                                        fontSize: 48,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 4.0,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -779,47 +781,47 @@ class _FindColorPageState extends State<FindColorPage> {
                 ),
               ),
               // Bottom indicator
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 40,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3),
-                        color: const Color(0xFF94A3B8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(bottom: 32),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 40,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           borderRadius: BorderRadius.circular(3),
+              //           color: const Color(0xFF94A3B8),
+              //           boxShadow: [
+              //             BoxShadow(
+              //               color: Colors.black.withOpacity(0.1),
+              //               blurRadius: 4,
+              //               offset: const Offset(0, 2),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),

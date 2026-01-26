@@ -535,47 +535,47 @@ class _SensationGamePageState extends State<SensationGamePage> {
                 ),
               ),
               // Bottom indicator
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 40,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3),
-                        color: const Color(0xFF94A3B8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(bottom: 32),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 40,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           borderRadius: BorderRadius.circular(3),
+              //           color: const Color(0xFF94A3B8),
+              //           boxShadow: [
+              //             BoxShadow(
+              //               color: Colors.black.withOpacity(0.1),
+              //               blurRadius: 4,
+              //               offset: const Offset(0, 2),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),

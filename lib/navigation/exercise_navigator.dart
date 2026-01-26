@@ -12,6 +12,8 @@ import '../pages/sequence_rush_page.dart';
 import '../pages/ball_rush_page.dart';
 import '../pages/ball_track_page.dart';
 import '../pages/visual_memory_page.dart';
+import '../pages/swipe_game_page.dart';
+import '../pages/excess_cells_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -132,6 +134,22 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => VisualMemoryPage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 14:
+        // Swipe game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SwipeGamePage(categoryName: category.name),
+          ),
+        );
+        break;
+      case 15:
+        // Excess Cells game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ExcessCellsPage(categoryName: category.name),
           ),
         );
         break;

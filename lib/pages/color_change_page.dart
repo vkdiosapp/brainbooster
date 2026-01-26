@@ -569,10 +569,10 @@ class _ColorChangePageState extends State<ColorChangePage> {
               //         ),
               //       ),
               //       const SizedBox(width: 12),
-              //       Container(
-              //         width: 6,
-              //         height: 6,
-              //         decoration: BoxDecoration(
+              // Container(
+              //   width: 6,
+              //   height: 6,
+              //   decoration: BoxDecoration(
               //           shape: BoxShape.circle,
               //           color: const Color(0xFFCBD5E1),
               //         ),

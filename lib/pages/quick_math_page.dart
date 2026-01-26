@@ -193,12 +193,14 @@ class _QuickMathPageState extends State<QuickMathPage> {
       int wrongAnswer;
       do {
         // Generate wrong answer within reasonable range
-        wrongAnswer = _correctAnswer! + (random.nextInt(10) - 5); // ±5 from correct
+        wrongAnswer =
+            _correctAnswer! + (random.nextInt(10) - 5); // ±5 from correct
         if (wrongAnswer < 0) wrongAnswer = random.nextInt(20) + 1;
         if (wrongAnswer == _correctAnswer) {
           wrongAnswer = _correctAnswer! + random.nextInt(5) + 1;
         }
-      } while (wrongAnswer == _correctAnswer || wrongAnswers.contains(wrongAnswer));
+      } while (wrongAnswer == _correctAnswer ||
+          wrongAnswers.contains(wrongAnswer));
       wrongAnswers.add(wrongAnswer);
     }
 
@@ -461,9 +463,7 @@ class _QuickMathPageState extends State<QuickMathPage> {
                   children: [
                     const SizedBox(height: 16),
                     // Category header
-                    CategoryHeader(
-                      categoryName: widget.categoryName ?? 'Math',
-                    ),
+                    CategoryHeader(categoryName: widget.categoryName ?? 'Math'),
                     const SizedBox(height: 4),
                     // Title
                     Text(
@@ -488,213 +488,217 @@ class _QuickMathPageState extends State<QuickMathPage> {
                         padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
                         child: GameContainer(
                           child: Stack(
-                              children: [
-                                // Main content - Column for active round, gradient for idle
-                                if (_isRoundActive && _currentQuestion != null && _options.isNotEmpty)
-                                  Column(
-                                    children: [
-                                      // Math question banner
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          12,
-                                          12,
-                                          12,
-                                          8,
+                            children: [
+                              // Main content - Column for active round, gradient for idle
+                              if (_isRoundActive &&
+                                  _currentQuestion != null &&
+                                  _options.isNotEmpty)
+                                Column(
+                                  children: [
+                                    // Math question banner
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        12,
+                                        12,
+                                        12,
+                                        8,
+                                      ),
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 20,
                                         ),
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 20,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF475569),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF475569),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.1),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 4),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.1,
                                               ),
-                                            ],
-                                          ),
-                                          child: Text(
-                                            _currentQuestion!.question,
-                                            style: const TextStyle(
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.w900,
-                                              color: Colors.white,
-                                              letterSpacing: 1.0,
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 4),
                                             ),
-                                            textAlign: TextAlign.center,
+                                          ],
+                                        ),
+                                        child: Text(
+                                          _currentQuestion!.question,
+                                          style: const TextStyle(
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                            letterSpacing: 1.0,
                                           ),
+                                          textAlign: TextAlign.center,
                                         ),
                                       ),
-                                      // Options grid - 2x2
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: Column(
-                                            children: [
-                                              // Row 1
-                                              Expanded(
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildOptionCell(
-                                                          _options[0],
-                                                        ),
+                                    ),
+                                    // Options grid - 2x2
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          children: [
+                                            // Row 1
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildOptionCell(
+                                                        _options[0],
                                                       ),
                                                     ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildOptionCell(
-                                                          _options[1],
-                                                        ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildOptionCell(
+                                                        _options[1],
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // Row 2
-                                              Expanded(
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildOptionCell(
-                                                          _options[2],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              3,
-                                                            ),
-                                                        child: _buildOptionCell(
-                                                          _options[3],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: !_isRoundActive && !_isPlaying
-                                          ? BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                                colors: [
-                                                  const Color(
-                                                    0xFFDBEAFE,
-                                                  ).withOpacity(0.4),
-                                                  const Color(
-                                                    0xFFE2E8F0,
-                                                  ).withOpacity(0.4),
-                                                  const Color(
-                                                    0xFFFCE7F3,
-                                                  ).withOpacity(0.4),
+                                                  ),
                                                 ],
                                               ),
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                // Waiting state
-                                if (_isWaitingForRound)
-                                  const Center(
-                                    child: Text(
-                                      'WAIT...',
-                                      style: TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF94A3B8),
-                                        letterSpacing: 4.0,
-                                      ),
-                                    ),
-                                  ),
-                                // Error message overlay
-                                if (_errorMessage != null)
-                                  Positioned.fill(
-                                    child: Container(
-                                      color: Colors.red.withOpacity(0.9),
-                                      child: Center(
-                                        child: Text(
-                                          _errorMessage!,
-                                          style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: 2.0,
-                                          ),
+                                            ),
+                                            // Row 2
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildOptionCell(
+                                                        _options[2],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            3,
+                                                          ),
+                                                      child: _buildOptionCell(
+                                                        _options[3],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
+                                  ],
+                                )
+                              else
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: !_isRoundActive && !_isPlaying
+                                        ? BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                const Color(
+                                                  0xFFDBEAFE,
+                                                ).withOpacity(0.4),
+                                                const Color(
+                                                  0xFFE2E8F0,
+                                                ).withOpacity(0.4),
+                                                const Color(
+                                                  0xFFFCE7F3,
+                                                ).withOpacity(0.4),
+                                              ],
+                                            ),
+                                          )
+                                        : null,
                                   ),
-                                // Reaction time message
-                                if (_reactionTimeMessage != null)
-                                  Positioned.fill(
-                                    child: Container(
-                                      color: Colors.green.withOpacity(0.8),
-                                      child: Center(
-                                        child: Text(
-                                          _reactionTimeMessage!,
-                                          style: const TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: 2.0,
-                                          ),
-                                        ),
-                                      ),
+                                ),
+                              // Waiting state
+                              if (_isWaitingForRound)
+                                const Center(
+                                  child: Text(
+                                    'WAIT...',
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF94A3B8),
+                                      letterSpacing: 4.0,
                                     ),
                                   ),
-                                // Start button
-                                if (!_isPlaying &&
-                                    _errorMessage == null &&
-                                    _reactionTimeMessage == null)
-                                  Center(
-                                    child: GestureDetector(
-                                      onTap: _startGame,
-                                      child: const Text(
-                                        'START',
-                                        style: TextStyle(
-                                          fontSize: 48,
+                                ),
+                              // Error message overlay
+                              if (_errorMessage != null)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.red.withOpacity(0.9),
+                                    child: Center(
+                                      child: Text(
+                                        _errorMessage!,
+                                        style: const TextStyle(
+                                          fontSize: 24,
                                           fontWeight: FontWeight.w900,
-                                          letterSpacing: 4.0,
-                                          color: Color(0xFF475569),
+                                          color: Colors.white,
+                                          letterSpacing: 2.0,
                                         ),
                                       ),
                                     ),
                                   ),
-                              ],
-                            ),
+                                ),
+                              // Reaction time message
+                              if (_reactionTimeMessage != null)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.green.withOpacity(0.8),
+                                    child: Center(
+                                      child: Text(
+                                        _reactionTimeMessage!,
+                                        style: const TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 2.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Start button
+                              if (!_isPlaying &&
+                                  _errorMessage == null &&
+                                  _reactionTimeMessage == null)
+                                Center(
+                                  child: GestureDetector(
+                                    onTap: _startGame,
+                                    child: const Text(
+                                      'START',
+                                      style: TextStyle(
+                                        fontSize: 48,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 4.0,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -766,47 +770,47 @@ class _QuickMathPageState extends State<QuickMathPage> {
                 ),
               ),
               // Bottom indicator
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 40,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3),
-                        color: const Color(0xFF94A3B8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(bottom: 32),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 6,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: const Color(0xFFCBD5E1),
+              //         ),
+              //       ),
+              //       const SizedBox(width: 12),
+              //       Container(
+              //         width: 40,
+              //         height: 6,
+              //         decoration: BoxDecoration(
+              //           borderRadius: BorderRadius.circular(3),
+              //           color: const Color(0xFF94A3B8),
+              //           boxShadow: [
+              //             BoxShadow(
+              //               color: Colors.black.withOpacity(0.1),
+              //               blurRadius: 4,
+              //               offset: const Offset(0, 2),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),

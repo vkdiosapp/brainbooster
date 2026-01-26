@@ -22,6 +22,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   static const int _gridSize = 4; // Fixed 4x4 grid
   static const int _totalBoxes = 16; // 4x4 = 16 boxes
   static const int _redDotsCount = 4; // Show 4 red dots
+  static const int _distractorDotsCount = 2; // Show 2 distractor dots with different colors
   static const int _displayDurationMs = 2000; // Show red dots for 2 seconds
 
   int _currentRound = 0;
@@ -34,6 +35,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   bool _isRoundActive = false; // Phase 2: User can tap black boxes
 
   Set<int> _redDotPositions = {}; // Positions with red dots
+  Map<int, Color> _distractorDotPositions = {}; // Positions with distractor dots (different colors)
   Set<int> _tappedPositions = {}; // Positions user has correctly tapped
   DateTime? _roundStartTime;
   Timer? _roundDelayTimer;
@@ -72,6 +74,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     _isShowingRedDots = false;
     _isRoundActive = false;
     _redDotPositions.clear();
+    _distractorDotPositions.clear();
     _tappedPositions.clear();
     _roundStartTime = null;
     _errorMessage = null;
@@ -107,6 +110,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
       _errorMessage = null;
       _reactionTimeMessage = null;
       _redDotPositions.clear();
+      _distractorDotPositions.clear();
       _tappedPositions.clear();
       _roundStartTime = null;
     });
@@ -122,6 +126,20 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     final positions = List.generate(_totalBoxes, (i) => i);
     positions.shuffle(_rand);
     _redDotPositions = positions.take(_redDotsCount).toSet();
+
+    // Generate distractor dots with different colors (blue and green)
+    // Make sure they don't overlap with red dots
+    final remainingPositions = positions
+        .where((pos) => !_redDotPositions.contains(pos))
+        .toList();
+    remainingPositions.shuffle(_rand);
+    
+    final distractorPositions = remainingPositions.take(_distractorDotsCount).toList();
+    final distractorColors = [Colors.blue, Colors.green];
+    _distractorDotPositions = {};
+    for (int i = 0; i < distractorPositions.length && i < distractorColors.length; i++) {
+      _distractorDotPositions[distractorPositions[i]] = distractorColors[i];
+    }
 
     setState(() {
       _isWaitingForRound = false;
@@ -166,7 +184,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
         _completeRound();
       }
     } else {
-      // Wrong tap - penalty
+      // Wrong tap - penalty (includes tapping distractor dots or empty boxes)
       _handleWrongTap();
     }
   }
@@ -312,6 +330,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
             itemCount: _totalBoxes,
             itemBuilder: (context, index) {
               final hasRedDot = _redDotPositions.contains(index);
+              final hasDistractorDot = _distractorDotPositions.containsKey(index);
+              final distractorColor = _distractorDotPositions[index];
               final isTapped = _tappedPositions.contains(index);
               final isShowingRedDots = _isShowingRedDots;
               final isRoundActive = _isRoundActive;
@@ -321,7 +341,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
               Widget? content;
 
               if (isShowingRedDots) {
-                // Phase 1: Show red dots on white boxes, others empty white
+                // Phase 1: Show red dots and distractor dots on white boxes, others empty white
                 boxColor = Colors.white;
                 if (hasRedDot) {
                   content = Container(
@@ -329,6 +349,15 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                     height: 20,
                     decoration: const BoxDecoration(
                       color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  );
+                } else if (hasDistractorDot && distractorColor != null) {
+                  content = Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: distractorColor,
                       shape: BoxShape.circle,
                     ),
                   );
