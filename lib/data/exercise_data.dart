@@ -67,6 +67,13 @@ class ExerciseData {
         desc: 'Tap when both figures match',
         timeRequired: 400,
       ),
+      Exercise(
+        id: 8,
+        categoryId: 1,
+        name: 'Sound',
+        desc: 'Tap when you hear the sound',
+        timeRequired: 350,
+      ),
     ];
   }
 
