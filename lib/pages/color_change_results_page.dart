@@ -2,9 +2,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/round_result.dart';
 import '../data/exercise_data.dart';
+import '../services/sound_service.dart';
 import '../widgets/gradient_background.dart';
 
-class ColorChangeResultsPage extends StatelessWidget {
+class ColorChangeResultsPage extends StatefulWidget {
   final List<RoundResult> roundResults;
   final int bestSession;
 
@@ -14,11 +15,23 @@ class ColorChangeResultsPage extends StatelessWidget {
     required this.bestSession,
   });
 
+  @override
+  State<ColorChangeResultsPage> createState() => _ColorChangeResultsPageState();
+}
+
+class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Play result sound when page opens
+    SoundService.playResultSound();
+  }
+
   int _calculateAverage() {
-    if (roundResults.isEmpty) return 0;
+    if (widget.roundResults.isEmpty) return 0;
     // Include all rounds (including failed ones with penalty) in average
-    return roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-        roundResults.length;
+    return widget.roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
+        widget.roundResults.length;
   }
 
   String _formatMilliseconds(int ms) {
@@ -192,7 +205,7 @@ class ColorChangeResultsPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 32),
                       // Repetitions List
-                      ...roundResults.map((result) {
+                      ...widget.roundResults.map((result) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Row(
