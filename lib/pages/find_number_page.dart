@@ -6,6 +6,7 @@ import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
@@ -149,6 +150,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
     if (!_isRoundActive || _roundStartTime == null) return;
 
     if (tappedNumber == _targetNumber) {
+      // Play tap sound for correct tap
+      SoundService.playTapSound();
       // Correct tap - calculate reaction time
       final reactionTime = DateTime.now()
           .difference(_roundStartTime!)
@@ -161,6 +164,8 @@ class _FindNumberPageState extends State<FindNumberPage> {
   }
 
   void _handleWrongTap() {
+    // Play penalty sound for wrong tap
+    SoundService.playPenaltySound();
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
       _isRoundActive = false;
