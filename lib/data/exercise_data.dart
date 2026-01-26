@@ -60,6 +60,13 @@ class ExerciseData {
         desc: 'Solve math problems rapidly',
         timeRequired: 600,
       ),
+      Exercise(
+        id: 7,
+        categoryId: 4,
+        name: 'Figure Change',
+        desc: 'Tap when both figures match',
+        timeRequired: 400,
+      ),
     ];
   }
 

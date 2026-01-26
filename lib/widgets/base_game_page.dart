@@ -67,11 +67,15 @@ class GameBuilders {
   /// Optional: Builds start button text (defaults to "START")
   final String? startButtonText;
 
+  /// Optional: Builds content between title and game container
+  final Widget Function(GameState state, BuildContext context)? middleContentBuilder;
+
   const GameBuilders({
     required this.titleBuilder,
     required this.contentBuilder,
     this.waitingTextBuilder,
     this.startButtonText,
+    this.middleContentBuilder,
   });
 }
 
@@ -121,6 +125,11 @@ class BaseGamePage extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    // Optional middle content (between title and game container)
+                    if (builders.middleContentBuilder != null) ...[
+                      const SizedBox(height: 16),
+                      builders.middleContentBuilder!(state, context),
+                    ],
                     const SizedBox(height: 16),
                     // Game content area
                     Expanded(

@@ -28,7 +28,11 @@ class GameContainer extends StatelessWidget {
     );
 
     if (onTap != null) {
-      content = GestureDetector(onTap: onTap, child: content);
+      content = GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: content,
+      );
     }
 
     return Container(

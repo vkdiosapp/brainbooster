@@ -679,6 +679,8 @@ class _HomePageState extends State<HomePage> {
         return 'catch_color';
       case 6:
         return 'quick_math';
+      case 7:
+        return 'figure_change';
       default:
         return null; // Games without analytics yet
     }
@@ -702,6 +704,8 @@ class _HomePageState extends State<HomePage> {
         return 'Catch Color';
       case 'quick_math':
         return 'Quick Math';
+      case 'figure_change':
+        return 'Figure Change';
       default:
         return null;
     }
