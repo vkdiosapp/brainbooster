@@ -169,6 +169,70 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
+                    // Sound toggle
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: GameSettings.soundEnabledNotifier,
+                        builder: (context, soundEnabled, _) {
+                          return Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF6366F1,
+                                    ).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.volume_up,
+                                    color: Color(0xFF6366F1),
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                const Expanded(
+                                  child: Text(
+                                    'Sound',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                ),
+                                // Toggle switch
+                                Switch(
+                                  value: soundEnabled,
+                                  onChanged: (value) {
+                                    GameSettings.setSoundEnabled(value);
+                                  },
+                                  activeColor: const Color(0xFF6366F1),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                     // Number of repetitions in game
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
