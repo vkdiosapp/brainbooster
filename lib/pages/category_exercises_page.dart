@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/category.dart';
 import '../models/exercise.dart';
@@ -138,125 +137,229 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
   }
 
   Widget _buildExerciseTile(Exercise exercise, int number) {
+    final tileData = _getTileDataForExercise(exercise, number);
+
     return GestureDetector(
       onTap: () {
         ExerciseNavigator.navigateToExercise(context, exercise.id);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 1.5,
+        decoration: BoxDecoration(
+          color: tileData['backgroundColor'] as Color,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.5),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, 4),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Icon container
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  tileData['icon'] as IconData,
+                  color: tileData['iconColor'] as Color,
+                  size: 30,
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        number.toString().padLeft(2, '0'),
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF94A3B8),
-                        ),
+              const SizedBox(width: 16),
+              // Text content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${number.toString()}. ${exercise.name.toUpperCase()}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: tileData['textColor'] as Color,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                exercise.name,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (exercise.isPro)
-                              Container(
-                                margin: const EdgeInsets.only(left: 8),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber[400],
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'PRO',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF78350F),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          exercise.desc,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    const SizedBox(height: 2),
+                    Text(
+                      exercise.desc.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: (tileData['textColor'] as Color).withOpacity(0.7),
+                        letterSpacing: 0.5,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.star_outline,
-                      color: Color(0xFF94A3B8),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Action icons
+              Row(
+                children: [
+                  if (exercise.isPro)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (tileData['iconColor'] as Color).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Icon(
+                        Icons.ad_units,
+                        size: 16,
+                        color: tileData['iconColor'] as Color,
+                      ),
+                    )
+                  else ...[
+                    Icon(
+                      Icons.help_outline,
+                      color: (tileData['iconColor'] as Color).withOpacity(0.6),
+                      size: 24,
                     ),
-                    onPressed: () {},
-                  ),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF6366F1).withOpacity(0.1),
-                      shape: BoxShape.circle,
+                    const SizedBox(width: 12),
+                    Icon(
+                      exercise.isRecommended ? Icons.star : Icons.star_outline,
+                      color: exercise.isRecommended
+                          ? Colors.yellow[700]
+                          : (tileData['iconColor'] as Color).withOpacity(0.6),
+                      size: 24,
                     ),
-                    child: const Icon(
-                      Icons.play_arrow,
-                      color: Color(0xFF6366F1),
-                    ),
-                  ),
+                  ],
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Map<String, dynamic> _getTileDataForExercise(Exercise exercise, int number) {
+    // Pastel colors from HTML
+    final pastelColors = [
+      {
+        'bg': const Color(0xFFE0F2FE), // blue
+        'iconColor': const Color(0xFF0EA5E9), // sky-600
+        'textColor': const Color(0xFF0C4A6E), // sky-900
+        'icon': Icons.palette,
+      },
+      {
+        'bg': const Color(0xFFFCE7F3), // pink
+        'iconColor': const Color(0xFFEC4899), // pink-600
+        'textColor': const Color(0xFF831843), // pink-900
+        'icon': Icons.push_pin,
+      },
+      {
+        'bg': const Color(0xFFDCFCE7), // green
+        'iconColor': const Color(0xFF16A34A), // emerald-600
+        'textColor': const Color(0xFF064E3B), // emerald-900
+        'icon': Icons.sports_baseball,
+      },
+      {
+        'bg': const Color(0xFFEDE9FE), // lavender/violet
+        'iconColor': const Color(0xFF8B5CF6), // violet-600
+        'textColor': const Color(0xFF4C1D95), // violet-900
+        'icon': Icons.style,
+      },
+      {
+        'bg': const Color(0xFFF5F3FF), // indigo
+        'iconColor': const Color(0xFF6366F1), // indigo-600
+        'textColor': const Color(0xFF312E81), // indigo-900
+        'icon': Icons.functions,
+      },
+      {
+        'bg': const Color(0xFFF0FDF4), // teal
+        'iconColor': const Color(0xFF14B8A6), // teal-600
+        'textColor': const Color(0xFF134E4A), // teal-900
+        'icon': Icons.grid_4x4,
+      },
+      {
+        'bg': const Color(0xFFFEF3C7), // amber
+        'iconColor': const Color(0xFFF59E0B), // amber-600
+        'textColor': const Color(0xFF78350F), // amber-900
+        'icon': Icons.visibility,
+      },
+      {
+        'bg': const Color(0xFFCFFAFE), // cyan
+        'iconColor': const Color(0xFF06B6D4), // cyan-600
+        'textColor': const Color(0xFF164E63), // cyan-900
+        'icon': Icons.color_lens,
+      },
+      {
+        'bg': const Color(0xFFFFE4E6), // rose
+        'iconColor': const Color(0xFFF43F5E), // rose-600
+        'textColor': const Color(0xFF881337), // rose-900
+        'icon': Icons.psychology,
+      },
+    ];
+
+    // Map exercise names to specific icons
+    IconData getIconForExercise(String name) {
+      final nameLower = name.toLowerCase();
+      if (nameLower.contains('color change') || nameLower.contains('color')) {
+        return Icons.palette;
+      } else if (nameLower.contains('number') || nameLower.contains('find number')) {
+        return Icons.push_pin;
+      } else if (nameLower.contains('ball') || nameLower.contains('catch')) {
+        return Icons.sports_baseball;
+      } else if (nameLower.contains('math') || nameLower.contains('equation')) {
+        return Icons.functions;
+      } else if (nameLower.contains('schulte') || nameLower.contains('table')) {
+        return Icons.grid_4x4;
+      } else if (nameLower.contains('memory') || nameLower.contains('visual')) {
+        return Icons.visibility;
+      } else if (nameLower.contains('sound')) {
+        return Icons.volume_up;
+      } else if (nameLower.contains('sensation')) {
+        return Icons.vibration;
+      } else if (nameLower.contains('swipe')) {
+        return Icons.swipe;
+      } else if (nameLower.contains('sequence')) {
+        return Icons.format_list_numbered;
+      } else if (nameLower.contains('excess') || nameLower.contains('cells')) {
+        return Icons.grid_view;
+      } else if (nameLower.contains('figure')) {
+        return Icons.shape_line;
+      } else {
+        return Icons.fitness_center;
+      }
+    }
+
+    final colorIndex = (number - 1) % pastelColors.length;
+    final baseColor = pastelColors[colorIndex];
+    final icon = getIconForExercise(exercise.name);
+
+    return {
+      'backgroundColor': baseColor['bg'] as Color,
+      'iconColor': baseColor['iconColor'] as Color,
+      'textColor': baseColor['textColor'] as Color,
+      'icon': icon,
+    };
   }
 }

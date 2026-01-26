@@ -34,6 +34,7 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
   String? _targetDirectionName;
   bool _isGreen =
       true; // true = green (same direction), false = red (opposite direction)
+  bool _isAdvanced = false; // false = Normal (only green), true = Advanced (both red and green)
   DateTime? _roundStartTime;
   Timer? _delayTimer;
   Timer? _errorDisplayTimer;
@@ -90,6 +91,7 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
     _targetDirection = null;
     _targetDirectionName = null;
     _isGreen = true;
+    _isAdvanced = false; // Reset to Normal mode
     _roundStartTime = null;
     _errorMessage = null;
     _reactionTimeMessage = null;
@@ -153,8 +155,12 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
     _targetDirection = _remainingDirections.removeAt(0);
     _targetDirectionName = _directionNames[_targetDirection];
 
-    // Randomly choose green (same direction) or red (opposite direction)
-    _isGreen = random.nextBool();
+    // In Normal mode, always show green. In Advanced mode, randomly choose green or red
+    if (_isAdvanced) {
+      _isGreen = random.nextBool();
+    } else {
+      _isGreen = true; // Normal mode: always green
+    }
 
     setState(() {
       _isWaitingForRound = false;
@@ -350,6 +356,109 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
         });
   }
 
+  Widget _buildDifficultySelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.4),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = false;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: !_isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Normal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: !_isAdvanced ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = true;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Advanced',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _isAdvanced ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -446,6 +555,9 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
+                    // Difficulty selector (only show before game starts)
+                    if (!_isPlaying) _buildDifficultySelector(),
+                    if (!_isPlaying) const SizedBox(height: 16),
                     // Game content area
                     Expanded(
                       child: Padding(
