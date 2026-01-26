@@ -985,7 +985,7 @@ class _HomePageState extends State<HomePage> {
               filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.25),
+                  color: Colors.white.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(35),
                   border: Border.all(
                     color: Colors.white.withOpacity(0.3),
