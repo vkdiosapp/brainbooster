@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../widgets/gradient_background.dart';
@@ -26,6 +29,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   int _bestTime = 0;
   double _consistency = 0.0;
   bool _isLoading = true;
+  final ScreenshotController _screenshotController = ScreenshotController();
 
   @override
   void initState() {
@@ -81,6 +85,38 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     return allTimes.reduce((a, b) => a + b) ~/ allTimes.length;
   }
 
+  Future<void> _shareScreenshot() async {
+    try {
+      // Capture screenshot
+      final image = await _screenshotController.capture();
+      if (image == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to capture screenshot')),
+          );
+        }
+        return;
+      }
+
+      // Save to temporary file
+      final tempDir = Directory.systemTemp;
+      final file = await File('${tempDir.path}/analytics_screenshot.png').create();
+      await file.writeAsBytes(image);
+
+      // Share the screenshot
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: '${widget.gameName} - Performance Analysis',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error sharing: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,9 +124,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       body: GradientBackground(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : SafeArea(
-                child: Column(
-                  children: [
+            : Screenshot(
+                controller: _screenshotController,
+                child: SafeArea(
+                  child: Column(
+                    children: [
                   // Header
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -140,17 +178,20 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                             ],
                           ),
                         ),
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFF1F5F9),
-                          ),
-                          child: const Icon(
-                            Icons.share,
-                            size: 20,
-                            color: Color(0xFF0F172A),
+                        GestureDetector(
+                          onTap: _shareScreenshot,
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFF1F5F9),
+                            ),
+                            child: const Icon(
+                              Icons.share,
+                              size: 20,
+                              color: Color(0xFF0F172A),
+                            ),
                           ),
                         ),
                       ],
@@ -226,32 +267,35 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 const SizedBox(height: 16),
                                 SizedBox(height: 192, child: _buildChart()),
                                 const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: _last10Sessions.isEmpty
-                                      ? [
-                                          Text(
-                                            'Ses 01',
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              color: Color(0xFF94A3B8),
-                                              fontWeight: FontWeight.w500,
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 24),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: _last10Sessions.isEmpty
+                                        ? [
+                                            Text(
+                                              'Ses 01',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                color: Color(0xFF94A3B8),
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
-                                          ),
-                                        ]
-                                      : _last10Sessions.asMap().entries.map((
-                                          entry,
-                                        ) {
-                                          return Text(
-                                            'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              color: Color(0xFF94A3B8),
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          );
-                                        }).toList(),
+                                          ]
+                                        : _last10Sessions.asMap().entries.map((
+                                            entry,
+                                          ) {
+                                            return Text(
+                                              'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                color: Color(0xFF94A3B8),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            );
+                                          }).toList(),
+                                  ),
                                 ),
                               ],
                             ),
@@ -671,6 +715,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 ],
               ),
             ),
+          ),
       ),
     );
   }
@@ -766,12 +811,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
     return Stack(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 24),
-          child: CustomPaint(
-            painter: ChartPainter(normalizedPoints),
-            child: Container(),
-          ),
+        // Chart area - full width to align with session labels
+        CustomPaint(
+          painter: ChartPainter(normalizedPoints, leftPadding: 24),
+          child: Container(),
         ),
         // Y-axis labels positioned at correct chart positions
         Positioned(
@@ -779,6 +822,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           top: 0,
           bottom: 0,
           child: SizedBox(
+            width: 24, // Constrain width for Y-axis labels
             height: 192, // Match chart height
             child: Stack(
               children: yAxisLabelData.map((labelData) {
@@ -807,8 +851,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
 class ChartPainter extends CustomPainter {
   final List<double> points;
+  final double leftPadding;
 
-  ChartPainter(this.points);
+  ChartPainter(this.points, {this.leftPadding = 0});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -818,28 +863,41 @@ class ChartPainter extends CustomPainter {
     final validPoints = points.where((p) => p.isFinite && !p.isNaN).toList();
     if (validPoints.isEmpty) return;
 
+    // Calculate chart area (excluding left padding)
+    final chartWidth = (size.width - leftPadding).clamp(0.0, double.infinity);
+    final chartStartX = leftPadding;
+    
+    // Safety check: ensure we have valid chart dimensions
+    if (chartWidth <= 0) return;
+
     // Create gradient paint
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
-    // Create gradient shader
-    final gradient = ui.Gradient.linear(
-      const Offset(0, 0),
-      Offset(size.width, 0),
-      const [
-        Color(0xFF8B5CF6), // Purple
-        Color(0xFF3B82F6), // Blue
-      ],
-    );
-    paint.shader = gradient;
+    // Create gradient shader across chart area
+    final gradientEndX = chartStartX + chartWidth;
+    if (gradientEndX > chartStartX && chartWidth > 0) {
+      final gradient = ui.Gradient.linear(
+        Offset(chartStartX, 0),
+        Offset(gradientEndX.clamp(chartStartX, size.width), 0),
+        const [
+          Color(0xFF8B5CF6), // Purple
+          Color(0xFF3B82F6), // Blue
+        ],
+      );
+      paint.shader = gradient;
+    } else {
+      // Fallback: use solid color if gradient can't be created
+      paint.color = const Color(0xFF3B82F6);
+    }
 
     final path = Path();
 
     // Handle single point case
     if (validPoints.length == 1) {
-      final x = size.width / 2;
+      final x = chartStartX + chartWidth / 2;
       final y = size.height - (validPoints[0] / 100 * size.height);
       if (x.isFinite && y.isFinite && !x.isNaN && !y.isNaN) {
         path.moveTo(x, y);
@@ -863,11 +921,11 @@ class ChartPainter extends CustomPainter {
       return;
     }
 
-    final stepX = size.width / (validPoints.length - 1);
+    final stepX = chartWidth / (validPoints.length - 1);
     if (!stepX.isFinite || stepX.isNaN) return;
 
     for (int i = 0; i < validPoints.length; i++) {
-      final x = i * stepX;
+      final x = chartStartX + i * stepX;
       final y = size.height - (validPoints[i] / 100 * size.height);
 
       // Validate coordinates before using
@@ -877,7 +935,7 @@ class ChartPainter extends CustomPainter {
         path.moveTo(x, y);
       } else {
         // Smooth curve
-        final prevX = (i - 1) * stepX;
+        final prevX = chartStartX + (i - 1) * stepX;
         final prevY = size.height - (validPoints[i - 1] / 100 * size.height);
 
         // Validate all control points
@@ -904,7 +962,7 @@ class ChartPainter extends CustomPainter {
         }
       }
 
-      // Draw circle on every data point
+      // Draw circle on every data point (including last point)
       canvas.drawCircle(
         Offset(x, y),
         6,
@@ -924,7 +982,7 @@ class ChartPainter extends CustomPainter {
 
     canvas.drawPath(path, paint);
 
-    // Draw grid lines
+    // Draw grid lines across chart area
     final gridPaint = Paint()
       ..color = const Color(0xFFF1F5F9)
       ..style = PaintingStyle.stroke
@@ -932,7 +990,11 @@ class ChartPainter extends CustomPainter {
 
     for (int i = 1; i < 3; i++) {
       final y = size.height / 3 * i;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+      canvas.drawLine(
+        Offset(chartStartX, y),
+        Offset(size.width, y),
+        gridPaint,
+      );
     }
   }
 
