@@ -7,9 +7,14 @@ class VibrationService {
   /// Triggers the standard vibration (bypasses System Haptics toggle)
   static Future<void> playStandardVibration() async {
     try {
+      print("VibrationService: Calling vibrateStandard");
       await _channel.invokeMethod('vibrateStandard');
+      print("VibrationService: vibrateStandard called successfully");
     } on PlatformException catch (e) {
-      print("Failed to vibrate: ${e.message}");
+      print("VibrationService: Failed to vibrate: ${e.message}");
+      print("VibrationService: Error code: ${e.code}, details: ${e.details}");
+    } catch (e) {
+      print("VibrationService: Unexpected error: $e");
     }
   }
 

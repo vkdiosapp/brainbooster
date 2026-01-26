@@ -28,6 +28,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   bool _isPlaying = false;
   bool _isWaitingForRound = false;
   bool _isRoundActive = false;
+  bool _isReverse = false; // Reverse mode checkbox
 
   List<int> _numberPositions = []; // Maps position index to number
   int _nextExpectedNumber = 1; // Next number user should tap
@@ -66,6 +67,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
     _isWaitingForRound = false;
     _isRoundActive = false;
     _gridSize = 4; // Reset to default
+    _isReverse = false; // Reset reverse checkbox
     _numberPositions.clear();
     _nextExpectedNumber = 1;
     _roundStartTime = null;
@@ -339,6 +341,29 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
                 ),
               ),
             ),
+          ),
+          const SizedBox(width: 16),
+          Row(
+            children: [
+              Checkbox(
+                value: _isReverse,
+                onChanged: (value) {
+                  setState(() {
+                    _isReverse = value ?? false;
+                  });
+                },
+                activeColor: const Color(0xFF475569),
+                checkColor: Colors.white,
+              ),
+              const Text(
+                'Reverse',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF475569),
+                ),
+              ),
+            ],
           ),
         ],
       ),

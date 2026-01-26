@@ -35,7 +35,6 @@ class _SensationGamePageState extends State<SensationGamePage> {
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
-  Timer? _vibrationTimer;
 
   @override
   void initState() {
@@ -48,7 +47,6 @@ class _SensationGamePageState extends State<SensationGamePage> {
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
     _reactionTimeDisplayTimer?.cancel();
-    _vibrationTimer?.cancel();
     super.dispose();
   }
 
@@ -63,7 +61,6 @@ class _SensationGamePageState extends State<SensationGamePage> {
     _roundResults.clear();
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
-    _vibrationTimer?.cancel();
   }
 
   void _startGame() {
@@ -103,29 +100,16 @@ class _SensationGamePageState extends State<SensationGamePage> {
   }
 
   Future<void> _playVibration() async {
-    if (!_isWaitingForVibration) return;
+    if (!_isWaitingForVibration) {
+      print("_playVibration: Not waiting for vibration, returning");
+      return;
+    }
 
-    // Cancel any existing vibration timer
-    _vibrationTimer?.cancel();
+    print("_playVibration: Starting continuous 2-second vibration");
 
-    // Start continuous 2-second vibration using VibrationService
+    // Trigger continuous 2-second vibration via iOS native timer
     // This bypasses System Haptics toggle and works until Accessibility Master Switch is off
-    final startTime = DateTime.now();
-    const vibrationDuration = Duration(seconds: 2);
-    const vibrationInterval = Duration(milliseconds: 50); // Vibrate every 50ms for smooth continuous feel
-
-    _vibrationTimer = Timer.periodic(vibrationInterval, (timer) {
-      final elapsed = DateTime.now().difference(startTime);
-      
-      if (elapsed >= vibrationDuration) {
-        timer.cancel();
-        _vibrationTimer = null;
-      } else {
-        // Trigger vibration continuously using AudioServicesPlaySystemSound
-        // This bypasses System Haptics toggle
-        VibrationService.playStandardVibration();
-      }
-    });
+    await VibrationService.playStandardVibration();
 
     setState(() {
       _isVibrationPlayed = true;
