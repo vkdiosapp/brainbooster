@@ -40,6 +40,15 @@ class _SoundGamePageState extends State<SoundGamePage> {
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
   final AudioPlayer _audioPlayer = AudioPlayer();
+  
+  // Array of different sound frequencies (in Hz) - 10 sounds
+  final List<double> _soundFrequencies = [
+    400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300,
+  ];
+  
+  // Track which sounds are available (not yet used in current cycle)
+  List<double> _availableSounds = [];
+  final math.Random _random = math.Random();
 
   @override
   void initState() {
@@ -67,6 +76,9 @@ class _SoundGamePageState extends State<SoundGamePage> {
     _roundResults.clear();
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
+    // Reset available sounds - shuffle the array
+    _availableSounds = List.from(_soundFrequencies);
+    _availableSounds.shuffle(_random);
   }
 
   void _startGame() {
@@ -75,6 +87,9 @@ class _SoundGamePageState extends State<SoundGamePage> {
       _currentRound = 0;
       _completedRounds = 0;
       _roundResults.clear();
+      // Reset available sounds - shuffle the array
+      _availableSounds = List.from(_soundFrequencies);
+      _availableSounds.shuffle(_random);
     });
     _startNextRound();
   }
@@ -108,13 +123,27 @@ class _SoundGamePageState extends State<SoundGamePage> {
   Future<void> _playSound() async {
     if (!_isWaitingForSound) return;
 
+    // Get a random sound from available sounds
+    // If all sounds have been used, shuffle and reset
+    if (_availableSounds.isEmpty) {
+      _availableSounds = List.from(_soundFrequencies);
+      _availableSounds.shuffle(_random);
+    }
+    
+    // Pick a random sound from available sounds
+    final randomIndex = _random.nextInt(_availableSounds.length);
+    final selectedFrequency = _availableSounds[randomIndex];
+    
+    // Remove the selected sound from available sounds
+    _availableSounds.removeAt(randomIndex);
+
     try {
-      // Generate a beep sound programmatically
-      final beepWav = _generateBeepWav(800, 200); // 800Hz beep for 200ms
+      // Generate a beep sound programmatically with the selected frequency
+      final beepWav = _generateBeepWav(selectedFrequency, 200); // 200ms duration
       
       // Save to temporary file and play
       final tempDir = await getTemporaryDirectory();
-      final beepFile = File('${tempDir.path}/beep.wav');
+      final beepFile = File('${tempDir.path}/beep_${selectedFrequency.toInt()}.wav');
       await beepFile.writeAsBytes(beepWav);
       
       await _audioPlayer.setVolume(0.7); // Set volume to 70%
@@ -152,11 +181,24 @@ class _SoundGamePageState extends State<SoundGamePage> {
     final duration = durationMs / 1000.0;
     final numSamples = (sampleRate * duration).round();
     
-    // Generate sine wave samples
+    // Generate bell-like sound with harmonics (more pleasant than simple beep)
     final samples = Int16List(numSamples);
     for (int i = 0; i < numSamples; i++) {
       final t = i / sampleRate;
-      final value = math.sin(2 * math.pi * frequency * t) * 0.5; // 50% volume
+      
+      // Create a bell-like sound with multiple harmonics and envelope
+      // Fundamental frequency
+      double value = math.sin(2 * math.pi * frequency * t) * 0.3;
+      
+      // Add harmonics for richer bell sound
+      value += math.sin(2 * math.pi * frequency * 2 * t) * 0.15; // 2nd harmonic
+      value += math.sin(2 * math.pi * frequency * 3 * t) * 0.1;  // 3rd harmonic
+      value += math.sin(2 * math.pi * frequency * 4 * t) * 0.05; // 4th harmonic
+      
+      // Apply envelope (fade out) for bell-like decay
+      final envelope = math.exp(-t * 8); // Exponential decay
+      value *= envelope;
+      
       samples[i] = (value * 32767).round().clamp(-32768, 32767);
     }
     
@@ -535,20 +577,19 @@ class _SoundGamePageState extends State<SoundGamePage> {
                                           ),
                                         ),
                                       ),
-                                    // Waiting state
+                                    // Show "Tap when sound plays" - both while waiting and after sound plays
                                     if (_isPlaying &&
-                                        _isWaitingForSound &&
-                                        !_isSoundPlayed &&
+                                        (_isWaitingForSound || _isSoundPlayed) &&
                                         _errorMessage == null &&
                                         _reactionTimeMessage == null)
                                       const Center(
                                         child: Text(
-                                          'WAIT...',
+                                          'TAP WHEN SOUND PLAYS',
                                           style: TextStyle(
-                                            fontSize: 32,
+                                            fontSize: 24,
                                             fontWeight: FontWeight.w900,
-                                            color: Color(0xFF94A3B8),
-                                            letterSpacing: 4.0,
+                                            color: Color(0xFF475569),
+                                            letterSpacing: 2.0,
                                           ),
                                         ),
                                       ),
