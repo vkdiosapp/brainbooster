@@ -535,19 +535,41 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Row(
                           children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                            GestureDetector(
+                              onTap: () {
+                                final gameId = _getGameIdFromExerciseId(
+                                  exercise.id,
+                                );
+                                if (gameId != null) {
+                                  final gameName = _getGameNameFromGameId(
+                                    gameId,
+                                  );
+                                  if (gameName != null) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => AnalyticsPage(
+                                          gameId: gameId,
+                                          gameName: gameName,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              child: Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.bar_chart,
-                                color: Colors.white,
+                                child: const Icon(
+                                  Icons.bar_chart,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1036,7 +1058,9 @@ class _HomePageState extends State<HomePage> {
               icon,
               size: 28,
               color: isActive
-                  ? const Color(0xFF6366F1) // Purple for active (same as login button)
+                  ? const Color(
+                      0xFF6366F1,
+                    ) // Purple for active (same as login button)
                   : const Color(0xFF64748B), // Grey for inactive
             ),
             const SizedBox(height: 4),
@@ -1046,7 +1070,9 @@ class _HomePageState extends State<HomePage> {
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: isActive
-                    ? const Color(0xFF6366F1) // Purple for active (same as login button)
+                    ? const Color(
+                        0xFF6366F1,
+                      ) // Purple for active (same as login button)
                     : const Color(0xFF64748B), // Grey for inactive
               ),
             ),
