@@ -683,6 +683,8 @@ class _HomePageState extends State<HomePage> {
         return 'figure_change';
       case 8:
         return 'sound';
+      case 9:
+        return 'sensation';
       default:
         return null; // Games without analytics yet
     }
@@ -710,6 +712,8 @@ class _HomePageState extends State<HomePage> {
         return 'Figure Change';
       case 'sound':
         return 'Sound';
+      case 'sensation':
+        return 'Sensation';
       default:
         return null;
     }

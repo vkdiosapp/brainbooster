@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:vibration/vibration.dart';
 import '../game_settings.dart';
 import '../models/round_result.dart';
 import '../models/game_session.dart';
@@ -16,48 +13,32 @@ import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
 import 'color_change_results_page.dart';
 
-class SoundGamePage extends StatefulWidget {
+class SensationGamePage extends StatefulWidget {
   final String? categoryName;
 
-  const SoundGamePage({super.key, this.categoryName});
+  const SensationGamePage({super.key, this.categoryName});
 
   @override
-  State<SoundGamePage> createState() => _SoundGamePageState();
+  State<SensationGamePage> createState() => _SensationGamePageState();
 }
 
-class _SoundGamePageState extends State<SoundGamePage> {
+class _SensationGamePageState extends State<SensationGamePage> {
   int _currentRound = 0;
   int _completedRounds = 0;
   int _bestSession = 240; // in milliseconds
   bool _isPlaying = false;
-  bool _isWaitingForSound = false;
-  bool _isSoundPlayed = false;
-  DateTime? _soundPlayedTime;
+  bool _isWaitingForVibration = false;
+  bool _isVibrationPlayed = false;
+  DateTime? _vibrationPlayedTime;
   Timer? _delayTimer;
   Timer? _errorDisplayTimer;
   Timer? _reactionTimeDisplayTimer;
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
-  // Array of different sound frequencies (in Hz) - 10 sounds
-  final List<double> _soundFrequencies = [
-    400,
-    500,
-    600,
-    700,
-    800,
-    900,
-    1000,
-    1100,
-    1200,
-    1300,
-  ];
-
-  // Track which sounds are available (not yet used in current cycle)
-  List<double> _availableSounds = [];
-  final math.Random _random = math.Random();
+  // Vibration duration - fixed at 2 seconds
+  static const int _vibrationDuration = 2000; // 2 seconds in milliseconds
 
   @override
   void initState() {
@@ -70,7 +51,6 @@ class _SoundGamePageState extends State<SoundGamePage> {
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
     _reactionTimeDisplayTimer?.cancel();
-    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -78,16 +58,13 @@ class _SoundGamePageState extends State<SoundGamePage> {
     _currentRound = 0;
     _completedRounds = 0;
     _isPlaying = false;
-    _isWaitingForSound = false;
-    _isSoundPlayed = false;
-    _soundPlayedTime = null;
+    _isWaitingForVibration = false;
+    _isVibrationPlayed = false;
+    _vibrationPlayedTime = null;
     _errorMessage = null;
     _roundResults.clear();
     _delayTimer?.cancel();
     _errorDisplayTimer?.cancel();
-    // Reset available sounds - shuffle the array
-    _availableSounds = List.from(_soundFrequencies);
-    _availableSounds.shuffle(_random);
   }
 
   void _startGame() {
@@ -96,9 +73,6 @@ class _SoundGamePageState extends State<SoundGamePage> {
       _currentRound = 0;
       _completedRounds = 0;
       _roundResults.clear();
-      // Reset available sounds - shuffle the array
-      _availableSounds = List.from(_soundFrequencies);
-      _availableSounds.shuffle(_random);
     });
     _startNextRound();
   }
@@ -111,9 +85,9 @@ class _SoundGamePageState extends State<SoundGamePage> {
 
     setState(() {
       _currentRound++;
-      _isWaitingForSound = true;
-      _isSoundPlayed = false;
-      _soundPlayedTime = null;
+      _isWaitingForVibration = true;
+      _isVibrationPlayed = false;
+      _vibrationPlayedTime = null;
       _errorMessage = null;
     });
 
@@ -123,142 +97,55 @@ class _SoundGamePageState extends State<SoundGamePage> {
     final delayMilliseconds = (delaySeconds * 1000).toInt();
 
     _delayTimer = Timer(Duration(milliseconds: delayMilliseconds), () {
-      if (mounted && _isWaitingForSound) {
-        _playSound();
+      if (mounted && _isWaitingForVibration) {
+        _playVibration();
       }
     });
   }
 
-  Future<void> _playSound() async {
-    if (!_isWaitingForSound) return;
-
-    // Get a random sound from available sounds
-    // If all sounds have been used, shuffle and reset
-    if (_availableSounds.isEmpty) {
-      _availableSounds = List.from(_soundFrequencies);
-      _availableSounds.shuffle(_random);
-    }
-
-    // Pick a random sound from available sounds
-    final randomIndex = _random.nextInt(_availableSounds.length);
-    final selectedFrequency = _availableSounds[randomIndex];
-
-    // Remove the selected sound from available sounds
-    _availableSounds.removeAt(randomIndex);
+  Future<void> _playVibration() async {
+    if (!_isWaitingForVibration) return;
 
     try {
-      // Generate a beep sound programmatically with the selected frequency
-      final beepWav = _generateBeepWav(
-        selectedFrequency,
-        200,
-      ); // 200ms duration
-
-      // Save to temporary file and play
-      final tempDir = await getTemporaryDirectory();
-      final beepFile = File(
-        '${tempDir.path}/beep_${selectedFrequency.toInt()}.wav',
-      );
-      await beepFile.writeAsBytes(beepWav);
-
-      await _audioPlayer.setVolume(0.7); // Set volume to 70%
-      await _audioPlayer.play(DeviceFileSource(beepFile.path));
-
-      // Clean up file after playing
-      Timer(const Duration(milliseconds: 500), () async {
-        try {
-          if (await beepFile.exists()) {
-            await beepFile.delete();
-          }
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      });
-    } catch (e) {
-      // Fallback: Try system sound
+      // For iOS, use HapticFeedback directly for stronger, more reliable vibration
+      // For Android, use Vibration package
       try {
-        SystemSound.play(SystemSoundType.alert);
-      } catch (e2) {
-        // If all else fails, just mark sound as played
-        // The visual indicator will still show
+        // Try heavy impact haptic feedback first (works best on iOS)
+        HapticFeedback.heavyImpact();
+
+        // Also try vibration package for additional feedback with 2 second duration
+        if (await Vibration.hasVibrator() ?? false) {
+          // Use maximum amplitude for strongest vibration, 2 second duration
+          await Vibration.vibrate(
+            duration: _vibrationDuration, // 2 seconds
+            amplitude: 255, // Maximum amplitude for strongest vibration (0-255)
+          );
+        }
+      } catch (e) {
+        // Fallback: Try medium impact and vibration
+        try {
+          HapticFeedback.mediumImpact();
+          if (await Vibration.hasVibrator() ?? false) {
+            await Vibration.vibrate(duration: _vibrationDuration);
+          }
+        } catch (e2) {
+          // Final fallback: Try light impact
+          try {
+            HapticFeedback.lightImpact();
+          } catch (e3) {
+            // If all else fails, just mark vibration as played
+          }
+        }
       }
+    } catch (e) {
+      // If all else fails, just mark vibration as played
     }
 
     setState(() {
-      _isSoundPlayed = true;
-      _isWaitingForSound = false;
-      _soundPlayedTime = DateTime.now();
+      _isVibrationPlayed = true;
+      _isWaitingForVibration = false;
+      _vibrationPlayedTime = DateTime.now();
     });
-  }
-
-  Uint8List _generateBeepWav(double frequency, int durationMs) {
-    final sampleRate = 44100;
-    final duration = durationMs / 1000.0;
-    final numSamples = (sampleRate * duration).round();
-
-    // Generate bell-like sound with harmonics (more pleasant than simple beep)
-    final samples = Int16List(numSamples);
-    for (int i = 0; i < numSamples; i++) {
-      final t = i / sampleRate;
-
-      // Create a bell-like sound with multiple harmonics and envelope
-      // Fundamental frequency
-      double value = math.sin(2 * math.pi * frequency * t) * 0.3;
-
-      // Add harmonics for richer bell sound
-      value += math.sin(2 * math.pi * frequency * 2 * t) * 0.15; // 2nd harmonic
-      value += math.sin(2 * math.pi * frequency * 3 * t) * 0.1; // 3rd harmonic
-      value += math.sin(2 * math.pi * frequency * 4 * t) * 0.05; // 4th harmonic
-
-      // Apply envelope (fade out) for bell-like decay
-      final envelope = math.exp(-t * 8); // Exponential decay
-      value *= envelope;
-
-      samples[i] = (value * 32767).round().clamp(-32768, 32767);
-    }
-
-    // Create WAV file
-    final dataSize = numSamples * 2; // 16-bit = 2 bytes per sample
-    final fileSize = 36 + dataSize;
-
-    final wav = ByteData(44 + dataSize);
-
-    // RIFF header
-    wav.setUint8(0, 0x52); // 'R'
-    wav.setUint8(1, 0x49); // 'I'
-    wav.setUint8(2, 0x46); // 'F'
-    wav.setUint8(3, 0x46); // 'F'
-    wav.setUint32(4, fileSize, Endian.little);
-    wav.setUint8(8, 0x57); // 'W'
-    wav.setUint8(9, 0x41); // 'A'
-    wav.setUint8(10, 0x56); // 'V'
-    wav.setUint8(11, 0x45); // 'E'
-
-    // fmt chunk
-    wav.setUint8(12, 0x66); // 'f'
-    wav.setUint8(13, 0x6D); // 'm'
-    wav.setUint8(14, 0x74); // 't'
-    wav.setUint8(15, 0x20); // ' '
-    wav.setUint32(16, 16, Endian.little); // fmt chunk size
-    wav.setUint16(20, 1, Endian.little); // Audio format (PCM)
-    wav.setUint16(22, 1, Endian.little); // Number of channels (mono)
-    wav.setUint32(24, sampleRate, Endian.little); // Sample rate
-    wav.setUint32(28, sampleRate * 2, Endian.little); // Byte rate
-    wav.setUint16(32, 2, Endian.little); // Block align
-    wav.setUint16(34, 16, Endian.little); // Bits per sample
-
-    // data chunk
-    wav.setUint8(36, 0x64); // 'd'
-    wav.setUint8(37, 0x61); // 'a'
-    wav.setUint8(38, 0x74); // 't'
-    wav.setUint8(39, 0x61); // 'a'
-    wav.setUint32(40, dataSize, Endian.little);
-
-    // Copy sample data
-    for (int i = 0; i < samples.length; i++) {
-      wav.setUint16(44 + i * 2, samples[i], Endian.little);
-    }
-
-    return wav.buffer.asUint8List();
   }
 
   void _handleTap() {
@@ -267,16 +154,16 @@ class _SoundGamePageState extends State<SoundGamePage> {
       return;
     }
 
-    if (_isWaitingForSound && !_isSoundPlayed) {
+    if (_isWaitingForVibration && !_isVibrationPlayed) {
       // User tapped too early - penalty
       _handleEarlyTap();
       return;
     }
 
-    if (_isSoundPlayed && _soundPlayedTime != null) {
+    if (_isVibrationPlayed && _vibrationPlayedTime != null) {
       // Calculate reaction time
       final reactionTime = DateTime.now()
-          .difference(_soundPlayedTime!)
+          .difference(_vibrationPlayedTime!)
           .inMilliseconds;
       _completeRound(reactionTime, false);
     }
@@ -285,8 +172,8 @@ class _SoundGamePageState extends State<SoundGamePage> {
   void _handleEarlyTap() {
     setState(() {
       _errorMessage = 'PENALTY +1 SECOND';
-      _isWaitingForSound = false;
-      _isSoundPlayed = false;
+      _isWaitingForVibration = false;
+      _isVibrationPlayed = false;
     });
 
     // Mark round as failed with penalty
@@ -319,7 +206,7 @@ class _SoundGamePageState extends State<SoundGamePage> {
     );
 
     setState(() {
-      _isSoundPlayed = false;
+      _isVibrationPlayed = false;
       _completedRounds++;
       if (!isFailed) {
         _reactionTimeMessage = '$reactionTime ms';
@@ -340,8 +227,8 @@ class _SoundGamePageState extends State<SoundGamePage> {
   Future<void> _endGame() async {
     setState(() {
       _isPlaying = false;
-      _isWaitingForSound = false;
-      _isSoundPlayed = false;
+      _isWaitingForVibration = false;
+      _isVibrationPlayed = false;
     });
 
     // Calculate average reaction time
@@ -373,11 +260,11 @@ class _SoundGamePageState extends State<SoundGamePage> {
     // Save game session
     if (_roundResults.isNotEmpty) {
       final sessionNumber = await GameHistoryService.getNextSessionNumber(
-        'sound',
+        'sensation',
       );
       final session = GameSession(
-        gameId: 'sound',
-        gameName: 'Sound',
+        gameId: 'sensation',
+        gameName: 'Sensation',
         timestamp: DateTime.now(),
         sessionNumber: sessionNumber,
         roundResults: List.from(_roundResults),
@@ -435,7 +322,7 @@ class _SoundGamePageState extends State<SoundGamePage> {
                     ),
                     const Spacer(),
                     const Text(
-                      'SOUND',
+                      'SENSATION',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
@@ -492,12 +379,12 @@ class _SoundGamePageState extends State<SoundGamePage> {
                     // Title
                     Text(
                       _isPlaying
-                          ? (_isWaitingForSound
-                                ? 'Wait for the sound...'
-                                : (_isSoundPlayed
+                          ? (_isWaitingForVibration
+                                ? 'Wait for the vibration...'
+                                : (_isVibrationPlayed
                                       ? 'TAP NOW!'
                                       : 'Round $_currentRound'))
-                          : 'Tap when you hear the sound',
+                          : 'Tap when you feel the vibration',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -591,14 +478,15 @@ class _SoundGamePageState extends State<SoundGamePage> {
                                     ),
                                   ),
                                 ),
-                              // Show "Tap when sound plays" - both while waiting and after sound plays
+                              // Show "Tap when vibration plays" - both while waiting and after vibration plays
                               if (_isPlaying &&
-                                  (_isWaitingForSound || _isSoundPlayed) &&
+                                  (_isWaitingForVibration ||
+                                      _isVibrationPlayed) &&
                                   _errorMessage == null &&
                                   _reactionTimeMessage == null)
                                 const Center(
                                   child: Text(
-                                    'TAP WHEN\nSOUND PLAYS',
+                                    'TAP WHEN\nVIBRATION PLAYS',
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.w900,

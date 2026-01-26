@@ -156,6 +156,23 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
+          // Gradient background - only show when not in edit mode
+          if (!widget.isEditMode)
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFDBEAFE),
+                      Color(0xFFE2E8F0),
+                      Color(0xFFFCE7F3),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           SafeArea(
               child: Column(
                 children: [

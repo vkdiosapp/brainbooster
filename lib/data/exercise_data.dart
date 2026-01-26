@@ -74,6 +74,13 @@ class ExerciseData {
         desc: 'Tap when you hear the sound',
         timeRequired: 350,
       ),
+      Exercise(
+        id: 9,
+        categoryId: 1,
+        name: 'Sensation',
+        desc: 'Tap when you feel the vibration',
+        timeRequired: 350,
+      ),
     ];
   }
 
