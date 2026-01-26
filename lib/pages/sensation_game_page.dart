@@ -358,6 +358,21 @@ class _SensationGamePageState extends State<SensationGamePage> {
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    // Note about haptic and vibration settings
+                    if (!_isPlaying)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, left: 24, right: 24),
+                        child: Text(
+                          'Note: System Haptic and Vibration should on from setting.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF64748B),
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     // Main game card - flexible with 20 padding on all sides
                     Expanded(
