@@ -546,7 +546,9 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
                                 : (_isRoundActive
                                       ? 'SWIPE NOW!'
                                       : 'Round $_currentRound'))
-                          : 'Swipe in the correct direction',
+                          : (_isAdvanced
+                              ? 'Swipe in the correct direction for green and opposite for red'
+                              : 'Swipe in the correct direction'),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,

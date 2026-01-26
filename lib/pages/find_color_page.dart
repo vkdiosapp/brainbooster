@@ -492,131 +492,26 @@ class _FindColorPageState extends State<FindColorPage> {
                                       ),
                                     // Color grid - fills remaining space
                                     Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Column(
-                                          children: [
-                                            // Row 1
-                                            Expanded(
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[0],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[1],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[2],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(20),
+                                          child: AspectRatio(
+                                            aspectRatio: 1.0,
+                                            child: GridView.builder(
+                                              physics: const NeverScrollableScrollPhysics(),
+                                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 3,
+                                                crossAxisSpacing: 8,
+                                                mainAxisSpacing: 8,
                                               ),
+                                              itemCount: 9,
+                                              itemBuilder: (context, index) {
+                                                return _buildColorCell(
+                                                  _gridColors[index],
+                                                );
+                                              },
                                             ),
-                                            // Row 2
-                                            Expanded(
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[3],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[4],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[5],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            // Row 3
-                                            Expanded(
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[6],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[7],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            3,
-                                                          ),
-                                                      child: _buildColorCell(
-                                                        _gridColors[8],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ),

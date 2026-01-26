@@ -4,6 +4,7 @@ import '../models/exercise.dart';
 import '../data/exercise_data.dart';
 import '../navigation/exercise_navigator.dart';
 import '../widgets/gradient_background.dart';
+import '../services/favorites_service.dart';
 
 class CategoryExercisesPage extends StatefulWidget {
   final Category category;
@@ -18,12 +19,44 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
   List<Exercise> _exercises = [];
   List<Exercise> _filteredExercises = [];
   final TextEditingController _searchController = TextEditingController();
+  int _selectedTab = 0; // 0: All, 1: Favourite
+  Set<int> _favoriteExerciseIds = {};
+  Map<int, bool> _favoriteStatusCache = {};
 
   @override
   void initState() {
     super.initState();
     _loadExercises();
+    _loadFavorites();
     _searchController.addListener(_filterExercises);
+    // Listen to favorites changes
+    FavoritesService.favoritesNotifier.addListener(_onFavoritesChanged);
+  }
+
+  void _onFavoritesChanged() {
+    setState(() {
+      _favoriteExerciseIds = FavoritesService.favoritesNotifier.value;
+      // Update cache
+      for (final exercise in _exercises) {
+        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(exercise.id);
+      }
+    });
+    _filterExercises();
+  }
+
+  Future<void> _loadFavorites() async {
+    // Initialize notifier if not already initialized
+    if (FavoritesService.favoritesNotifier.value.isEmpty) {
+      await FavoritesService.initialize();
+    }
+    setState(() {
+      _favoriteExerciseIds = FavoritesService.favoritesNotifier.value;
+      // Update cache
+      for (final exercise in _exercises) {
+        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(exercise.id);
+      }
+    });
+    _filterExercises();
   }
 
   void _loadExercises() {
@@ -36,10 +69,21 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
   void _filterExercises() {
     final query = _searchController.text.toLowerCase();
     setState(() {
+      List<Exercise> baseList = _exercises;
+
+      // Filter by tab (All or Favourite)
+      if (_selectedTab == 1) {
+        // Favourite tab - only show favorites
+        baseList = _exercises
+            .where((exercise) => _favoriteExerciseIds.contains(exercise.id))
+            .toList();
+      }
+
+      // Filter by search query
       if (query.isEmpty) {
-        _filteredExercises = _exercises;
+        _filteredExercises = baseList;
       } else {
-        _filteredExercises = _exercises
+        _filteredExercises = baseList
             .where(
               (exercise) =>
                   exercise.name.toLowerCase().contains(query) ||
@@ -52,6 +96,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
 
   @override
   void dispose() {
+    FavoritesService.favoritesNotifier.removeListener(_onFavoritesChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -107,6 +152,9 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              // Tab selector (All / Favourite)
+              _buildTabSelector(),
               const SizedBox(height: 16),
               // Exercise list
               Expanded(
@@ -243,12 +291,21 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                       size: 24,
                     ),
                     const SizedBox(width: 12),
-                    Icon(
-                      exercise.isRecommended ? Icons.star : Icons.star_outline,
-                      color: exercise.isRecommended
-                          ? Colors.yellow[700]
-                          : (tileData['iconColor'] as Color).withOpacity(0.6),
-                      size: 24,
+                    GestureDetector(
+                      onTap: () async {
+                        // Prevent navigation when tapping star
+                        await FavoritesService.toggleFavorite(exercise.id);
+                        // No need to call _loadFavorites() - notifier will update automatically
+                      },
+                      child: Icon(
+                        _favoriteStatusCache[exercise.id] == true
+                            ? Icons.star
+                            : Icons.star_outline,
+                        color: _favoriteStatusCache[exercise.id] == true
+                            ? Colors.yellow[700]
+                            : (tileData['iconColor'] as Color).withOpacity(0.6),
+                        size: 24,
+                      ),
                     ),
                   ],
                 ],
@@ -361,5 +418,77 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
       'textColor': baseColor['textColor'] as Color,
       'icon': icon,
     };
+  }
+
+  Widget _buildTabSelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedTab = 0;
+              });
+              _filterExercises();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border(
+                  bottom: BorderSide(
+                    color: _selectedTab == 0
+                        ? const Color(0xFF475569)
+                        : Colors.transparent,
+                    width: 4,
+                  ),
+                ),
+              ),
+              child: Text(
+                'All',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF475569),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 24),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedTab = 1;
+              });
+              _filterExercises();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border(
+                  bottom: BorderSide(
+                    color: _selectedTab == 1
+                        ? const Color(0xFF475569)
+                        : Colors.transparent,
+                    width: 4,
+                  ),
+                ),
+              ),
+              child: Text(
+                'Favourite',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF475569),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
