@@ -10,6 +10,7 @@ import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class FindColorPage extends StatefulWidget {
@@ -39,6 +40,13 @@ class _FindColorPageState extends State<FindColorPage> {
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
+  // Get penalty time from exercise data (exercise ID 4)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 4,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   // Color mapping - using exact colors specified
   final List<Color> _availableColors = [
@@ -204,7 +212,7 @@ class _FindColorPageState extends State<FindColorPage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );
@@ -502,12 +510,14 @@ class _FindColorPageState extends State<FindColorPage> {
                                           child: AspectRatio(
                                             aspectRatio: 1.0,
                                             child: GridView.builder(
-                                              physics: const NeverScrollableScrollPhysics(),
-                                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount: 3,
-                                                crossAxisSpacing: 8,
-                                                mainAxisSpacing: 8,
-                                              ),
+                                              physics:
+                                                  const NeverScrollableScrollPhysics(),
+                                              gridDelegate:
+                                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                                    crossAxisCount: 3,
+                                                    crossAxisSpacing: 8,
+                                                    mainAxisSpacing: 8,
+                                                  ),
                                               itemCount: 9,
                                               itemBuilder: (context, index) {
                                                 return _buildColorCell(

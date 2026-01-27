@@ -10,6 +10,7 @@ import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class ColorChangePage extends StatefulWidget {
@@ -37,6 +38,13 @@ class _ColorChangePageState extends State<ColorChangePage> {
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
+  // Get penalty time from exercise data (exercise ID 1)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 1,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   // Random colors for the game
   final List<Color> _gameColors = [
@@ -166,7 +174,7 @@ class _ColorChangePageState extends State<ColorChangePage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );

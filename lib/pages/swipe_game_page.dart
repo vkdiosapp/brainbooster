@@ -10,6 +10,7 @@ import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 enum SwipeDirection { up, down, left, right }
@@ -35,7 +36,8 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
   String? _targetDirectionName;
   bool _isGreen =
       true; // true = green (same direction), false = red (opposite direction)
-  bool _isAdvanced = false; // false = Normal (only green), true = Advanced (both red and green)
+  bool _isAdvanced =
+      false; // false = Normal (only green), true = Advanced (both red and green)
   DateTime? _roundStartTime;
   Timer? _delayTimer;
   Timer? _errorDisplayTimer;
@@ -45,6 +47,13 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
   List<RoundResult> _roundResults = [];
   Offset? _swipeStartPosition;
   Offset? _swipeEndPosition;
+  // Get penalty time from exercise data (exercise ID 14)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 14,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   final Map<SwipeDirection, String> _directionNames = {
     SwipeDirection.up: 'UP',
@@ -239,7 +248,7 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );
@@ -368,10 +377,7 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.6),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.4),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -395,9 +401,14 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: !_isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      color: !_isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFE2E8F0),
@@ -416,7 +427,9 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: !_isAdvanced ? Colors.white : const Color(0xFF475569),
+                        color: !_isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),
@@ -429,9 +442,14 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: _isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      color: _isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFE2E8F0),
@@ -450,7 +468,9 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: _isAdvanced ? Colors.white : const Color(0xFF475569),
+                        color: _isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),
@@ -551,8 +571,8 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
                                       ? 'SWIPE NOW!'
                                       : 'Round $_currentRound'))
                           : (_isAdvanced
-                              ? 'Swipe in the correct direction for green and opposite for red'
-                              : 'Swipe in the correct direction'),
+                                ? 'Swipe in the correct direction for green and opposite for red'
+                                : 'Swipe in the correct direction'),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,

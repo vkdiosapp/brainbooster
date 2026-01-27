@@ -8,6 +8,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class VisualMemoryPage extends StatefulWidget {
@@ -21,21 +22,27 @@ class VisualMemoryPage extends StatefulWidget {
 }
 
 class _VisualMemoryPageState extends State<VisualMemoryPage> {
-  static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
+  // Get penalty time from exercise data (exercise ID 13)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 13,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
   static const int _displayDurationMs = 2000; // Show red dots for 2 seconds
-  
+
   // Normal mode constants
   static const int _normalGridSize = 4; // 4x4 grid
   static const int _normalTotalBoxes = 16; // 4x4 = 16 boxes
   static const int _normalRedDotsCount = 4; // Show 4 red dots
   static const int _normalDistractorDotsCount = 2; // Show 2 distractor dots
-  
+
   // Advanced mode constants
   static const int _advancedGridSize = 5; // 5x5 grid
   static const int _advancedTotalBoxes = 25; // 5x5 = 25 boxes
   static const int _advancedRedDotsCount = 8; // Show 8 red dots
   static const int _advancedDistractorDotsCount = 4; // Show 4 distractor dots
-  
+
   bool _isAdvanced = false; // false = Normal, true = Advanced
 
   int _currentRound = 0;
@@ -48,7 +55,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   bool _isRoundActive = false; // Phase 2: User can tap black boxes
 
   Set<int> _redDotPositions = {}; // Positions with red dots
-  Map<int, Color> _distractorDotPositions = {}; // Positions with distractor dots (different colors)
+  Map<int, Color> _distractorDotPositions =
+      {}; // Positions with distractor dots (different colors)
   Set<int> _tappedPositions = {}; // Positions user has correctly tapped
   DateTime? _roundStartTime;
   Timer? _roundDelayTimer;
@@ -78,8 +86,10 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   // Getters for dynamic values based on difficulty
   int get _gridSize => _isAdvanced ? _advancedGridSize : _normalGridSize;
   int get _totalBoxes => _isAdvanced ? _advancedTotalBoxes : _normalTotalBoxes;
-  int get _redDotsCount => _isAdvanced ? _advancedRedDotsCount : _normalRedDotsCount;
-  int get _distractorDotsCount => _isAdvanced ? _advancedDistractorDotsCount : _normalDistractorDotsCount;
+  int get _redDotsCount =>
+      _isAdvanced ? _advancedRedDotsCount : _normalRedDotsCount;
+  int get _distractorDotsCount =>
+      _isAdvanced ? _advancedDistractorDotsCount : _normalDistractorDotsCount;
 
   void _resetGame() {
     _roundDelayTimer?.cancel();
@@ -153,14 +163,20 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
         .where((pos) => !_redDotPositions.contains(pos))
         .toList();
     remainingPositions.shuffle(_rand);
-    
-    final distractorPositions = remainingPositions.take(_distractorDotsCount).toList();
+
+    final distractorPositions = remainingPositions
+        .take(_distractorDotsCount)
+        .toList();
     // Use more colors for advanced mode
-    final distractorColors = _isAdvanced 
+    final distractorColors = _isAdvanced
         ? [Colors.blue, Colors.green, Colors.orange, Colors.purple]
         : [Colors.blue, Colors.green];
     _distractorDotPositions = {};
-    for (int i = 0; i < distractorPositions.length && i < distractorColors.length; i++) {
+    for (
+      int i = 0;
+      i < distractorPositions.length && i < distractorColors.length;
+      i++
+    ) {
       _distractorDotPositions[distractorPositions[i]] = distractorColors[i];
     }
 
@@ -360,7 +376,9 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
             itemCount: _totalBoxes,
             itemBuilder: (context, index) {
               final hasRedDot = _redDotPositions.contains(index);
-              final hasDistractorDot = _distractorDotPositions.containsKey(index);
+              final hasDistractorDot = _distractorDotPositions.containsKey(
+                index,
+              );
               final distractorColor = _distractorDotPositions[index];
               final isTapped = _tappedPositions.contains(index);
               final isShowingRedDots = _isShowingRedDots;
@@ -448,10 +466,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.6),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.4),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -475,9 +490,14 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: !_isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      color: !_isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFE2E8F0),
@@ -496,7 +516,9 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: !_isAdvanced ? Colors.white : const Color(0xFF475569),
+                        color: !_isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),
@@ -509,9 +531,14 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: _isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      color: _isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFE2E8F0),
@@ -530,7 +557,9 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: _isAdvanced ? Colors.white : const Color(0xFF475569),
+                        color: _isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),

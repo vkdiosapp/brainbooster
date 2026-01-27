@@ -8,6 +8,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class PeripheralVisionPage extends StatefulWidget {
@@ -21,7 +22,13 @@ class PeripheralVisionPage extends StatefulWidget {
 }
 
 class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
-  static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
+  // Get penalty time from exercise data (exercise ID 18)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 18,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
   static const int _displayDurationMs = 1000; // Show digits for 1 second
 
   bool _isAdvanced = false; // false = Normal, true = Advanced
@@ -334,10 +341,10 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
         final containerHeight = constraints.maxHeight;
         final centerX = containerWidth / 2;
         final centerY = containerHeight / 2;
-        
+
         // Use the smaller dimension to ensure everything fits
-        final minDimension = containerWidth < containerHeight 
-            ? containerWidth 
+        final minDimension = containerWidth < containerHeight
+            ? containerWidth
             : containerHeight;
         final boxSize = minDimension * 0.2; // Box size relative to container
         final centerDotSize = 20.0;
@@ -418,10 +425,7 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFE2E8F0),
-            width: 2,
-          ),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),

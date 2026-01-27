@@ -10,6 +10,7 @@ import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class MathQuestion {
@@ -51,6 +52,13 @@ class _QuickMathPageState extends State<QuickMathPage> {
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
+  // Get penalty time from exercise data (exercise ID 6)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 6,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   @override
   void initState() {
@@ -246,7 +254,7 @@ class _QuickMathPageState extends State<QuickMathPage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );

@@ -8,6 +8,7 @@ import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class BallRushPage extends StatefulWidget {
@@ -40,8 +41,15 @@ class _BallRushPageState extends State<BallRushPage> {
   static const int _totalBalls = 10;
   static const int _bombCount = 2; // Number of bombs in advanced mode
   static const double _minBallRadius = 40.0; // Minimum ball radius
-  static const double _maxBallRadius = 60.0; // Maximum ball radius (1.5x of minimum)
-  static const int _wrongTapPenaltyMs = 1000; // Penalty for tapping bomb
+  static const double _maxBallRadius =
+      60.0; // Maximum ball radius (1.5x of minimum)
+  // Get penalty time from exercise data (exercise ID 11)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 11,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   // List to store all balls
   List<_Ball> _balls = [];
@@ -127,10 +135,10 @@ class _BallRushPageState extends State<BallRushPage> {
     if (!_isWaitingForBalls || _containerSize == null) return;
 
     final random = math.Random();
-    
+
     // Create balls at random positions with random sizes
     _balls.clear();
-    
+
     // Determine how many regular balls vs bombs
     int regularBallsCount = _totalBalls;
     int bombsCount = 0;
@@ -138,12 +146,12 @@ class _BallRushPageState extends State<BallRushPage> {
       bombsCount = _bombCount;
       regularBallsCount = _totalBalls - _bombCount;
     }
-    
+
     // Create regular balls
     for (int i = 0; i < regularBallsCount; i++) {
       // Use minimum radius for all balls (same size)
       final radius = _minBallRadius;
-      
+
       // Calculate safe area for this ball
       final safeWidth = _containerSize!.width - (radius * 2);
       final safeHeight = _containerSize!.height - (radius * 2);
@@ -162,20 +170,22 @@ class _BallRushPageState extends State<BallRushPage> {
         math.sin(angle) * baseSpeed,
       );
 
-      _balls.add(_Ball(
-        position: position,
-        velocity: velocity,
-        radius: radius,
-        isCaught: false,
-        isBomb: false,
-      ));
+      _balls.add(
+        _Ball(
+          position: position,
+          velocity: velocity,
+          radius: radius,
+          isCaught: false,
+          isBomb: false,
+        ),
+      );
     }
-    
+
     // Create bombs (only in advanced mode)
     for (int i = 0; i < bombsCount; i++) {
       // Use minimum radius for all balls (same size)
       final radius = _minBallRadius;
-      
+
       // Calculate safe area for this ball
       final safeWidth = _containerSize!.width - (radius * 2);
       final safeHeight = _containerSize!.height - (radius * 2);
@@ -194,13 +204,15 @@ class _BallRushPageState extends State<BallRushPage> {
         math.sin(angle) * baseSpeed,
       );
 
-      _balls.add(_Ball(
-        position: position,
-        velocity: velocity,
-        radius: radius,
-        isCaught: false,
-        isBomb: true, // Mark as bomb
-      ));
+      _balls.add(
+        _Ball(
+          position: position,
+          velocity: velocity,
+          radius: radius,
+          isCaught: false,
+          isBomb: true, // Mark as bomb
+        ),
+      );
     }
 
     setState(() {
@@ -217,7 +229,9 @@ class _BallRushPageState extends State<BallRushPage> {
     if (!_areBallsVisible || _containerSize == null) return;
 
     _ballMovementTimer?.cancel();
-    _ballMovementTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+    _ballMovementTimer = Timer.periodic(const Duration(milliseconds: 16), (
+      timer,
+    ) {
       if (!_areBallsVisible || _containerSize == null || !mounted) {
         timer.cancel();
         return;
@@ -279,7 +293,7 @@ class _BallRushPageState extends State<BallRushPage> {
 
       // Calculate distance from tap to ball center
       final distance = (tapPosition - ball.position).distance;
-      
+
       if (distance <= ball.radius) {
         if (ball.isBomb) {
           // Bomb tapped - penalty!
@@ -299,7 +313,9 @@ class _BallRushPageState extends State<BallRushPage> {
 
     if (ballCaught && !bombTapped) {
       // Check if all regular balls are caught (bombs don't count)
-      final regularBallsCount = _isAdvanced ? (_totalBalls - _bombCount) : _totalBalls;
+      final regularBallsCount = _isAdvanced
+          ? (_totalBalls - _bombCount)
+          : _totalBalls;
       if (_ballsCaught >= regularBallsCount) {
         _catchAllBalls();
       } else {
@@ -308,12 +324,12 @@ class _BallRushPageState extends State<BallRushPage> {
     }
     // If no ball was caught, just ignore the tap (no penalty)
   }
-  
+
   void _handleBombTap() {
     // Play penalty sound for tapping bomb
     SoundService.playPenaltySound();
     _errorDisplayTimer?.cancel();
-    
+
     // Mark round as failed with penalty
     _roundResults.add(
       RoundResult(
@@ -322,15 +338,15 @@ class _BallRushPageState extends State<BallRushPage> {
         isFailed: true,
       ),
     );
-    
+
     setState(() {
       _areBallsVisible = false;
       _errorMessage = 'PENALTY +1 SECOND';
       _ballsAppearedTime = null;
     });
-    
+
     _ballMovementTimer?.cancel();
-    
+
     // Show error for 1.5 seconds, then start next round
     _errorDisplayTimer = Timer(const Duration(milliseconds: 1500), () {
       if (mounted) {
@@ -348,7 +364,7 @@ class _BallRushPageState extends State<BallRushPage> {
 
     // Play tap sound when all balls are caught
     SoundService.playTapSound();
-    
+
     // Calculate reaction time from when balls appeared
     final reactionTime = DateTime.now()
         .difference(_ballsAppearedTime!)
@@ -407,9 +423,8 @@ class _BallRushPageState extends State<BallRushPage> {
     int averageTime = 0;
 
     if (successfulRounds.isNotEmpty) {
-      averageTime = successfulRounds
-          .map((r) => r.reactionTime)
-          .reduce((a, b) => a + b) ~/
+      averageTime =
+          successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
           successfulRounds.length;
 
       if (averageTime < _bestSession || _bestSession == 0) {
@@ -418,17 +433,16 @@ class _BallRushPageState extends State<BallRushPage> {
     } else {
       // If no successful rounds, calculate from all rounds
       if (_roundResults.isNotEmpty) {
-        averageTime = _roundResults
-            .map((r) => r.reactionTime)
-            .reduce((a, b) => a + b) ~/
+        averageTime =
+            _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
             _roundResults.length;
       }
     }
 
     // Get best time before saving
     final savedBestTime = await GameHistoryService.getBestTime('ball_rush');
-    final finalBestTime = (savedBestTime == 0 || averageTime < savedBestTime) 
-        ? averageTime 
+    final finalBestTime = (savedBestTime == 0 || averageTime < savedBestTime)
+        ? averageTime
         : savedBestTime;
 
     // Save session
@@ -504,13 +518,15 @@ class _BallRushPageState extends State<BallRushPage> {
       builders: GameBuilders(
         titleBuilder: (state) {
           if (!state.isPlaying) {
-            return _isAdvanced 
+            return _isAdvanced
                 ? 'Tap all 8 balls, avoid 2 bombs!'
                 : 'Tap all 10 balls as they move';
           }
           if (state.isWaiting) return 'Wait for the balls...';
           if (state.isRoundActive) {
-            final regularBallsCount = _isAdvanced ? (_totalBalls - _bombCount) : _totalBalls;
+            final regularBallsCount = _isAdvanced
+                ? (_totalBalls - _bombCount)
+                : _totalBalls;
             return 'CATCH THEM! ($_ballsCaught/$regularBallsCount)';
           }
           return 'Round ${state.currentRound}';
@@ -519,7 +535,7 @@ class _BallRushPageState extends State<BallRushPage> {
           return LayoutBuilder(
             builder: (context, constraints) {
               // Store container size for calculations
-              if (_containerSize == null || 
+              if (_containerSize == null ||
                   _containerSize!.width != constraints.maxWidth ||
                   _containerSize!.height != constraints.maxHeight) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -558,7 +574,9 @@ class _BallRushPageState extends State<BallRushPage> {
                               height: ball.radius * 2,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: ball.isBomb ? Colors.red : GameSettings.ballColor,
+                                color: ball.isBomb
+                                    ? Colors.red
+                                    : GameSettings.ballColor,
                               ),
                               child: ball.isBomb
                                   ? Icon(
@@ -590,7 +608,7 @@ class _BallRushPageState extends State<BallRushPage> {
       useBackdropFilter: false,
     );
   }
-  
+
   Widget _buildDifficultySelector() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
@@ -599,10 +617,7 @@ class _BallRushPageState extends State<BallRushPage> {
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.6),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.4),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -626,9 +641,14 @@ class _BallRushPageState extends State<BallRushPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: !_isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      color: !_isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFE2E8F0),
@@ -647,7 +667,9 @@ class _BallRushPageState extends State<BallRushPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: !_isAdvanced ? Colors.white : const Color(0xFF475569),
+                        color: !_isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),
@@ -660,9 +682,14 @@ class _BallRushPageState extends State<BallRushPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: _isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      color: _isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFE2E8F0),
@@ -681,7 +708,9 @@ class _BallRushPageState extends State<BallRushPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: _isAdvanced ? Colors.white : const Color(0xFF475569),
+                        color: _isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),

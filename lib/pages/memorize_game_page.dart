@@ -8,6 +8,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class MemorizeGamePage extends StatefulWidget {
@@ -21,8 +22,13 @@ class MemorizeGamePage extends StatefulWidget {
 }
 
 class _MemorizeGamePageState extends State<MemorizeGamePage> {
-  static const int _wrongTapPenaltyMs =
-      1000; // Penalty for touching red dot in advanced
+  // Get penalty time from exercise data (exercise ID 17)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 17,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
   static const int _displayDurationMs = 3000; // Show emojis for 3 seconds
 
   // Normal mode constants

@@ -7,16 +7,10 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
-enum FigureType {
-  circle,
-  square,
-  triangle,
-  diamond,
-  star,
-  hexagon,
-}
+enum FigureType { circle, square, triangle, diamond, star, hexagon }
 
 class FigureChangePage extends StatefulWidget {
   final String? categoryName;
@@ -69,7 +63,13 @@ class _FigureChangePageState extends State<FigureChangePage> {
   ];
 
   final List<FigureType> _availableFigures = FigureType.values;
-  static const int _wrongTapPenaltyMs = 1000;
+  // Get penalty time from exercise data (exercise ID 7)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 7,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   @override
   void initState() {
@@ -96,16 +96,16 @@ class _FigureChangePageState extends State<FigureChangePage> {
     _isWaitingForRound = false;
     _isRoundActive = false;
     _isMatchFound = false;
-      _firstFigureType = null;
-      _firstFigureColor = null;
-      _secondFigureType = null;
-      _secondFigureColor = null;
-      _matchFoundTime = null;
-      _matchProbability = 0;
-      _changeCount = 0;
-      _errorMessage = null;
-      _reactionTimeMessage = null;
-      _roundResults.clear();
+    _firstFigureType = null;
+    _firstFigureColor = null;
+    _secondFigureType = null;
+    _secondFigureColor = null;
+    _matchFoundTime = null;
+    _matchProbability = 0;
+    _changeCount = 0;
+    _errorMessage = null;
+    _reactionTimeMessage = null;
+    _roundResults.clear();
   }
 
   void _startGame() {
@@ -156,13 +156,17 @@ class _FigureChangePageState extends State<FigureChangePage> {
     _changeCount = 0;
 
     // Set first figure: random colored random figure (stays same this round)
-    _firstFigureType = _availableFigures[_rand.nextInt(_availableFigures.length)];
-    _firstFigureColor = _availableColors[_rand.nextInt(_availableColors.length)];
+    _firstFigureType =
+        _availableFigures[_rand.nextInt(_availableFigures.length)];
+    _firstFigureColor =
+        _availableColors[_rand.nextInt(_availableColors.length)];
 
     // Set initial second figure: random figure with random color (different from first)
     do {
-      _secondFigureType = _availableFigures[_rand.nextInt(_availableFigures.length)];
-      _secondFigureColor = _availableColors[_rand.nextInt(_availableColors.length)];
+      _secondFigureType =
+          _availableFigures[_rand.nextInt(_availableFigures.length)];
+      _secondFigureColor =
+          _availableColors[_rand.nextInt(_availableColors.length)];
     } while (_firstFigureType == _secondFigureType &&
         _firstFigureColor == _secondFigureColor);
 
@@ -198,8 +202,10 @@ class _FigureChangePageState extends State<FigureChangePage> {
         // Change second figure to random figure with random color (different from first)
         setState(() {
           do {
-            _secondFigureType = _availableFigures[_rand.nextInt(_availableFigures.length)];
-            _secondFigureColor = _availableColors[_rand.nextInt(_availableColors.length)];
+            _secondFigureType =
+                _availableFigures[_rand.nextInt(_availableFigures.length)];
+            _secondFigureColor =
+                _availableColors[_rand.nextInt(_availableColors.length)];
           } while (_firstFigureType == _secondFigureType &&
               _firstFigureColor == _secondFigureColor);
         });
@@ -217,8 +223,9 @@ class _FigureChangePageState extends State<FigureChangePage> {
       // Play tap sound for correct tap
       SoundService.playTapSound();
       // Correct tap - calculate reaction time from when match was found to now
-      final reactionTime =
-          DateTime.now().difference(_matchFoundTime!).inMilliseconds;
+      final reactionTime = DateTime.now()
+          .difference(_matchFoundTime!)
+          .inMilliseconds;
 
       _roundResults.add(
         RoundResult(
@@ -294,7 +301,7 @@ class _FigureChangePageState extends State<FigureChangePage> {
     if (successfulRounds.isNotEmpty) {
       averageTime =
           successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              successfulRounds.length;
+          successfulRounds.length;
       bestTime = successfulRounds
           .map((r) => r.reactionTime)
           .reduce((a, b) => a < b ? a : b);
@@ -304,7 +311,7 @@ class _FigureChangePageState extends State<FigureChangePage> {
     } else if (_roundResults.isNotEmpty) {
       averageTime =
           _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              _roundResults.length;
+          _roundResults.length;
     }
 
     if (_roundResults.isNotEmpty) {
@@ -437,11 +444,7 @@ class _FigureChangePageState extends State<FigureChangePage> {
                   ),
                 ),
                 // Transparent tap area covering entire container
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.transparent,
-                  ),
-                ),
+                Positioned.fill(child: Container(color: Colors.transparent)),
               ],
             );
           }
@@ -493,7 +496,11 @@ class FigurePainter extends CustomPainter {
         break;
       case FigureType.square:
         final rect = RRect.fromRectAndRadius(
-          Rect.fromCenter(center: center, width: radius * 2, height: radius * 2),
+          Rect.fromCenter(
+            center: center,
+            width: radius * 2,
+            height: radius * 2,
+          ),
           const Radius.circular(8),
         );
         canvas.drawRRect(rect, paint);

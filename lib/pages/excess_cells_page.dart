@@ -8,6 +8,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 enum TriangleDirection { up, down, left, right }
@@ -23,7 +24,13 @@ class ExcessCellsPage extends StatefulWidget {
 }
 
 class _ExcessCellsPageState extends State<ExcessCellsPage> {
-  static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
+  // Get penalty time from exercise data (exercise ID 15)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 15,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   int _gridSize = 4; // Grid size: 4 or 5
   int _currentRound = 0;

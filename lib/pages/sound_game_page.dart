@@ -15,6 +15,7 @@ import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class SoundGamePage extends StatefulWidget {
@@ -42,6 +43,13 @@ class _SoundGamePageState extends State<SoundGamePage> {
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
   final AudioPlayer _audioPlayer = AudioPlayer();
+  // Get penalty time from exercise data (exercise ID 8)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 8,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   // Array of different sound frequencies (in Hz) - 10 sounds
   final List<double> _soundFrequencies = [
@@ -299,7 +307,7 @@ class _SoundGamePageState extends State<SoundGamePage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );

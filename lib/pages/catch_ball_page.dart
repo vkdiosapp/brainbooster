@@ -7,6 +7,7 @@ import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class CatchBallPage extends StatefulWidget {
@@ -43,7 +44,15 @@ class _CatchBallPageState extends State<CatchBallPage> {
 
   // Ball properties
   static const double _ballRadius = 80.0; // Blue ball radius (outer circle)
-  static const double _blackBallRadius = 40.0; // Black ball radius (inner circle - target)
+  static const double _blackBallRadius =
+      40.0; // Black ball radius (inner circle - target)
+  // Get penalty time from exercise data (exercise ID 3)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 3,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   @override
   void initState() {
@@ -120,7 +129,7 @@ class _CatchBallPageState extends State<CatchBallPage> {
     if (!_isWaitingForBall || _containerSize == null) return;
 
     final random = math.Random();
-    
+
     // Calculate safe area for ball (using black ball radius so it can touch edges)
     final safeWidth = _containerSize!.width - (_blackBallRadius * 2);
     final safeHeight = _containerSize!.height - (_blackBallRadius * 2);
@@ -153,7 +162,9 @@ class _CatchBallPageState extends State<CatchBallPage> {
     if (!_isBallVisible || _containerSize == null) return;
 
     _ballMovementTimer?.cancel();
-    _ballMovementTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+    _ballMovementTimer = Timer.periodic(const Duration(milliseconds: 16), (
+      timer,
+    ) {
       if (!_isBallVisible || _containerSize == null || !mounted) {
         timer.cancel();
         return;
@@ -206,7 +217,7 @@ class _CatchBallPageState extends State<CatchBallPage> {
 
     // Calculate distance from tap to ball center
     final distance = (tapPosition - _ballPosition).distance;
-    
+
     if (distance <= _blackBallRadius) {
       // Black ball tapped - caught it!
       _catchBall();
@@ -234,7 +245,7 @@ class _CatchBallPageState extends State<CatchBallPage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );
@@ -256,7 +267,7 @@ class _CatchBallPageState extends State<CatchBallPage> {
 
     // Play tap sound for successful catch
     SoundService.playTapSound();
-    
+
     // Calculate reaction time from when ball appeared
     final reactionTime = DateTime.now()
         .difference(_ballAppearedTime!)
@@ -315,9 +326,8 @@ class _CatchBallPageState extends State<CatchBallPage> {
     int averageTime = 0;
 
     if (successfulRounds.isNotEmpty) {
-      averageTime = successfulRounds
-          .map((r) => r.reactionTime)
-          .reduce((a, b) => a + b) ~/
+      averageTime =
+          successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
           successfulRounds.length;
 
       if (averageTime < _bestSession || _bestSession == 0) {
@@ -326,24 +336,25 @@ class _CatchBallPageState extends State<CatchBallPage> {
     } else {
       // If no successful rounds, calculate from all rounds
       if (_roundResults.isNotEmpty) {
-        averageTime = _roundResults
-            .map((r) => r.reactionTime)
-            .reduce((a, b) => a + b) ~/
+        averageTime =
+            _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
             _roundResults.length;
       }
     }
 
     // Get best time before saving
     final savedBestTime = await GameHistoryService.getBestTime('catch_ball');
-    final finalBestTime = (savedBestTime == 0 || averageTime < savedBestTime) 
-        ? averageTime 
+    final finalBestTime = (savedBestTime == 0 || averageTime < savedBestTime)
+        ? averageTime
         : savedBestTime;
 
     // Save session
     final session = GameSession(
       gameId: 'catch_ball',
       gameName: 'Catch The Ball',
-      sessionNumber: await GameHistoryService.getNextSessionNumber('catch_ball'),
+      sessionNumber: await GameHistoryService.getNextSessionNumber(
+        'catch_ball',
+      ),
       timestamp: DateTime.now(),
       roundResults: _roundResults,
       averageTime: averageTime,
@@ -420,7 +431,7 @@ class _CatchBallPageState extends State<CatchBallPage> {
           return LayoutBuilder(
             builder: (context, constraints) {
               // Store container size for calculations
-              if (_containerSize == null || 
+              if (_containerSize == null ||
                   _containerSize!.width != constraints.maxWidth ||
                   _containerSize!.height != constraints.maxHeight) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -458,11 +469,13 @@ class _CatchBallPageState extends State<CatchBallPage> {
                             height: _blackBallRadius * 2,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.transparent, // Blue ball is transparent (used only for radius)
+                              color: Colors
+                                  .transparent, // Blue ball is transparent (used only for radius)
                             ),
                             child: Center(
                               child: Container(
-                                width: _blackBallRadius * 2, // Black ball diameter
+                                width:
+                                    _blackBallRadius * 2, // Black ball diameter
                                 height: _blackBallRadius * 2,
                                 decoration: const BoxDecoration(
                                   shape: BoxShape.circle,

@@ -11,6 +11,7 @@ import '../services/vibration_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class SensationGamePage extends StatefulWidget {
@@ -37,6 +38,13 @@ class _SensationGamePageState extends State<SensationGamePage> {
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
+  // Get penalty time from exercise data (exercise ID 9)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 9,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   @override
   void initState() {
@@ -152,7 +160,7 @@ class _SensationGamePageState extends State<SensationGamePage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );
@@ -370,7 +378,11 @@ class _SensationGamePageState extends State<SensationGamePage> {
                     // Note about haptic and vibration settings
                     if (!_isPlaying)
                       Padding(
-                        padding: const EdgeInsets.only(top: 8, left: 24, right: 24),
+                        padding: const EdgeInsets.only(
+                          top: 8,
+                          left: 24,
+                          right: 24,
+                        ),
                         child: Text(
                           'Note: System Haptic and Vibration should on from setting.',
                           style: TextStyle(

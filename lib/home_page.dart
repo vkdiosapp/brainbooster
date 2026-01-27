@@ -1048,42 +1048,9 @@ class _HomePageState extends State<HomePage> {
       },
     ];
 
-    // Map exercise names to specific icons
-    IconData getIconForExercise(String name) {
-      final nameLower = name.toLowerCase();
-      if (nameLower.contains('color change') || nameLower.contains('color')) {
-        return Icons.palette;
-      } else if (nameLower.contains('number') ||
-          nameLower.contains('find number')) {
-        return Icons.push_pin;
-      } else if (nameLower.contains('ball') || nameLower.contains('catch')) {
-        return Icons.sports_baseball;
-      } else if (nameLower.contains('math') || nameLower.contains('equation')) {
-        return Icons.functions;
-      } else if (nameLower.contains('schulte') || nameLower.contains('table')) {
-        return Icons.grid_4x4;
-      } else if (nameLower.contains('memory') || nameLower.contains('visual')) {
-        return Icons.visibility;
-      } else if (nameLower.contains('sound')) {
-        return Icons.volume_up;
-      } else if (nameLower.contains('sensation')) {
-        return Icons.vibration;
-      } else if (nameLower.contains('swipe')) {
-        return Icons.swipe;
-      } else if (nameLower.contains('sequence')) {
-        return Icons.format_list_numbered;
-      } else if (nameLower.contains('excess') || nameLower.contains('cells')) {
-        return Icons.grid_view;
-      } else if (nameLower.contains('figure')) {
-        return Icons.shape_line;
-      } else {
-        return Icons.fitness_center;
-      }
-    }
-
     final colorIndex = (number - 1) % pastelColors.length;
     final baseColor = pastelColors[colorIndex];
-    final icon = getIconForExercise(exercise.name);
+    final icon = exercise.icon;
 
     return {
       'backgroundColor': baseColor['bg'] as Color,
@@ -1108,7 +1075,9 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 24),
-            ...gamesWithAnalytics.map((game) {
+            ...gamesWithAnalytics.asMap().entries.map((entry) {
+              final index = entry.key;
+              final game = entry.value;
               return GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
@@ -1135,7 +1104,7 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        game['name']!,
+                        '${index + 1}. ${game['name']!}',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

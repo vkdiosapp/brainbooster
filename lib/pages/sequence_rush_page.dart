@@ -8,6 +8,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class SequenceRushPage extends StatefulWidget {
@@ -21,7 +22,13 @@ class SequenceRushPage extends StatefulWidget {
 }
 
 class _SequenceRushPageState extends State<SequenceRushPage> {
-  static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
+  // Get penalty time from exercise data (exercise ID 10)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 10,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   int _gridSize = 4; // Grid size: 4 or 5
   int _currentRound = 0;
@@ -32,7 +39,8 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   bool _isWaitingForRound = false;
   bool _isRoundActive = false;
   bool _isReverse = false; // Reverse mode checkbox
-  bool _isNotSequence = false; // Not Sequence checkbox - numbers appear randomly on grid
+  bool _isNotSequence =
+      false; // Not Sequence checkbox - numbers appear randomly on grid
 
   List<int> _numberPositions = []; // Maps position index to number
   List<int> _sortedNumbers = []; // Sorted list of numbers for tapping order
@@ -126,21 +134,23 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
       final int maxValue = _gridSize == 4 ? 32 : 50;
       final Set<int> uniqueNumbers = {};
       while (uniqueNumbers.length < _totalNumbers) {
-        uniqueNumbers.add(1 + _rand.nextInt(maxValue)); // Random numbers from 1 to maxValue
+        uniqueNumbers.add(
+          1 + _rand.nextInt(maxValue),
+        ); // Random numbers from 1 to maxValue
       }
       _sortedNumbers = uniqueNumbers.toList()..sort(); // Sort for tapping order
     } else {
       // Sequence: Use sequential numbers 1-16 (or 1-25 for 5x5)
       _sortedNumbers = List.generate(_totalNumbers, (i) => i + 1);
     }
-    
+
     // Always shuffle positions on grid (random positions regardless of Not Sequence)
     _numberPositions = List.from(_sortedNumbers);
     _numberPositions.shuffle(_rand);
-    
+
     print('Not Sequence: $_isNotSequence - Sorted values: $_sortedNumbers');
     print('Grid positions (always random): $_numberPositions');
-    
+
     // Set initial sequence index based on Reverse checkbox
     _sequenceIndex = _isReverse ? (_sortedNumbers.length - 1) : 0;
 

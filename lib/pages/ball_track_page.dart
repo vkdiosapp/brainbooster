@@ -7,6 +7,7 @@ import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class BallTrackPage extends StatefulWidget {
@@ -38,15 +39,24 @@ class _BallTrackPageState extends State<BallTrackPage> {
   // Ball properties
   static const int _totalBalls = 7;
   static const double _minBallRadius = 40.0; // Minimum ball radius
-  static const double _maxBallRadius = 60.0; // Maximum ball radius (1.5x of minimum)
+  static const double _maxBallRadius =
+      60.0; // Maximum ball radius (1.5x of minimum)
   static const int _redBallDisplayMs = 2000; // 2 seconds showing red ball
   static const int _movementDurationMs = 5000; // 5 seconds of movement
+  // Get penalty time from exercise data (exercise ID 12)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 12,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   // Game states
   bool _isRedBallPhase = false; // Showing red ball (2 seconds)
   bool _isMovingPhase = false; // Balls are moving (5 seconds)
   bool _isStoppedPhase = false; // Balls stopped, waiting for user tap
-  int? _targetBallIndex; // Index of the ball that was red (the one user needs to tap)
+  int?
+  _targetBallIndex; // Index of the ball that was red (the one user needs to tap)
 
   // List to store all balls
   List<_Ball> _balls = [];
@@ -143,28 +153,28 @@ class _BallTrackPageState extends State<BallTrackPage> {
     if (!_isWaitingForBalls || _containerSize == null) return;
 
     final random = math.Random();
-    
+
     // Create 7 balls at random positions with no overlap
     _balls.clear();
-    
+
     for (int i = 0; i < _totalBalls; i++) {
       // Use minimum radius for all balls (same size)
       final radius = _minBallRadius;
-      
+
       // Try to find a position that doesn't overlap with existing balls
       Offset position = Offset.zero;
       int attempts = 0;
       bool positionValid = false;
-      
+
       while (!positionValid && attempts < 100) {
         final safeWidth = _containerSize!.width - (radius * 2);
         final safeHeight = _containerSize!.height - (radius * 2);
-        
+
         position = Offset(
           radius + random.nextDouble() * safeWidth,
           radius + random.nextDouble() * safeHeight,
         );
-        
+
         // Check if this position overlaps with any existing ball
         positionValid = true;
         for (var existingBall in _balls) {
@@ -174,10 +184,10 @@ class _BallTrackPageState extends State<BallTrackPage> {
             break;
           }
         }
-        
+
         attempts++;
       }
-      
+
       // If we couldn't find a non-overlapping position, use the last attempted position
       if (!positionValid) {
         final safeWidth = _containerSize!.width - (radius * 2);
@@ -196,12 +206,14 @@ class _BallTrackPageState extends State<BallTrackPage> {
         math.sin(angle) * baseSpeed,
       );
 
-      _balls.add(_Ball(
-        position: position,
-        velocity: velocity,
-        radius: radius,
-        isCaught: false,
-      ));
+      _balls.add(
+        _Ball(
+          position: position,
+          velocity: velocity,
+          radius: radius,
+          isCaught: false,
+        ),
+      );
     }
 
     // Select one random ball to be red
@@ -231,16 +243,19 @@ class _BallTrackPageState extends State<BallTrackPage> {
     _startBallMovement();
 
     // After 5 seconds, stop all balls
-    _movementTimer = Timer(const Duration(milliseconds: _movementDurationMs), () {
-      if (mounted && _isMovingPhase) {
-        _stopBalls();
-      }
-    });
+    _movementTimer = Timer(
+      const Duration(milliseconds: _movementDurationMs),
+      () {
+        if (mounted && _isMovingPhase) {
+          _stopBalls();
+        }
+      },
+    );
   }
 
   void _stopBalls() {
     _ballMovementTimer?.cancel();
-    
+
     setState(() {
       _isMovingPhase = false;
       _isStoppedPhase = true;
@@ -252,7 +267,9 @@ class _BallTrackPageState extends State<BallTrackPage> {
     if (!_isMovingPhase || _containerSize == null) return;
 
     _ballMovementTimer?.cancel();
-    _ballMovementTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+    _ballMovementTimer = Timer.periodic(const Duration(milliseconds: 16), (
+      timer,
+    ) {
       if (!_isMovingPhase || _containerSize == null || !mounted) {
         timer.cancel();
         return;
@@ -314,7 +331,7 @@ class _BallTrackPageState extends State<BallTrackPage> {
 
     // Calculate distance from tap to ball center
     final distance = (tapPosition - targetBall.position).distance;
-    
+
     if (distance <= targetBall.radius) {
       // Play tap sound for correct tap
       SoundService.playTapSound();
@@ -342,7 +359,7 @@ class _BallTrackPageState extends State<BallTrackPage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );
@@ -407,9 +424,8 @@ class _BallTrackPageState extends State<BallTrackPage> {
     int averageTime = 0;
 
     if (successfulRounds.isNotEmpty) {
-      averageTime = successfulRounds
-          .map((r) => r.reactionTime)
-          .reduce((a, b) => a + b) ~/
+      averageTime =
+          successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
           successfulRounds.length;
 
       if (averageTime < _bestSession || _bestSession == 0) {
@@ -418,24 +434,25 @@ class _BallTrackPageState extends State<BallTrackPage> {
     } else {
       // If no successful rounds, calculate from all rounds
       if (_roundResults.isNotEmpty) {
-        averageTime = _roundResults
-            .map((r) => r.reactionTime)
-            .reduce((a, b) => a + b) ~/
+        averageTime =
+            _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
             _roundResults.length;
       }
     }
 
     // Get best time before saving
     final savedBestTime = await GameHistoryService.getBestTime('ball_track');
-    final finalBestTime = (savedBestTime == 0 || averageTime < savedBestTime) 
-        ? averageTime 
+    final finalBestTime = (savedBestTime == 0 || averageTime < savedBestTime)
+        ? averageTime
         : savedBestTime;
 
     // Save session
     final session = GameSession(
       gameId: 'ball_track',
       gameName: 'Ball Track',
-      sessionNumber: await GameHistoryService.getNextSessionNumber('ball_track'),
+      sessionNumber: await GameHistoryService.getNextSessionNumber(
+        'ball_track',
+      ),
       timestamp: DateTime.now(),
       roundResults: _roundResults,
       averageTime: averageTime,
@@ -514,7 +531,7 @@ class _BallTrackPageState extends State<BallTrackPage> {
           return LayoutBuilder(
             builder: (context, constraints) {
               // Store container size for calculations
-              if (_containerSize == null || 
+              if (_containerSize == null ||
                   _containerSize!.width != constraints.maxWidth ||
                   _containerSize!.height != constraints.maxHeight) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -548,10 +565,11 @@ class _BallTrackPageState extends State<BallTrackPage> {
                           final index = entry.key;
                           final ball = entry.value;
                           if (ball.isCaught) return const SizedBox.shrink();
-                          
+
                           // Determine ball color: red if it's the target during red phase, black otherwise
-                          final isRed = _isRedBallPhase && index == _targetBallIndex;
-                          
+                          final isRed =
+                              _isRedBallPhase && index == _targetBallIndex;
+
                           return Positioned(
                             left: ball.position.dx - ball.radius,
                             top: ball.position.dy - ball.radius,
@@ -560,7 +578,9 @@ class _BallTrackPageState extends State<BallTrackPage> {
                               height: ball.radius * 2,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isRed ? Colors.red : GameSettings.ballColor,
+                                color: isRed
+                                    ? Colors.red
+                                    : GameSettings.ballColor,
                               ),
                             ),
                           );

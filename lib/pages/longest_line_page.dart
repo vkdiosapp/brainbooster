@@ -7,12 +7,14 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 // Line data structure
 class LineData {
   final String side; // 'top', 'bottom', 'left', 'right'
-  final double relativeLength; // Relative length (0.5 to 1.0) - 0.5 = half, 1.0 = full
+  final double
+  relativeLength; // Relative length (0.5 to 1.0) - 0.5 = half, 1.0 = full
   final double position; // Position along the perpendicular axis (0.0 to 1.0)
   final int index; // Index in the lines list
 
@@ -35,7 +37,13 @@ class LongestLinePage extends StatefulWidget {
 }
 
 class _LongestLinePageState extends State<LongestLinePage> {
-  static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
+  // Get penalty time from exercise data (exercise ID 19)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 19,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   int _currentRound = 0;
   int _completedRounds = 0;
@@ -315,17 +323,17 @@ class _LongestLinePageState extends State<LongestLinePage> {
 
   void _generateLines() {
     _lines.clear();
-    
+
     // Available sides
     final sides = ['top', 'bottom', 'left', 'right'];
-    
+
     // Randomly select ONE side for all lines in this round
     final selectedSide = sides[_rand.nextInt(sides.length)];
 
     // Generate relative lengths for each line (0.75 to 1.0)
     // All lengths must be different
     final relativeLengths = <double>[];
-    
+
     for (int i = 0; i < 5; i++) {
       double relativeLength;
       int attempts = 0;
@@ -336,18 +344,20 @@ class _LongestLinePageState extends State<LongestLinePage> {
         // Ensure all lengths are different (with tolerance of 0.01)
         if (attempts > 200) break; // Prevent infinite loop
       } while (relativeLengths.any((l) => (l - relativeLength).abs() < 0.01));
-      
+
       relativeLengths.add(relativeLength);
     }
 
     // Create line data - all lines use the same side
     for (int i = 0; i < 5; i++) {
-      _lines.add(LineData(
-        side: selectedSide, // All lines use the same side
-        relativeLength: relativeLengths[i],
-        position: 0.0, // Not used anymore since we'll evenly space them
-        index: i,
-      ));
+      _lines.add(
+        LineData(
+          side: selectedSide, // All lines use the same side
+          relativeLength: relativeLengths[i],
+          position: 0.0, // Not used anymore since we'll evenly space them
+          index: i,
+        ),
+      );
     }
 
     // Find the longest line (by relative length)
@@ -362,7 +372,12 @@ class _LongestLinePageState extends State<LongestLinePage> {
     _longestLineIndex = longestIndex;
   }
 
-  Widget _buildLine(LineData line, int index, double containerWidth, double containerHeight) {
+  Widget _buildLine(
+    LineData line,
+    int index,
+    double containerWidth,
+    double containerHeight,
+  ) {
     double x, y, width, height;
     const spacingBetweenLines = 25.0; // Fixed 25px spacing between lines
     const containerPadding = 20.0; // 20px padding on all sides
@@ -389,7 +404,10 @@ class _LongestLinePageState extends State<LongestLinePage> {
       width = lineThickness;
       height = availableHeight * line.relativeLength;
       x = containerPadding + (index * (lineThickness + spacingBetweenLines));
-      y = containerPadding + availableHeight - height; // Start from bottom with padding
+      y =
+          containerPadding +
+          availableHeight -
+          height; // Start from bottom with padding
     } else if (line.side == 'left') {
       // Line starts from left edge, extends RIGHTWARD (horizontally)
       width = availableWidth * line.relativeLength; // Length extends rightward
@@ -406,13 +424,16 @@ class _LongestLinePageState extends State<LongestLinePage> {
       final totalSpacingHeight = (totalLines - 1) * spacingBetweenLines;
       final lineThickness = (availableHeight - totalSpacingHeight) / totalLines;
       height = lineThickness;
-      x = containerPadding + availableWidth - width; // Start from right with padding
+      x =
+          containerPadding +
+          availableWidth -
+          width; // Start from right with padding
       y = containerPadding + (index * (lineThickness + spacingBetweenLines));
     }
 
     // Increase tappable area with padding
     const tapPadding = 20.0; // Padding around line for easier tapping
-    
+
     // Calculate expanded dimensions for tap area
     double tapWidth, tapHeight, tapX, tapY;
     if (line.side == 'top' || line.side == 'bottom') {
@@ -430,7 +451,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
       tapX = x; // X position stays the same
       tapY = y - tapPadding;
     }
-    
+
     return Positioned(
       left: tapX,
       top: tapY,
@@ -445,7 +466,9 @@ class _LongestLinePageState extends State<LongestLinePage> {
               width: width,
               height: height,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B), // Dark grey/black like screenshot
+                color: const Color(
+                  0xFF1E293B,
+                ), // Dark grey/black like screenshot
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

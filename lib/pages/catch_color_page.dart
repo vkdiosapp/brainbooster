@@ -7,6 +7,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class CatchColorPage extends StatefulWidget {
@@ -28,7 +29,13 @@ class _CatchColorPageState extends State<CatchColorPage> {
       3000; // Correct color turn timeout (3 seconds)
   static const int _wrongColorTurnTimeoutMs =
       2000; // Wrong color turn auto-advance (2 seconds)
-  static const int _wrongTapPenaltyMs = 1000;
+  // Get penalty time from exercise data (exercise ID 5)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 5,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   int _currentRound = 0;
   int _completedRounds = 0;
@@ -609,7 +616,8 @@ class _CatchColorPageState extends State<CatchColorPage> {
                   ),
                   itemCount: _gridSize * _gridSize,
                   itemBuilder: (context, index) {
-                    final isActive = activeIndex == index && displayColor != null;
+                    final isActive =
+                        activeIndex == index && displayColor != null;
                     return GestureDetector(
                       onTap: () => _handleTileTap(index),
                       child: Container(

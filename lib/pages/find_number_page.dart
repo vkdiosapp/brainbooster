@@ -10,6 +10,7 @@ import '../services/sound_service.dart';
 import '../widgets/game_container.dart';
 import '../widgets/category_header.dart';
 import '../widgets/gradient_background.dart';
+import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
 class FindNumberPage extends StatefulWidget {
@@ -39,6 +40,13 @@ class _FindNumberPageState extends State<FindNumberPage> {
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
+  // Get penalty time from exercise data (exercise ID 2)
+  late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
+      .firstWhere(
+        (e) => e.id == 2,
+        orElse: () => ExerciseData.getExercises().first,
+      )
+      .penaltyTime;
 
   // Number word mapping
   final Map<int, String> _numberWords = {
@@ -176,7 +184,7 @@ class _FindNumberPageState extends State<FindNumberPage> {
     _roundResults.add(
       RoundResult(
         roundNumber: _currentRound,
-        reactionTime: 1000, // 1 second penalty
+        reactionTime: _wrongTapPenaltyMs, // Penalty from exercise data
         isFailed: true,
       ),
     );
@@ -484,12 +492,14 @@ class _FindNumberPageState extends State<FindNumberPage> {
                                           child: AspectRatio(
                                             aspectRatio: 1.0,
                                             child: GridView.builder(
-                                              physics: const NeverScrollableScrollPhysics(),
-                                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount: 3,
-                                                crossAxisSpacing: 8,
-                                                mainAxisSpacing: 8,
-                                              ),
+                                              physics:
+                                                  const NeverScrollableScrollPhysics(),
+                                              gridDelegate:
+                                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                                    crossAxisCount: 3,
+                                                    crossAxisSpacing: 8,
+                                                    mainAxisSpacing: 8,
+                                                  ),
                                               itemCount: 9,
                                               itemBuilder: (context, index) {
                                                 return _buildNumberCell(
