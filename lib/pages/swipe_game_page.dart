@@ -16,8 +16,9 @@ enum SwipeDirection { up, down, left, right }
 
 class SwipeGamePage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const SwipeGamePage({super.key, this.categoryName});
+  const SwipeGamePage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<SwipeGamePage> createState() => _SwipeGamePageState();
@@ -344,6 +345,9 @@ class _SwipeGamePageState extends State<SwipeGamePage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Swipe',
+              gameId: 'swipe',
+              exerciseId: 14,
             ),
           ),
         )

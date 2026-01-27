@@ -11,8 +11,9 @@ import 'color_change_results_page.dart';
 
 class BallTrackPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const BallTrackPage({super.key, this.categoryName});
+  const BallTrackPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<BallTrackPage> createState() => _BallTrackPageState();
@@ -147,9 +148,8 @@ class _BallTrackPageState extends State<BallTrackPage> {
     _balls.clear();
     
     for (int i = 0; i < _totalBalls; i++) {
-      // Assign random radius between min and max
-      final radius = _minBallRadius + 
-          (random.nextDouble() * (_maxBallRadius - _minBallRadius));
+      // Use minimum radius for all balls (same size)
+      final radius = _minBallRadius;
       
       // Try to find a position that doesn't overlap with existing balls
       Offset position = Offset.zero;
@@ -461,6 +461,9 @@ class _BallTrackPageState extends State<BallTrackPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Ball Track',
+              gameId: 'ball_track',
+              exerciseId: 12,
             ),
           ),
         )

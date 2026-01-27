@@ -20,8 +20,9 @@ enum FigureType {
 
 class FigureChangePage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const FigureChangePage({super.key, this.categoryName});
+  const FigureChangePage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<FigureChangePage> createState() => _FigureChangePageState();
@@ -332,6 +333,9 @@ class _FigureChangePageState extends State<FigureChangePage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Figure Change',
+              gameId: 'figure_change',
+              exerciseId: 7,
             ),
           ),
         )

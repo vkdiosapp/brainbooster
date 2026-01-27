@@ -26,8 +26,9 @@ class MathQuestion {
 
 class QuickMathPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const QuickMathPage({super.key, this.categoryName});
+  const QuickMathPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<QuickMathPage> createState() => _QuickMathPageState();
@@ -381,6 +382,9 @@ class _QuickMathPageState extends State<QuickMathPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Quick Math',
+              gameId: 'quick_math',
+              exerciseId: 6,
             ),
           ),
         )

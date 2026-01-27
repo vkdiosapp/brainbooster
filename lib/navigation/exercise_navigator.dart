@@ -37,7 +37,10 @@ class ExerciseNavigator {
         // Color Change game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ColorChangePage(categoryName: category.name),
+            builder: (context) => ColorChangePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -45,7 +48,10 @@ class ExerciseNavigator {
         // Find Number game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => FindNumberPage(categoryName: category.name),
+            builder: (context) => FindNumberPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -53,7 +59,10 @@ class ExerciseNavigator {
         // Catch The Ball game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => CatchBallPage(categoryName: category.name),
+            builder: (context) => CatchBallPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -61,7 +70,10 @@ class ExerciseNavigator {
         // Find Color game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => FindColorPage(categoryName: category.name),
+            builder: (context) => FindColorPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -69,7 +81,10 @@ class ExerciseNavigator {
         // Catch Color game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => CatchColorPage(categoryName: category.name),
+            builder: (context) => CatchColorPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -77,7 +92,10 @@ class ExerciseNavigator {
         // Quick Math game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => QuickMathPage(categoryName: category.name),
+            builder: (context) => QuickMathPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -85,7 +103,10 @@ class ExerciseNavigator {
         // Figure Change game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => FigureChangePage(categoryName: category.name),
+            builder: (context) => FigureChangePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -93,7 +114,10 @@ class ExerciseNavigator {
         // Sound game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => SoundGamePage(categoryName: category.name),
+            builder: (context) => SoundGamePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -101,7 +125,10 @@ class ExerciseNavigator {
         // Sensation game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => SensationGamePage(categoryName: category.name),
+            builder: (context) => SensationGamePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -109,7 +136,10 @@ class ExerciseNavigator {
         // Sequence Rush game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => SequenceRushPage(categoryName: category.name),
+            builder: (context) => SequenceRushPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -117,7 +147,10 @@ class ExerciseNavigator {
         // Ball Rush game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => BallRushPage(categoryName: category.name),
+            builder: (context) => BallRushPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -125,7 +158,10 @@ class ExerciseNavigator {
         // Ball Track game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => BallTrackPage(categoryName: category.name),
+            builder: (context) => BallTrackPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -133,7 +169,10 @@ class ExerciseNavigator {
         // Visual Memory game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => VisualMemoryPage(categoryName: category.name),
+            builder: (context) => VisualMemoryPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -141,7 +180,10 @@ class ExerciseNavigator {
         // Swipe game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => SwipeGamePage(categoryName: category.name),
+            builder: (context) => SwipeGamePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;
@@ -149,7 +191,10 @@ class ExerciseNavigator {
         // Excess Cells game
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ExcessCellsPage(categoryName: category.name),
+            builder: (context) => ExcessCellsPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
           ),
         );
         break;

@@ -15,8 +15,9 @@ import 'color_change_results_page.dart';
 
 class SensationGamePage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const SensationGamePage({super.key, this.categoryName});
+  const SensationGamePage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<SensationGamePage> createState() => _SensationGamePageState();
@@ -256,6 +257,9 @@ class _SensationGamePageState extends State<SensationGamePage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Sensation',
+              gameId: 'sensation',
+              exerciseId: 9,
             ),
           ),
         )

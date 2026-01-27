@@ -11,8 +11,9 @@ import 'color_change_results_page.dart';
 
 class CatchColorPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const CatchColorPage({super.key, this.categoryName});
+  const CatchColorPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<CatchColorPage> createState() => _CatchColorPageState();
@@ -539,6 +540,9 @@ class _CatchColorPageState extends State<CatchColorPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Catch Color',
+              gameId: 'catch_color',
+              exerciseId: 5,
             ),
           ),
         )

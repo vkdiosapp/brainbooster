@@ -14,8 +14,9 @@ import 'color_change_results_page.dart';
 
 class ColorChangePage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const ColorChangePage({super.key, this.categoryName});
+  const ColorChangePage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<ColorChangePage> createState() => _ColorChangePageState();
@@ -271,6 +272,9 @@ class _ColorChangePageState extends State<ColorChangePage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Color Change',
+              gameId: 'color_change',
+              exerciseId: 1,
             ),
           ),
         )

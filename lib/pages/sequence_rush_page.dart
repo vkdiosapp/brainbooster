@@ -12,8 +12,9 @@ import 'color_change_results_page.dart';
 
 class SequenceRushPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const SequenceRushPage({super.key, this.categoryName});
+  const SequenceRushPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<SequenceRushPage> createState() => _SequenceRushPageState();
@@ -275,6 +276,9 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Sequence Rush',
+              gameId: 'sequence_rush',
+              exerciseId: 10,
             ),
           ),
         )

@@ -14,8 +14,9 @@ enum TriangleDirection { up, down, left, right }
 
 class ExcessCellsPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const ExcessCellsPage({super.key, this.categoryName});
+  const ExcessCellsPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<ExcessCellsPage> createState() => _ExcessCellsPageState();
@@ -303,6 +304,9 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Excess Cells',
+              gameId: 'excess_cells',
+              exerciseId: 15,
             ),
           ),
         )

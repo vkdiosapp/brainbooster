@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/round_result.dart';
@@ -11,8 +12,9 @@ import 'color_change_results_page.dart';
 
 class BallRushPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const BallRushPage({super.key, this.categoryName});
+  const BallRushPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<BallRushPage> createState() => _BallRushPageState();
@@ -28,14 +30,18 @@ class _BallRushPageState extends State<BallRushPage> {
   DateTime? _ballsAppearedTime;
   Timer? _delayTimer;
   Timer? _reactionTimeDisplayTimer;
+  Timer? _errorDisplayTimer;
   String? _errorMessage;
   String? _reactionTimeMessage;
   List<RoundResult> _roundResults = [];
+  bool _isAdvanced = false; // false = Normal, true = Advanced
 
   // Ball properties
   static const int _totalBalls = 10;
+  static const int _bombCount = 2; // Number of bombs in advanced mode
   static const double _minBallRadius = 40.0; // Minimum ball radius
   static const double _maxBallRadius = 60.0; // Maximum ball radius (1.5x of minimum)
+  static const int _wrongTapPenaltyMs = 1000; // Penalty for tapping bomb
 
   // List to store all balls
   List<_Ball> _balls = [];
@@ -73,7 +79,9 @@ class _BallRushPageState extends State<BallRushPage> {
     _roundResults.clear();
     _delayTimer?.cancel();
     _reactionTimeDisplayTimer?.cancel();
+    _errorDisplayTimer?.cancel();
     _ballMovementTimer?.cancel();
+    // Keep _isAdvanced state when resetting (don't reset to false)
   }
 
   void _startGame() {
@@ -120,12 +128,21 @@ class _BallRushPageState extends State<BallRushPage> {
 
     final random = math.Random();
     
-    // Create 10 balls at random positions with random sizes
+    // Create balls at random positions with random sizes
     _balls.clear();
-    for (int i = 0; i < _totalBalls; i++) {
-      // Assign random radius between min and max
-      final radius = _minBallRadius + 
-          (random.nextDouble() * (_maxBallRadius - _minBallRadius));
+    
+    // Determine how many regular balls vs bombs
+    int regularBallsCount = _totalBalls;
+    int bombsCount = 0;
+    if (_isAdvanced) {
+      bombsCount = _bombCount;
+      regularBallsCount = _totalBalls - _bombCount;
+    }
+    
+    // Create regular balls
+    for (int i = 0; i < regularBallsCount; i++) {
+      // Use minimum radius for all balls (same size)
+      final radius = _minBallRadius;
       
       // Calculate safe area for this ball
       final safeWidth = _containerSize!.width - (radius * 2);
@@ -150,6 +167,39 @@ class _BallRushPageState extends State<BallRushPage> {
         velocity: velocity,
         radius: radius,
         isCaught: false,
+        isBomb: false,
+      ));
+    }
+    
+    // Create bombs (only in advanced mode)
+    for (int i = 0; i < bombsCount; i++) {
+      // Use minimum radius for all balls (same size)
+      final radius = _minBallRadius;
+      
+      // Calculate safe area for this ball
+      final safeWidth = _containerSize!.width - (radius * 2);
+      final safeHeight = _containerSize!.height - (radius * 2);
+
+      // Set initial position (random within safe area)
+      final position = Offset(
+        radius + random.nextDouble() * safeWidth,
+        radius + random.nextDouble() * safeHeight,
+      );
+
+      // Set initial velocity (random direction with speed based on _currentSpeed)
+      final baseSpeed = 3.0 * _currentSpeed;
+      final angle = random.nextDouble() * 2 * math.pi;
+      final velocity = Offset(
+        math.cos(angle) * baseSpeed,
+        math.sin(angle) * baseSpeed,
+      );
+
+      _balls.add(_Ball(
+        position: position,
+        velocity: velocity,
+        radius: radius,
+        isCaught: false,
+        isBomb: true, // Mark as bomb
       ));
     }
 
@@ -223,6 +273,7 @@ class _BallRushPageState extends State<BallRushPage> {
 
     // Check if any ball was tapped
     bool ballCaught = false;
+    bool bombTapped = false;
     for (var ball in _balls) {
       if (ball.isCaught) continue;
 
@@ -230,23 +281,66 @@ class _BallRushPageState extends State<BallRushPage> {
       final distance = (tapPosition - ball.position).distance;
       
       if (distance <= ball.radius) {
-        // Ball tapped - caught it!
-        ball.isCaught = true;
-        _ballsCaught++;
-        ballCaught = true;
-        break;
+        if (ball.isBomb) {
+          // Bomb tapped - penalty!
+          bombTapped = true;
+          ball.isCaught = true; // Hide the bomb
+          _handleBombTap();
+          break;
+        } else {
+          // Regular ball tapped - caught it!
+          ball.isCaught = true;
+          _ballsCaught++;
+          ballCaught = true;
+          break;
+        }
       }
     }
 
-    if (ballCaught) {
-      // Check if all balls are caught
-      if (_ballsCaught >= _totalBalls) {
+    if (ballCaught && !bombTapped) {
+      // Check if all regular balls are caught (bombs don't count)
+      final regularBallsCount = _isAdvanced ? (_totalBalls - _bombCount) : _totalBalls;
+      if (_ballsCaught >= regularBallsCount) {
         _catchAllBalls();
       } else {
         setState(() {}); // Update UI to hide caught ball
       }
     }
     // If no ball was caught, just ignore the tap (no penalty)
+  }
+  
+  void _handleBombTap() {
+    // Play penalty sound for tapping bomb
+    SoundService.playPenaltySound();
+    _errorDisplayTimer?.cancel();
+    
+    // Mark round as failed with penalty
+    _roundResults.add(
+      RoundResult(
+        roundNumber: _currentRound,
+        reactionTime: _wrongTapPenaltyMs, // 1 second penalty
+        isFailed: true,
+      ),
+    );
+    
+    setState(() {
+      _areBallsVisible = false;
+      _errorMessage = 'PENALTY +1 SECOND';
+      _ballsAppearedTime = null;
+    });
+    
+    _ballMovementTimer?.cancel();
+    
+    // Show error for 1.5 seconds, then start next round
+    _errorDisplayTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _errorMessage = null;
+          _completedRounds++;
+        });
+        _startNextRound();
+      }
+    });
   }
 
   void _catchAllBalls() {
@@ -367,6 +461,9 @@ class _BallRushPageState extends State<BallRushPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Ball Rush',
+              gameId: 'ball_rush',
+              exerciseId: 11,
             ),
           ),
         )
@@ -406,10 +503,15 @@ class _BallRushPageState extends State<BallRushPage> {
       ),
       builders: GameBuilders(
         titleBuilder: (state) {
-          if (!state.isPlaying) return 'Tap all 10 balls as they move';
+          if (!state.isPlaying) {
+            return _isAdvanced 
+                ? 'Tap all 8 balls, avoid 2 bombs!'
+                : 'Tap all 10 balls as they move';
+          }
           if (state.isWaiting) return 'Wait for the balls...';
           if (state.isRoundActive) {
-            return 'CATCH THEM! ($_ballsCaught/$_totalBalls)';
+            final regularBallsCount = _isAdvanced ? (_totalBalls - _bombCount) : _totalBalls;
+            return 'CATCH THEM! ($_ballsCaught/$regularBallsCount)';
           }
           return 'Round ${state.currentRound}';
         },
@@ -454,10 +556,17 @@ class _BallRushPageState extends State<BallRushPage> {
                             child: Container(
                               width: ball.radius * 2,
                               height: ball.radius * 2,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.black,
+                                color: ball.isBomb ? Colors.red : Colors.black,
                               ),
+                              child: ball.isBomb
+                                  ? Icon(
+                                      Icons.warning,
+                                      color: Colors.white,
+                                      size: ball.radius * 0.8,
+                                    )
+                                  : null,
                             ),
                           );
                         }).toList(),
@@ -470,8 +579,118 @@ class _BallRushPageState extends State<BallRushPage> {
         },
         waitingTextBuilder: (state) => 'WAIT...',
         startButtonText: 'START',
+        middleContentBuilder: (s, context) {
+          // Show difficulty selector only before game starts
+          if (!s.isPlaying) {
+            return _buildDifficultySelector();
+          }
+          return const SizedBox.shrink();
+        },
       ),
       useBackdropFilter: false,
+    );
+  }
+  
+  Widget _buildDifficultySelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.4),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = false;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: !_isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Normal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: !_isAdvanced ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = true;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Advanced',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _isAdvanced ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -482,11 +701,13 @@ class _Ball {
   Offset velocity;
   double radius;
   bool isCaught;
+  bool isBomb; // true if this is a bomb (only in advanced mode)
 
   _Ball({
     required this.position,
     required this.velocity,
     required this.radius,
     required this.isCaught,
+    this.isBomb = false,
   });
 }

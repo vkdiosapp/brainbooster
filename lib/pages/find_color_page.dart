@@ -14,8 +14,9 @@ import 'color_change_results_page.dart';
 
 class FindColorPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const FindColorPage({super.key, this.categoryName});
+  const FindColorPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<FindColorPage> createState() => _FindColorPageState();
@@ -329,6 +330,9 @@ class _FindColorPageState extends State<FindColorPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Find Color',
+              gameId: 'find_color',
+              exerciseId: 4,
             ),
           ),
         )

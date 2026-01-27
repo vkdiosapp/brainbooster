@@ -173,7 +173,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                         itemCount: _filteredExercises.length,
                         itemBuilder: (context, index) {
                           final exercise = _filteredExercises[index];
-                          return _buildExerciseTile(exercise, index + 1);
+                          return _buildExerciseTile(exercise, exercise.id);
                         },
                       ),
               ),

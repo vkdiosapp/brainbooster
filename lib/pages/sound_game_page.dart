@@ -19,8 +19,9 @@ import 'color_change_results_page.dart';
 
 class SoundGamePage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const SoundGamePage({super.key, this.categoryName});
+  const SoundGamePage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<SoundGamePage> createState() => _SoundGamePageState();
@@ -403,6 +404,9 @@ class _SoundGamePageState extends State<SoundGamePage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Sound',
+              gameId: 'sound',
+              exerciseId: 8,
             ),
           ),
         )

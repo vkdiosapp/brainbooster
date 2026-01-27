@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/game_session.dart';
@@ -11,8 +12,9 @@ import 'color_change_results_page.dart';
 
 class VisualMemoryPage extends StatefulWidget {
   final String? categoryName;
+  final String? exerciseName;
 
-  const VisualMemoryPage({super.key, this.categoryName});
+  const VisualMemoryPage({super.key, this.categoryName, this.exerciseName});
 
   @override
   State<VisualMemoryPage> createState() => _VisualMemoryPageState();
@@ -20,11 +22,21 @@ class VisualMemoryPage extends StatefulWidget {
 
 class _VisualMemoryPageState extends State<VisualMemoryPage> {
   static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
-  static const int _gridSize = 4; // Fixed 4x4 grid
-  static const int _totalBoxes = 16; // 4x4 = 16 boxes
-  static const int _redDotsCount = 4; // Show 4 red dots
-  static const int _distractorDotsCount = 2; // Show 2 distractor dots with different colors
   static const int _displayDurationMs = 2000; // Show red dots for 2 seconds
+  
+  // Normal mode constants
+  static const int _normalGridSize = 4; // 4x4 grid
+  static const int _normalTotalBoxes = 16; // 4x4 = 16 boxes
+  static const int _normalRedDotsCount = 4; // Show 4 red dots
+  static const int _normalDistractorDotsCount = 2; // Show 2 distractor dots
+  
+  // Advanced mode constants
+  static const int _advancedGridSize = 5; // 5x5 grid
+  static const int _advancedTotalBoxes = 25; // 5x5 = 25 boxes
+  static const int _advancedRedDotsCount = 8; // Show 8 red dots
+  static const int _advancedDistractorDotsCount = 4; // Show 4 distractor dots
+  
+  bool _isAdvanced = false; // false = Normal, true = Advanced
 
   int _currentRound = 0;
   int _completedRounds = 0;
@@ -63,6 +75,12 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     super.dispose();
   }
 
+  // Getters for dynamic values based on difficulty
+  int get _gridSize => _isAdvanced ? _advancedGridSize : _normalGridSize;
+  int get _totalBoxes => _isAdvanced ? _advancedTotalBoxes : _normalTotalBoxes;
+  int get _redDotsCount => _isAdvanced ? _advancedRedDotsCount : _normalRedDotsCount;
+  int get _distractorDotsCount => _isAdvanced ? _advancedDistractorDotsCount : _normalDistractorDotsCount;
+
   void _resetGame() {
     _roundDelayTimer?.cancel();
     _redDotTimer?.cancel();
@@ -81,6 +99,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     _errorMessage = null;
     _reactionTimeMessage = null;
     _roundResults.clear();
+    // Keep _isAdvanced state when resetting (don't reset to false)
   }
 
   void _startGame() {
@@ -123,12 +142,12 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   }
 
   void _showRedDots() {
-    // Generate 4 random positions for red dots
+    // Generate random positions for red dots based on difficulty
     final positions = List.generate(_totalBoxes, (i) => i);
     positions.shuffle(_rand);
     _redDotPositions = positions.take(_redDotsCount).toSet();
 
-    // Generate distractor dots with different colors (blue and green)
+    // Generate distractor dots with different colors
     // Make sure they don't overlap with red dots
     final remainingPositions = positions
         .where((pos) => !_redDotPositions.contains(pos))
@@ -136,7 +155,10 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     remainingPositions.shuffle(_rand);
     
     final distractorPositions = remainingPositions.take(_distractorDotsCount).toList();
-    final distractorColors = [Colors.blue, Colors.green];
+    // Use more colors for advanced mode
+    final distractorColors = _isAdvanced 
+        ? [Colors.blue, Colors.green, Colors.orange, Colors.purple]
+        : [Colors.blue, Colors.green];
     _distractorDotPositions = {};
     for (int i = 0; i < distractorPositions.length && i < distractorColors.length; i++) {
       _distractorDotPositions[distractorPositions[i]] = distractorColors[i];
@@ -182,7 +204,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
         _tappedPositions.add(index);
       });
 
-      // Check if all 4 positions are tapped
+      // Check if all red dot positions are tapped (dynamic based on difficulty)
       if (_tappedPositions.length == _redDotsCount) {
         _completeRound();
       }
@@ -309,6 +331,9 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
+              gameName: widget.exerciseName ?? 'Visual Memory',
+              gameId: 'visual_memory',
+              exerciseId: 13,
             ),
           ),
         )
@@ -327,7 +352,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
           aspectRatio: 1.0,
           child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: _gridSize,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
@@ -415,6 +440,109 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     );
   }
 
+  Widget _buildDifficultySelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.4),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = false;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: !_isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Normal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: !_isAdvanced ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = true;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _isAdvanced ? const Color(0xFF475569) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Advanced',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _isAdvanced ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = GameState(
@@ -455,10 +583,12 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
           return 'Round ${s.currentRound}';
         },
         contentBuilder: (s, context) {
-          if (s.isRoundActive || s.isWaiting || s.isPlaying) {
+          // Only show grid when showing red dots or when round is active
+          // Hide grid during initial wait phase to avoid UI override
+          if (_isShowingRedDots || s.isRoundActive) {
             return Positioned.fill(child: _buildGrid());
           }
-          // idle background
+          // idle background or wait state (no grid)
           return Positioned.fill(
             child: Container(
               decoration: !s.isRoundActive && !s.isPlaying
@@ -483,6 +613,13 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
           return 'WAIT...';
         },
         startButtonText: 'START',
+        middleContentBuilder: (s, context) {
+          // Show difficulty selector only before game starts
+          if (!s.isPlaying) {
+            return _buildDifficultySelector();
+          }
+          return const SizedBox.shrink();
+        },
       ),
       useBackdropFilter: true,
     );

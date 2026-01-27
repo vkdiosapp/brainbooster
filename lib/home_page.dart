@@ -420,7 +420,7 @@ class _HomePageState extends State<HomePage> {
                                     final exercise = _filteredExercises[index];
                                     return _buildExerciseTile(
                                       exercise,
-                                      index + 1,
+                                      exercise.id,
                                     );
                                   },
                                 ),

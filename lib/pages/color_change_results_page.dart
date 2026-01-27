@@ -5,14 +5,58 @@ import '../data/exercise_data.dart';
 import '../services/sound_service.dart';
 import '../widgets/gradient_background.dart';
 
+/// Helper function to get exercise ID from game ID
+int? _getExerciseIdFromGameId(String gameId) {
+  switch (gameId) {
+    case 'color_change':
+      return 1;
+    case 'find_number':
+      return 2;
+    case 'catch_ball':
+      return 3;
+    case 'find_color':
+      return 4;
+    case 'catch_color':
+      return 5;
+    case 'quick_math':
+      return 6;
+    case 'figure_change':
+      return 7;
+    case 'sound':
+      return 8;
+    case 'sensation':
+      return 9;
+    case 'sequence_rush':
+      return 10;
+    case 'ball_rush':
+      return 11;
+    case 'ball_track':
+      return 12;
+    case 'visual_memory':
+      return 13;
+    case 'swipe':
+      return 14;
+    case 'excess_cells':
+      return 15;
+    default:
+      return null;
+  }
+}
+
 class ColorChangeResultsPage extends StatefulWidget {
   final List<RoundResult> roundResults;
   final int bestSession;
+  final String gameName;
+  final String? gameId;
+  final int? exerciseId;
 
   const ColorChangeResultsPage({
     super.key,
     required this.roundResults,
     required this.bestSession,
+    required this.gameName,
+    this.gameId,
+    this.exerciseId,
   });
 
   @override
@@ -109,9 +153,9 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                     // Spacer to center the title
                     const Spacer(),
                     // Title - centered on screen
-                    const Column(
+                    Column(
                       children: [
-                        Text(
+                        const Text(
                           'RESULT',
                           style: TextStyle(
                             fontSize: 20,
@@ -120,10 +164,16 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                             color: Color(0xFF0F172A),
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          'COLOR CHANGE',
-                          style: TextStyle(
+                          () {
+                            final exerciseId = widget.exerciseId ?? 
+                                (widget.gameId != null ? _getExerciseIdFromGameId(widget.gameId!) : null);
+                            return exerciseId != null
+                                ? '$exerciseId - ${widget.gameName.toUpperCase()}'
+                                : widget.gameName.toUpperCase();
+                          }(),
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 2.0,
