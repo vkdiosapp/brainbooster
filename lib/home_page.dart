@@ -49,7 +49,9 @@ class _HomePageState extends State<HomePage> {
       _favoriteExerciseIds = FavoritesService.favoritesNotifier.value;
       // Update cache
       for (final exercise in _allExercises) {
-        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(exercise.id);
+        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(
+          exercise.id,
+        );
       }
     });
     _filterExercises();
@@ -78,7 +80,9 @@ class _HomePageState extends State<HomePage> {
       _favoriteExerciseIds = FavoritesService.favoritesNotifier.value;
       // Update cache
       for (final exercise in _allExercises) {
-        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(exercise.id);
+        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(
+          exercise.id,
+        );
       }
     });
     _filterExercises();
@@ -622,7 +626,9 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () async {
-                                await FavoritesService.toggleFavorite(exercise.id);
+                                await FavoritesService.toggleFavorite(
+                                  exercise.id,
+                                );
                                 // No need to call _loadFavorites() - notifier will update automatically
                               },
                               child: Container(
@@ -639,7 +645,8 @@ class _HomePageState extends State<HomePage> {
                                   _favoriteStatusCache[exercise.id] == true
                                       ? Icons.star
                                       : Icons.star_outline,
-                                  color: _favoriteStatusCache[exercise.id] == true
+                                  color:
+                                      _favoriteStatusCache[exercise.id] == true
                                       ? Colors.yellow[300]
                                       : Colors.white,
                                 ),
@@ -823,10 +830,7 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           color: tileData['backgroundColor'] as Color,
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.5),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -882,7 +886,9 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
-                        color: (tileData['textColor'] as Color).withOpacity(0.7),
+                        color: (tileData['textColor'] as Color).withOpacity(
+                          0.7,
+                        ),
                         letterSpacing: 0.5,
                       ),
                       maxLines: 1,
@@ -902,7 +908,9 @@ class _HomePageState extends State<HomePage> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: (tileData['iconColor'] as Color).withOpacity(0.2),
+                        color: (tileData['iconColor'] as Color).withOpacity(
+                          0.2,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(
@@ -932,7 +940,9 @@ class _HomePageState extends State<HomePage> {
                         },
                         child: Icon(
                           Icons.bar_chart,
-                          color: (tileData['iconColor'] as Color).withOpacity(0.6),
+                          color: (tileData['iconColor'] as Color).withOpacity(
+                            0.6,
+                          ),
                           size: 24,
                         ),
                       ),
@@ -1027,7 +1037,8 @@ class _HomePageState extends State<HomePage> {
       final nameLower = name.toLowerCase();
       if (nameLower.contains('color change') || nameLower.contains('color')) {
         return Icons.palette;
-      } else if (nameLower.contains('number') || nameLower.contains('find number')) {
+      } else if (nameLower.contains('number') ||
+          nameLower.contains('find number')) {
         return Icons.push_pin;
       } else if (nameLower.contains('ball') || nameLower.contains('catch')) {
         return Icons.sports_baseball;

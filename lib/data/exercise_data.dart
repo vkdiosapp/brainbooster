@@ -123,6 +123,13 @@ class ExerciseData {
         desc: 'Find and tap the two triangles pointing in a different direction',
         timeRequired: 500,
       ),
+      Exercise(
+        id: 16,
+        categoryId: 4,
+        name: 'Aim',
+        desc: 'Tap all the aim targets as fast as you can',
+        timeRequired: 1000,
+      ),
     ];
   }
 

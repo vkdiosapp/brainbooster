@@ -14,6 +14,7 @@ import '../pages/ball_track_page.dart';
 import '../pages/visual_memory_page.dart';
 import '../pages/swipe_game_page.dart';
 import '../pages/excess_cells_page.dart';
+import '../pages/aim_game_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -192,6 +193,17 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ExcessCellsPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 16:
+        // Aim game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AimGamePage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),

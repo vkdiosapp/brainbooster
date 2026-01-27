@@ -558,7 +558,7 @@ class _BallRushPageState extends State<BallRushPage> {
                               height: ball.radius * 2,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: ball.isBomb ? Colors.red : Colors.black,
+                                color: ball.isBomb ? Colors.red : GameSettings.ballColor,
                               ),
                               child: ball.isBomb
                                   ? Icon(

@@ -466,7 +466,7 @@ class _CatchBallPageState extends State<CatchBallPage> {
                                 height: _blackBallRadius * 2,
                                 decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.black,
+                                  color: GameSettings.ballColor,
                                 ),
                               ),
                             ),

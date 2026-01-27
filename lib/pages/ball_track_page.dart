@@ -560,7 +560,7 @@ class _BallTrackPageState extends State<BallTrackPage> {
                               height: ball.radius * 2,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isRed ? Colors.red : Colors.black,
+                                color: isRed ? Colors.red : GameSettings.ballColor,
                               ),
                             ),
                           );
