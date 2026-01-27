@@ -36,7 +36,6 @@ class LongestLinePage extends StatefulWidget {
 
 class _LongestLinePageState extends State<LongestLinePage> {
   static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
-  static const int _displayDurationMs = 1000; // Show lines for 1 second
 
   int _currentRound = 0;
   int _completedRounds = 0;
@@ -44,8 +43,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
 
   bool _isPlaying = false;
   bool _isWaitingForRound = false;
-  bool _isShowingLines = false; // Phase 1: Showing lines for 1 second
-  bool _isRoundActive = false; // Phase 2: User can tap lines
+  bool _isRoundActive = false; // User can tap lines
 
   // Line data: each line has a side and relative height (0.5 to 1.0)
   List<LineData> _lines = [];
@@ -84,7 +82,6 @@ class _LongestLinePageState extends State<LongestLinePage> {
     _completedRounds = 0;
     _isPlaying = false;
     _isWaitingForRound = false;
-    _isShowingLines = false;
     _isRoundActive = false;
     _lines.clear();
     _longestLineIndex = null;
@@ -117,7 +114,6 @@ class _LongestLinePageState extends State<LongestLinePage> {
     setState(() {
       _currentRound++;
       _isWaitingForRound = true;
-      _isShowingLines = false;
       _isRoundActive = false;
       _errorMessage = null;
       _reactionTimeMessage = null;
@@ -136,27 +132,11 @@ class _LongestLinePageState extends State<LongestLinePage> {
     // Generate 5 lines with random sides and heights
     _generateLines();
 
+    // Lines appear and timer starts immediately - no memorize phase
     setState(() {
       _isWaitingForRound = false;
-      _isShowingLines = true;
-      _isRoundActive = false;
-    });
-
-    // After 1 second, hide lines and start timing
-    _lineDisplayTimer = Timer(
-      const Duration(milliseconds: _displayDurationMs),
-      () {
-        if (!mounted) return;
-        _hideLines();
-      },
-    );
-  }
-
-  void _hideLines() {
-    setState(() {
-      _isShowingLines = false;
       _isRoundActive = true;
-      _roundStartTime = DateTime.now(); // Start timing when user can tap
+      _roundStartTime = DateTime.now(); // Start timing immediately
     });
   }
 
@@ -248,7 +228,6 @@ class _LongestLinePageState extends State<LongestLinePage> {
     setState(() {
       _isPlaying = false;
       _isWaitingForRound = false;
-      _isShowingLines = false;
       _isRoundActive = false;
     });
 
@@ -343,7 +322,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
     // Randomly select ONE side for all lines in this round
     final selectedSide = sides[_rand.nextInt(sides.length)];
 
-    // Generate relative lengths for each line (0.5 to 1.0)
+    // Generate relative lengths for each line (0.75 to 1.0)
     // All lengths must be different
     final relativeLengths = <double>[];
     
@@ -351,8 +330,8 @@ class _LongestLinePageState extends State<LongestLinePage> {
       double relativeLength;
       int attempts = 0;
       do {
-        // Generate between 0.5 (half) and 1.0 (full)
-        relativeLength = 0.5 + _rand.nextDouble() * 0.5;
+        // Generate between 0.75 (75%) and 1.0 (full)
+        relativeLength = 0.75 + _rand.nextDouble() * 0.25;
         attempts++;
         // Ensure all lengths are different (with tolerance of 0.01)
         if (attempts > 200) break; // Prevent infinite loop
@@ -385,46 +364,50 @@ class _LongestLinePageState extends State<LongestLinePage> {
 
   Widget _buildLine(LineData line, int index, double containerWidth, double containerHeight) {
     double x, y, width, height;
-    const lineThickness = 12.0; // Slightly thicker for better visibility
-
-    // All lines are on the same side, so we can evenly space them
-    // Using index directly since all 5 lines are on the same side
+    const spacingBetweenLines = 25.0; // Fixed 25px spacing between lines
+    const containerPadding = 20.0; // 20px padding on all sides
     const totalLines = 5;
+
+    // Calculate available space after padding (40px total: 20px on each side)
+    final availableWidth = containerWidth - (containerPadding * 2);
+    final availableHeight = containerHeight - (containerPadding * 2);
 
     if (line.side == 'top') {
       // Line starts from top edge, extends DOWNWARD (vertically)
+      // Auto-calculate line thickness to fill available space with fixed spacing
+      final totalSpacingWidth = (totalLines - 1) * spacingBetweenLines;
+      final lineThickness = (availableWidth - totalSpacingWidth) / totalLines;
       width = lineThickness;
-      height = containerHeight * line.relativeLength; // Length extends downward
-      // Position along horizontal axis (evenly spaced)
-      final totalSpacing = containerWidth - (totalLines * lineThickness);
-      final spacing = totalSpacing / (totalLines + 1);
-      x = spacing + (index * (lineThickness + spacing));
-      y = 0; // Start from top
+      height = availableHeight * line.relativeLength; // Length extends downward
+      // Position along horizontal axis with fixed 20px spacing, starting from padding
+      x = containerPadding + (index * (lineThickness + spacingBetweenLines));
+      y = containerPadding; // Start from top with padding
     } else if (line.side == 'bottom') {
       // Line starts from bottom edge, extends UPWARD (vertically)
+      final totalSpacingWidth = (totalLines - 1) * spacingBetweenLines;
+      final lineThickness = (availableWidth - totalSpacingWidth) / totalLines;
       width = lineThickness;
-      height = containerHeight * line.relativeLength;
-      final totalSpacing = containerWidth - (totalLines * lineThickness);
-      final spacing = totalSpacing / (totalLines + 1);
-      x = spacing + (index * (lineThickness + spacing));
-      y = containerHeight - height; // Start from bottom, extend upward
+      height = availableHeight * line.relativeLength;
+      x = containerPadding + (index * (lineThickness + spacingBetweenLines));
+      y = containerPadding + availableHeight - height; // Start from bottom with padding
     } else if (line.side == 'left') {
       // Line starts from left edge, extends RIGHTWARD (horizontally)
-      width = containerWidth * line.relativeLength; // Length extends rightward
+      width = availableWidth * line.relativeLength; // Length extends rightward
+      // Auto-calculate line thickness to fill available space with fixed spacing
+      final totalSpacingHeight = (totalLines - 1) * spacingBetweenLines;
+      final lineThickness = (availableHeight - totalSpacingHeight) / totalLines;
       height = lineThickness;
-      x = 0; // Start from left
-      // Position along vertical axis (evenly spaced)
-      final totalSpacing = containerHeight - (totalLines * lineThickness);
-      final spacing = totalSpacing / (totalLines + 1);
-      y = spacing + (index * (lineThickness + spacing));
+      x = containerPadding; // Start from left with padding
+      // Position along vertical axis with fixed 20px spacing, starting from padding
+      y = containerPadding + (index * (lineThickness + spacingBetweenLines));
     } else {
       // Line starts from right edge, extends LEFTWARD (horizontally)
-      width = containerWidth * line.relativeLength;
+      width = availableWidth * line.relativeLength;
+      final totalSpacingHeight = (totalLines - 1) * spacingBetweenLines;
+      final lineThickness = (availableHeight - totalSpacingHeight) / totalLines;
       height = lineThickness;
-      x = containerWidth - width; // Start from right, extend leftward
-      final totalSpacing = containerHeight - (totalLines * lineThickness);
-      final spacing = totalSpacing / (totalLines + 1);
-      y = spacing + (index * (lineThickness + spacing));
+      x = containerPadding + availableWidth - width; // Start from right with padding
+      y = containerPadding + (index * (lineThickness + spacingBetweenLines));
     }
 
     // Increase tappable area with padding
@@ -476,7 +459,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
   Widget build(BuildContext context) {
     final state = GameState(
       isPlaying: _isPlaying,
-      isWaiting: _isWaitingForRound || _isShowingLines,
+      isWaiting: _isWaitingForRound,
       isRoundActive: _isRoundActive,
       currentRound: _currentRound,
       completedRounds: _completedRounds,
@@ -502,18 +485,15 @@ class _LongestLinePageState extends State<LongestLinePage> {
       builders: GameBuilders(
         titleBuilder: (s) {
           if (!s.isPlaying) return 'Tap the longest line';
-          if (s.isWaiting) {
-            if (_isShowingLines) return 'MEMORIZE THE LINES!';
-            return 'Wait...';
-          }
+          if (s.isWaiting) return 'Wait...';
           if (s.isRoundActive) {
             return 'TAP THE LONGEST LINE!';
           }
           return 'Round ${s.currentRound}';
         },
         contentBuilder: (s, context) {
-          // Show game container when showing lines or when round is active
-          if (_isShowingLines || s.isRoundActive) {
+          // Show game container when round is active
+          if (s.isRoundActive) {
             return Positioned.fill(child: _buildGameContainer());
           }
           // idle background or wait state
@@ -537,7 +517,6 @@ class _LongestLinePageState extends State<LongestLinePage> {
           );
         },
         waitingTextBuilder: (_) {
-          if (_isShowingLines) return '';
           return 'WAIT...';
         },
         startButtonText: 'START',

@@ -752,6 +752,10 @@ class _HomePageState extends State<HomePage> {
         return 'swipe';
       case 15:
         return 'excess_cells';
+      case 16:
+        return 'aim';
+      case 17:
+        return 'memorize';
       case 18:
         return 'peripheral_vision';
       case 19:
@@ -797,6 +801,10 @@ class _HomePageState extends State<HomePage> {
         return 'Swipe';
       case 'excess_cells':
         return 'Excess Cells';
+      case 'aim':
+        return 'Aim';
+      case 'memorize':
+        return 'Memorize';
       case 'peripheral_vision':
         return 'Peripheral Vision';
       case 'longest_line':

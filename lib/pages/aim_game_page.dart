@@ -33,7 +33,7 @@ class AimGamePage extends StatefulWidget {
 }
 
 class _AimGamePageState extends State<AimGamePage> {
-  int _aimCount = 2; // Default 2 aims, can be 1-10
+  int _aimCount = 6; // Default 6 aims, can be 1-10
   int _currentRound = 0;
   int _completedRounds = 0;
   int _bestSession = 240; // ms
@@ -76,7 +76,7 @@ class _AimGamePageState extends State<AimGamePage> {
     _isPlaying = false;
     _isWaitingForRound = false;
     _isRoundActive = false;
-    _aimCount = 2; // Reset to default
+    _aimCount = 6; // Reset to default
     _aims.clear();
     _roundStartTime = null;
     _errorMessage = null;
