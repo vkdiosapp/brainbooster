@@ -43,8 +43,8 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
   bool _isRoundActive = false; // Phase 2: User can tap boxes
 
   // Map position to digit value (0-99)
-  // Normal: positions are 'left' and 'right'
-  // Advanced: positions are 'top', 'bottom', 'left', 'right'
+  // Normal: positions are 'top', 'bottom', 'left', 'right'
+  // Advanced: positions are 'top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'
   Map<String, int> _boxDigits = {};
   int? _higherDigitValue; // The correct answer (higher number)
   DateTime? _roundStartTime;
@@ -134,7 +134,30 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
     _boxDigits.clear();
 
     if (_isAdvanced) {
-      // Advanced: 4 boxes (top, bottom, left, right)
+      // Advanced: 8 boxes (top, bottom, left, right, top-left, top-right, bottom-left, bottom-right)
+      final digits = [
+        _rand.nextInt(100), // top
+        _rand.nextInt(100), // bottom
+        _rand.nextInt(100), // left
+        _rand.nextInt(100), // right
+        _rand.nextInt(100), // top-left
+        _rand.nextInt(100), // top-right
+        _rand.nextInt(100), // bottom-left
+        _rand.nextInt(100), // bottom-right
+      ];
+      _boxDigits['top'] = digits[0];
+      _boxDigits['bottom'] = digits[1];
+      _boxDigits['left'] = digits[2];
+      _boxDigits['right'] = digits[3];
+      _boxDigits['top-left'] = digits[4];
+      _boxDigits['top-right'] = digits[5];
+      _boxDigits['bottom-left'] = digits[6];
+      _boxDigits['bottom-right'] = digits[7];
+
+      // Find the highest digit
+      _higherDigitValue = digits.reduce((a, b) => a > b ? a : b);
+    } else {
+      // Normal: 4 boxes (top, bottom, left, right)
       final digits = [
         _rand.nextInt(100), // top
         _rand.nextInt(100), // bottom
@@ -148,15 +171,6 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
 
       // Find the highest digit
       _higherDigitValue = digits.reduce((a, b) => a > b ? a : b);
-    } else {
-      // Normal: 2 boxes (left, right)
-      final leftDigit = _rand.nextInt(100);
-      final rightDigit = _rand.nextInt(100);
-      _boxDigits['left'] = leftDigit;
-      _boxDigits['right'] = rightDigit;
-
-      // Find the higher digit
-      _higherDigitValue = leftDigit > rightDigit ? leftDigit : rightDigit;
     }
 
     setState(() {
@@ -347,7 +361,7 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
             ? containerWidth
             : containerHeight;
         final boxSize = minDimension * 0.2; // Box size relative to container
-        final centerDotSize = 20.0;
+        final centerDotSize = 12.0;
         final spacing = minDimension * 0.15; // Spacing from center to boxes
 
         return Stack(
@@ -367,7 +381,7 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
             ),
             // Boxes based on mode
             if (_isAdvanced) ...[
-              // Advanced: 4 boxes (top, bottom, left, right)
+              // Advanced: 8 boxes (top, bottom, left, right, top-left, top-right, bottom-left, bottom-right)
               // Top box
               Positioned(
                 left: centerX - boxSize / 2,
@@ -392,8 +406,44 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
                 top: centerY - boxSize / 2,
                 child: _buildBox('right', boxSize),
               ),
+              // Top-left box
+              Positioned(
+                left: centerX - boxSize / 2 - spacing - boxSize,
+                top: centerY - boxSize / 2 - spacing - boxSize,
+                child: _buildBox('top-left', boxSize),
+              ),
+              // Top-right box
+              Positioned(
+                left: centerX + boxSize / 2 + spacing,
+                top: centerY - boxSize / 2 - spacing - boxSize,
+                child: _buildBox('top-right', boxSize),
+              ),
+              // Bottom-left box
+              Positioned(
+                left: centerX - boxSize / 2 - spacing - boxSize,
+                top: centerY + boxSize / 2 + spacing,
+                child: _buildBox('bottom-left', boxSize),
+              ),
+              // Bottom-right box
+              Positioned(
+                left: centerX + boxSize / 2 + spacing,
+                top: centerY + boxSize / 2 + spacing,
+                child: _buildBox('bottom-right', boxSize),
+              ),
             ] else ...[
-              // Normal: 2 boxes (left, right)
+              // Normal: 4 boxes (top, bottom, left, right)
+              // Top box
+              Positioned(
+                left: centerX - boxSize / 2,
+                top: centerY - boxSize / 2 - spacing - boxSize,
+                child: _buildBox('top', boxSize),
+              ),
+              // Bottom box
+              Positioned(
+                left: centerX - boxSize / 2,
+                top: centerY + boxSize / 2 + spacing,
+                child: _buildBox('bottom', boxSize),
+              ),
               // Left box
               Positioned(
                 left: centerX - boxSize / 2 - spacing - boxSize,
