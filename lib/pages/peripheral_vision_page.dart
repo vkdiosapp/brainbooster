@@ -29,7 +29,7 @@ class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
         orElse: () => ExerciseData.getExercises().first,
       )
       .penaltyTime;
-  static const int _displayDurationMs = 1000; // Show digits for 1 second
+  static const int _displayDurationMs = 400; // Show digits for 0.5 seconds
 
   bool _isAdvanced = false; // false = Normal, true = Advanced
 
