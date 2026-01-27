@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/game_session.dart';
@@ -428,17 +427,45 @@ class _LongestLinePageState extends State<LongestLinePage> {
       y = spacing + (index * (lineThickness + spacing));
     }
 
+    // Increase tappable area with padding
+    const tapPadding = 20.0; // Padding around line for easier tapping
+    
+    // Calculate expanded dimensions for tap area
+    double tapWidth, tapHeight, tapX, tapY;
+    if (line.side == 'top' || line.side == 'bottom') {
+      // Vertical lines - expand width for tap area
+      tapWidth = width + (tapPadding * 2);
+      tapHeight = height;
+      // Adjust X position to center the visual line within the tap area
+      tapX = x - tapPadding;
+      tapY = y; // Y position stays the same
+    } else {
+      // Horizontal lines - expand height for tap area
+      tapWidth = width;
+      tapHeight = height + (tapPadding * 2);
+      // Adjust Y position to center the visual line within the tap area
+      tapX = x; // X position stays the same
+      tapY = y - tapPadding;
+    }
+    
     return Positioned(
-      left: x,
-      top: y,
+      left: tapX,
+      top: tapY,
       child: GestureDetector(
         onTap: () => _handleLineTap(index),
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E293B), // Dark grey/black like screenshot
-            borderRadius: BorderRadius.circular(2),
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: tapWidth,
+          height: tapHeight,
+          child: Center(
+            child: Container(
+              width: width,
+              height: height,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B), // Dark grey/black like screenshot
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
           ),
         ),
       ),
