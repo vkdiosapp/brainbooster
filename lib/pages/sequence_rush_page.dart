@@ -32,9 +32,11 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   bool _isWaitingForRound = false;
   bool _isRoundActive = false;
   bool _isReverse = false; // Reverse mode checkbox
+  bool _isNotSequence = false; // Not Sequence checkbox - numbers appear randomly on grid
 
   List<int> _numberPositions = []; // Maps position index to number
-  int _nextExpectedNumber = 1; // Next number user should tap
+  List<int> _sortedNumbers = []; // Sorted list of numbers for tapping order
+  int _sequenceIndex = 0; // Current index in sorted sequence
   DateTime? _roundStartTime;
   Timer? _roundDelayTimer;
   Timer? _overlayTimer;
@@ -71,8 +73,10 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
     _isRoundActive = false;
     _gridSize = 4; // Reset to default
     _isReverse = false; // Reset reverse checkbox
+    _isNotSequence = false; // Reset not sequence checkbox
     _numberPositions.clear();
-    _nextExpectedNumber = _isReverse ? _totalNumbers : 1;
+    _sortedNumbers.clear();
+    _sequenceIndex = 0;
     _roundStartTime = null;
     _errorMessage = null;
     _reactionTimeMessage = null;
@@ -104,7 +108,7 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
       _isRoundActive = false;
       _errorMessage = null;
       _reactionTimeMessage = null;
-      _nextExpectedNumber = _isReverse ? _totalNumbers : 1;
+      _sequenceIndex = 0;
       _roundStartTime = null;
     });
 
@@ -115,16 +119,35 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   }
 
   void _showRound() {
-    // Generate random positions for numbers 1-16 (or 1-25 for 5x5)
-    final numbers = List.generate(_totalNumbers, (i) => i + 1);
-    numbers.shuffle(_rand);
-    _numberPositions = numbers;
+    if (_isNotSequence) {
+      // Not Sequence: Generate random number values (not sequential like 1,2,3...)
+      // For 4x4 grid: values between 1 to 32
+      // For 5x5 grid: values between 1 to 50
+      final int maxValue = _gridSize == 4 ? 32 : 50;
+      final Set<int> uniqueNumbers = {};
+      while (uniqueNumbers.length < _totalNumbers) {
+        uniqueNumbers.add(1 + _rand.nextInt(maxValue)); // Random numbers from 1 to maxValue
+      }
+      _sortedNumbers = uniqueNumbers.toList()..sort(); // Sort for tapping order
+    } else {
+      // Sequence: Use sequential numbers 1-16 (or 1-25 for 5x5)
+      _sortedNumbers = List.generate(_totalNumbers, (i) => i + 1);
+    }
+    
+    // Always shuffle positions on grid (random positions regardless of Not Sequence)
+    _numberPositions = List.from(_sortedNumbers);
+    _numberPositions.shuffle(_rand);
+    
+    print('Not Sequence: $_isNotSequence - Sorted values: $_sortedNumbers');
+    print('Grid positions (always random): $_numberPositions');
+    
+    // Set initial sequence index based on Reverse checkbox
+    _sequenceIndex = _isReverse ? (_sortedNumbers.length - 1) : 0;
 
     setState(() {
       _isWaitingForRound = false;
       _isRoundActive = true;
       _roundStartTime = DateTime.now();
-      _nextExpectedNumber = _isReverse ? _totalNumbers : 1;
     });
   }
 
@@ -134,26 +157,27 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
     }
 
     final tappedNumber = _numberPositions[index];
+    final expectedNumber = _sortedNumbers[_sequenceIndex];
 
-    if (tappedNumber == _nextExpectedNumber) {
+    if (tappedNumber == expectedNumber) {
       // Play tap sound for correct tap
       SoundService.playTapSound();
-      // Correct tap - move to next number
+      // Correct tap - move to next number in sequence
       setState(() {
         if (_isReverse) {
-          _nextExpectedNumber--;
+          _sequenceIndex--;
         } else {
-          _nextExpectedNumber++;
+          _sequenceIndex++;
         }
       });
 
       // Check if round is complete (all numbers tapped)
       if (_isReverse) {
-        if (_nextExpectedNumber < 1) {
+        if (_sequenceIndex < 0) {
           _completeRound();
         }
       } else {
-        if (_nextExpectedNumber > _totalNumbers) {
+        if (_sequenceIndex >= _sortedNumbers.length) {
           _completeRound();
         }
       }
@@ -403,28 +427,57 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
                     ),
                   ],
                 ),
-                // Reverse checkbox row
+                // Reverse and Not Sequence checkboxes row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Checkbox(
-                      value: _isReverse,
-                      onChanged: (value) {
-                        setState(() {
-                          _isReverse = value ?? false;
-                        });
-                      },
-                      activeColor: const Color(0xFF475569),
-                      checkColor: Colors.white,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                          value: _isReverse,
+                          onChanged: (value) {
+                            setState(() {
+                              _isReverse = value ?? false;
+                            });
+                          },
+                          activeColor: const Color(0xFF475569),
+                          checkColor: Colors.white,
+                        ),
+                        const Text(
+                          'Reverse',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF475569),
+                          ),
+                        ),
+                      ],
                     ),
-                    const Text(
-                      'Reverse',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF475569),
-                      ),
+                    const SizedBox(width: 24),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                          value: _isNotSequence,
+                          onChanged: (value) {
+                            setState(() {
+                              _isNotSequence = value ?? false;
+                            });
+                          },
+                          activeColor: const Color(0xFF475569),
+                          checkColor: Colors.white,
+                        ),
+                        const Text(
+                          'Not Sequence',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF475569),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
