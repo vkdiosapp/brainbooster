@@ -36,10 +36,14 @@ int? _getExerciseIdFromGameId(String gameId) {
       return 13;
     case 'swipe':
       return 14;
-    case 'excess_cells':
-      return 15;
-    default:
-      return null;
+      case 'excess_cells':
+        return 15;
+      case 'peripheral_vision':
+        return 18;
+      case 'longest_line':
+        return 19;
+      default:
+        return null;
   }
 }
 

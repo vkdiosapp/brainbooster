@@ -754,6 +754,8 @@ class _HomePageState extends State<HomePage> {
         return 'excess_cells';
       case 18:
         return 'peripheral_vision';
+      case 19:
+        return 'longest_line';
       default:
         return null; // Games without analytics yet
     }
@@ -797,6 +799,8 @@ class _HomePageState extends State<HomePage> {
         return 'Excess Cells';
       case 'peripheral_vision':
         return 'Peripheral Vision';
+      case 'longest_line':
+        return 'Longest Line';
       default:
         return null;
     }

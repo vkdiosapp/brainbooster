@@ -145,6 +145,13 @@ class ExerciseData {
         desc: 'Memorize numbers in your peripheral vision and tap the higher number',
         timeRequired: 400,
       ),
+      Exercise(
+        id: 19,
+        categoryId: 4,
+        name: 'Longest Line',
+        desc: 'Tap the longest line among 5 lines starting from random sides',
+        timeRequired: 400,
+      ),
     ];
   }
 
