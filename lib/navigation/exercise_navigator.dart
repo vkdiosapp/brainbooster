@@ -15,6 +15,8 @@ import '../pages/visual_memory_page.dart';
 import '../pages/swipe_game_page.dart';
 import '../pages/excess_cells_page.dart';
 import '../pages/aim_game_page.dart';
+import '../pages/memorize_game_page.dart';
+import '../pages/peripheral_vision_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -26,7 +28,7 @@ class ExerciseNavigator {
       (e) => e.id == exerciseId,
       orElse: () => exercises.first,
     );
-    
+
     final categories = ExerciseData.getCategories();
     final category = categories.firstWhere(
       (c) => c.id == exercise.categoryId,
@@ -204,6 +206,28 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => AimGamePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 17:
+        // Memorize game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => MemorizeGamePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 18:
+        // Peripheral Vision game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PeripheralVisionPage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),

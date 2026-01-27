@@ -10,39 +10,39 @@ import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
-enum TriangleDirection { up, down, left, right }
-
-class ExcessCellsPage extends StatefulWidget {
+class PeripheralVisionPage extends StatefulWidget {
   final String? categoryName;
   final String? exerciseName;
 
-  const ExcessCellsPage({super.key, this.categoryName, this.exerciseName});
+  const PeripheralVisionPage({super.key, this.categoryName, this.exerciseName});
 
   @override
-  State<ExcessCellsPage> createState() => _ExcessCellsPageState();
+  State<PeripheralVisionPage> createState() => _PeripheralVisionPageState();
 }
 
-class _ExcessCellsPageState extends State<ExcessCellsPage> {
+class _PeripheralVisionPageState extends State<PeripheralVisionPage> {
   static const int _wrongTapPenaltyMs = 1000; // Penalty for wrong tap
+  static const int _displayDurationMs = 1000; // Show digits for 1 second
 
-  int _gridSize = 4; // Grid size: 4 or 5
+  bool _isAdvanced = false; // false = Normal, true = Advanced
+
   int _currentRound = 0;
   int _completedRounds = 0;
   int _bestSession = 240; // ms
 
   bool _isPlaying = false;
   bool _isWaitingForRound = false;
-  bool _isRoundActive = false;
+  bool _isShowingDigits = false; // Phase 1: Showing digits for 1 second
+  bool _isRoundActive = false; // Phase 2: User can tap boxes
 
-  // Maps position index to triangle direction
-  Map<int, TriangleDirection> _triangleDirections = {};
-  TriangleDirection _commonDirection =
-      TriangleDirection.up; // Most triangles use this
-  Set<int> _differentDirectionPositions =
-      {}; // 2 positions with different direction
-  Set<int> _tappedPositions = {}; // Positions user has tapped
+  // Map position to digit value (0-99)
+  // Normal: positions are 'left' and 'right'
+  // Advanced: positions are 'top', 'bottom', 'left', 'right'
+  Map<String, int> _boxDigits = {};
+  int? _higherDigitValue; // The correct answer (higher number)
   DateTime? _roundStartTime;
   Timer? _roundDelayTimer;
+  Timer? _digitDisplayTimer;
   Timer? _overlayTimer;
 
   String? _errorMessage;
@@ -50,8 +50,6 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
 
   final List<RoundResult> _roundResults = [];
   final math.Random _rand = math.Random();
-
-  int get _totalCells => _gridSize * _gridSize;
 
   @override
   void initState() {
@@ -62,24 +60,24 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
   @override
   void dispose() {
     _roundDelayTimer?.cancel();
+    _digitDisplayTimer?.cancel();
     _overlayTimer?.cancel();
     super.dispose();
   }
 
   void _resetGame() {
     _roundDelayTimer?.cancel();
+    _digitDisplayTimer?.cancel();
     _overlayTimer?.cancel();
 
     _currentRound = 0;
     _completedRounds = 0;
     _isPlaying = false;
     _isWaitingForRound = false;
+    _isShowingDigits = false;
     _isRoundActive = false;
-    _gridSize = 4; // Reset to default
-    _triangleDirections.clear();
-    _commonDirection = TriangleDirection.up;
-    _differentDirectionPositions.clear();
-    _tappedPositions.clear();
+    _boxDigits.clear();
+    _higherDigitValue = null;
     _roundStartTime = null;
     _errorMessage = null;
     _reactionTimeMessage = null;
@@ -103,103 +101,110 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
     }
 
     _roundDelayTimer?.cancel();
+    _digitDisplayTimer?.cancel();
     _overlayTimer?.cancel();
 
     setState(() {
       _currentRound++;
       _isWaitingForRound = true;
+      _isShowingDigits = false;
       _isRoundActive = false;
       _errorMessage = null;
       _reactionTimeMessage = null;
-      _tappedPositions.clear();
+      _boxDigits.clear();
+      _higherDigitValue = null;
       _roundStartTime = null;
     });
 
     _roundDelayTimer = Timer(const Duration(milliseconds: 500), () {
       if (!mounted) return;
-      _showRound();
+      _showDigits();
     });
   }
 
-  void _showRound() {
-    // Randomly choose a common direction (most triangles will use this)
-    final allDirections = TriangleDirection.values;
-    _commonDirection = allDirections[_rand.nextInt(allDirections.length)];
+  void _showDigits() {
+    // Generate random digits (0-99) for each box
+    _boxDigits.clear();
 
-    // Generate all positions
-    final positions = List.generate(_totalCells, (i) => i);
-    positions.shuffle(_rand);
+    if (_isAdvanced) {
+      // Advanced: 4 boxes (top, bottom, left, right)
+      final digits = [
+        _rand.nextInt(100), // top
+        _rand.nextInt(100), // bottom
+        _rand.nextInt(100), // left
+        _rand.nextInt(100), // right
+      ];
+      _boxDigits['top'] = digits[0];
+      _boxDigits['bottom'] = digits[1];
+      _boxDigits['left'] = digits[2];
+      _boxDigits['right'] = digits[3];
 
-    // Set most triangles to common direction
-    _triangleDirections = {};
-    for (int i = 0; i < _totalCells; i++) {
-      _triangleDirections[i] = _commonDirection;
-    }
-
-    // Choose 2 positions for different directions
-    final differentPositions = positions.take(2).toList();
-    _differentDirectionPositions = differentPositions.toSet();
-
-    // Get two different directions (both different from common and from each other)
-    final otherDirections = allDirections
-        .where((d) => d != _commonDirection)
-        .toList();
-    otherDirections.shuffle(_rand);
-
-    // Assign different directions to the 2 positions
-    // First position gets first different direction
-    _triangleDirections[differentPositions[0]] = otherDirections[0];
-    // Second position gets second different direction (ensuring they're different)
-    if (otherDirections.length > 1) {
-      _triangleDirections[differentPositions[1]] = otherDirections[1];
+      // Find the highest digit
+      _higherDigitValue = digits.reduce((a, b) => a > b ? a : b);
     } else {
-      // If only one other direction available, use it for both (shouldn't happen with 4 directions)
-      _triangleDirections[differentPositions[1]] = otherDirections[0];
+      // Normal: 2 boxes (left, right)
+      final leftDigit = _rand.nextInt(100);
+      final rightDigit = _rand.nextInt(100);
+      _boxDigits['left'] = leftDigit;
+      _boxDigits['right'] = rightDigit;
+
+      // Find the higher digit
+      _higherDigitValue = leftDigit > rightDigit ? leftDigit : rightDigit;
     }
 
     setState(() {
       _isWaitingForRound = false;
+      _isShowingDigits = true;
+      _isRoundActive = false;
+    });
+
+    // After 1 second, hide digits and start timing
+    _digitDisplayTimer = Timer(
+      const Duration(milliseconds: _displayDurationMs),
+      () {
+        if (!mounted) return;
+        _hideDigits();
+      },
+    );
+  }
+
+  void _hideDigits() {
+    setState(() {
+      _isShowingDigits = false;
       _isRoundActive = true;
-      _roundStartTime = DateTime.now();
+      _roundStartTime = DateTime.now(); // Start timing when user can tap
     });
   }
 
-  void _handleTileTap(int index) {
+  void _handleBoxTap(String position) {
     if (!_isRoundActive || _roundStartTime == null) {
       return;
     }
 
-    // Check if already tapped
-    if (_tappedPositions.contains(index)) {
-      return; // Already tapped this position
+    final tappedDigit = _boxDigits[position];
+    if (tappedDigit == null) {
+      return;
     }
 
-    // Check if this is one of the different direction positions
-    if (_differentDirectionPositions.contains(index)) {
-      // Play tap sound for correct tap
-      SoundService.playTapSound();
-      // Correct tap
-      setState(() {
-        _tappedPositions.add(index);
-      });
+    // Check if correct (tapped box has the higher number)
+    final isCorrect = tappedDigit == _higherDigitValue;
 
-      // Check if both different direction positions are tapped
-      if (_tappedPositions.length == 2) {
-        _completeRound();
-      }
+    if (isCorrect) {
+      // Correct tap
+      SoundService.playTapSound();
+      _completeRound();
     } else {
-      // Wrong tap - penalty
+      // Wrong tap - add penalty
+      SoundService.playPenaltySound();
       _handleWrongTap();
     }
   }
 
   void _handleWrongTap() {
-    // Play penalty sound for wrong tap
-    SoundService.playPenaltySound();
     _overlayTimer?.cancel();
 
     // End round immediately with penalty
-    final roundTime = _wrongTapPenaltyMs; // Use penalty as round time
+    final roundTime = _wrongTapPenaltyMs;
 
     _roundResults.add(
       RoundResult(
@@ -224,6 +229,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
 
   void _completeRound() {
     _overlayTimer?.cancel();
+    _digitDisplayTimer?.cancel();
 
     // Calculate round time
     final roundTime = DateTime.now()
@@ -253,11 +259,13 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
 
   Future<void> _endGame() async {
     _roundDelayTimer?.cancel();
+    _digitDisplayTimer?.cancel();
     _overlayTimer?.cancel();
 
     setState(() {
       _isPlaying = false;
       _isWaitingForRound = false;
+      _isShowingDigits = false;
       _isRoundActive = false;
     });
 
@@ -284,11 +292,11 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
 
     if (_roundResults.isNotEmpty) {
       final sessionNumber = await GameHistoryService.getNextSessionNumber(
-        'excess_cells',
+        'peripheral_vision',
       );
       final session = GameSession(
-        gameId: 'excess_cells',
-        gameName: 'Excess Cells',
+        gameId: 'peripheral_vision',
+        gameName: 'Peripheral Vision',
         timestamp: DateTime.now(),
         sessionNumber: sessionNumber,
         roundResults: List.from(_roundResults),
@@ -308,9 +316,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
             builder: (context) => ColorChangeResultsPage(
               roundResults: List.from(_roundResults),
               bestSession: _bestSession,
-              gameName: widget.exerciseName ?? 'Excess Cells',
-              gameId: 'excess_cells',
-              exerciseId: 15,
+              gameName: widget.exerciseName ?? 'Peripheral Vision',
             ),
           ),
         )
@@ -321,7 +327,126 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
         });
   }
 
-  Widget _buildGridSizeSelector() {
+  Widget _buildGameContainer() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final containerWidth = constraints.maxWidth;
+        final containerHeight = constraints.maxHeight;
+        final centerX = containerWidth / 2;
+        final centerY = containerHeight / 2;
+        
+        // Use the smaller dimension to ensure everything fits
+        final minDimension = containerWidth < containerHeight 
+            ? containerWidth 
+            : containerHeight;
+        final boxSize = minDimension * 0.2; // Box size relative to container
+        final centerDotSize = 20.0;
+        final spacing = minDimension * 0.15; // Spacing from center to boxes
+
+        return Stack(
+          children: [
+            // Center red dot (always visible)
+            Positioned(
+              left: centerX - centerDotSize / 2,
+              top: centerY - centerDotSize / 2,
+              child: Container(
+                width: centerDotSize,
+                height: centerDotSize,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            // Boxes based on mode
+            if (_isAdvanced) ...[
+              // Advanced: 4 boxes (top, bottom, left, right)
+              // Top box
+              Positioned(
+                left: centerX - boxSize / 2,
+                top: centerY - boxSize / 2 - spacing - boxSize,
+                child: _buildBox('top', boxSize),
+              ),
+              // Bottom box
+              Positioned(
+                left: centerX - boxSize / 2,
+                top: centerY + boxSize / 2 + spacing,
+                child: _buildBox('bottom', boxSize),
+              ),
+              // Left box
+              Positioned(
+                left: centerX - boxSize / 2 - spacing - boxSize,
+                top: centerY - boxSize / 2,
+                child: _buildBox('left', boxSize),
+              ),
+              // Right box
+              Positioned(
+                left: centerX + boxSize / 2 + spacing,
+                top: centerY - boxSize / 2,
+                child: _buildBox('right', boxSize),
+              ),
+            ] else ...[
+              // Normal: 2 boxes (left, right)
+              // Left box
+              Positioned(
+                left: centerX - boxSize / 2 - spacing - boxSize,
+                top: centerY - boxSize / 2,
+                child: _buildBox('left', boxSize),
+              ),
+              // Right box
+              Positioned(
+                left: centerX + boxSize / 2 + spacing,
+                top: centerY - boxSize / 2,
+                child: _buildBox('right', boxSize),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBox(String position, double size) {
+    final digit = _boxDigits[position];
+    final showDigit = _isShowingDigits && digit != null;
+
+    return GestureDetector(
+      onTap: () => _handleBoxTap(position),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: showDigit
+            ? Center(
+                child: Text(
+                  digit.toString(),
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+              )
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildDifficultySelector() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
       child: Container(
@@ -349,7 +474,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      _gridSize = 4;
+                      _isAdvanced = false;
                     });
                   },
                   child: Container(
@@ -358,7 +483,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: _gridSize == 4
+                      color: !_isAdvanced
                           ? const Color(0xFF475569)
                           : Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -379,7 +504,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: _gridSize == 4
+                        color: !_isAdvanced
                             ? Colors.white
                             : const Color(0xFF475569),
                       ),
@@ -390,7 +515,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      _gridSize = 5;
+                      _isAdvanced = true;
                     });
                   },
                   child: Container(
@@ -399,7 +524,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: _gridSize == 5
+                      color: _isAdvanced
                           ? const Color(0xFF475569)
                           : Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -420,7 +545,7 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: _gridSize == 5
+                        color: _isAdvanced
                             ? Colors.white
                             : const Color(0xFF475569),
                       ),
@@ -435,65 +560,11 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
     );
   }
 
-  Widget _buildTriangle(TriangleDirection direction) {
-    return CustomPaint(
-      painter: TrianglePainter(direction: direction, color: Colors.black),
-      size: const Size(28, 28),
-    );
-  }
-
-  Widget _buildGrid() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: AspectRatio(
-          aspectRatio: 1.0,
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: _gridSize,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: _totalCells,
-            itemBuilder: (context, index) {
-              final direction = _triangleDirections[index];
-
-              return GestureDetector(
-                onTap: () => _handleTileTap(index),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFFE2E8F0),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: direction != null
-                      ? Center(child: _buildTriangle(direction))
-                      : null,
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = GameState(
       isPlaying: _isPlaying,
-      isWaiting: _isWaitingForRound,
+      isWaiting: _isWaitingForRound || _isShowingDigits,
       isRoundActive: _isRoundActive,
       currentRound: _currentRound,
       completedRounds: _completedRounds,
@@ -503,9 +574,9 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
 
     return BaseGamePage(
       config: GamePageConfig(
-        gameName: 'Excess Cells',
+        gameName: 'PERIPHERAL VISION',
         categoryName: widget.categoryName ?? 'Visual',
-        gameId: 'excess_cells',
+        gameId: 'peripheral_vision',
         bestSession: _bestSession,
       ),
       state: state,
@@ -518,25 +589,22 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
       ),
       builders: GameBuilders(
         titleBuilder: (s) {
-          if (!s.isPlaying) return 'Find the different triangles';
-          if (s.isWaiting) return 'Wait...';
+          if (!s.isPlaying) return 'Tap the box with the higher number';
+          if (s.isWaiting) {
+            if (_isShowingDigits) return 'MEMORIZE THE NUMBERS!';
+            return 'Wait...';
+          }
           if (s.isRoundActive) {
-            return 'TAP THE DIFFERENT TRIANGLES!';
+            return 'TAP THE HIGHER NUMBER!';
           }
           return 'Round ${s.currentRound}';
         },
-        middleContentBuilder: (s, context) {
-          // Show grid size selector only before game starts
-          if (!s.isPlaying) {
-            return _buildGridSizeSelector();
-          }
-          return const SizedBox.shrink();
-        },
         contentBuilder: (s, context) {
-          if (s.isRoundActive && !s.isWaiting) {
-            return Positioned.fill(child: _buildGrid());
+          // Show game container when showing digits or when round is active
+          if (_isShowingDigits || s.isRoundActive) {
+            return Positioned.fill(child: _buildGameContainer());
           }
-          // idle background
+          // idle background or wait state
           return Positioned.fill(
             child: Container(
               decoration: !s.isRoundActive && !s.isPlaying
@@ -556,57 +624,20 @@ class _ExcessCellsPageState extends State<ExcessCellsPage> {
             ),
           );
         },
-        waitingTextBuilder: (_) => 'WAIT...',
+        waitingTextBuilder: (_) {
+          if (_isShowingDigits) return '';
+          return 'WAIT...';
+        },
         startButtonText: 'START',
+        middleContentBuilder: (s, context) {
+          // Show difficulty selector only before game starts
+          if (!s.isPlaying) {
+            return _buildDifficultySelector();
+          }
+          return const SizedBox.shrink();
+        },
       ),
       useBackdropFilter: true,
     );
   }
-}
-
-class TrianglePainter extends CustomPainter {
-  final TriangleDirection direction;
-  final Color color;
-
-  TrianglePainter({required this.direction, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 3;
-
-    final path = Path();
-
-    switch (direction) {
-      case TriangleDirection.up:
-        path.moveTo(center.dx, center.dy - radius);
-        path.lineTo(center.dx - radius, center.dy + radius);
-        path.lineTo(center.dx + radius, center.dy + radius);
-        break;
-      case TriangleDirection.down:
-        path.moveTo(center.dx, center.dy + radius);
-        path.lineTo(center.dx - radius, center.dy - radius);
-        path.lineTo(center.dx + radius, center.dy - radius);
-        break;
-      case TriangleDirection.left:
-        path.moveTo(center.dx - radius, center.dy);
-        path.lineTo(center.dx + radius, center.dy - radius);
-        path.lineTo(center.dx + radius, center.dy + radius);
-        break;
-      case TriangleDirection.right:
-        path.moveTo(center.dx + radius, center.dy);
-        path.lineTo(center.dx - radius, center.dy - radius);
-        path.lineTo(center.dx - radius, center.dy + radius);
-        break;
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

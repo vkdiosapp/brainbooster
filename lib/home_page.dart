@@ -752,6 +752,8 @@ class _HomePageState extends State<HomePage> {
         return 'swipe';
       case 15:
         return 'excess_cells';
+      case 18:
+        return 'peripheral_vision';
       default:
         return null; // Games without analytics yet
     }
@@ -793,6 +795,8 @@ class _HomePageState extends State<HomePage> {
         return 'Swipe';
       case 'excess_cells':
         return 'Excess Cells';
+      case 'peripheral_vision':
+        return 'Peripheral Vision';
       default:
         return null;
     }

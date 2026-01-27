@@ -120,7 +120,8 @@ class ExerciseData {
         id: 15,
         categoryId: 4,
         name: 'Excess Cells',
-        desc: 'Find and tap the two triangles pointing in a different direction',
+        desc:
+            'Find and tap the two triangles pointing in a different direction',
         timeRequired: 500,
       ),
       Exercise(
@@ -129,6 +130,20 @@ class ExerciseData {
         name: 'Aim',
         desc: 'Tap all the aim targets as fast as you can',
         timeRequired: 1000,
+      ),
+      Exercise(
+        id: 17,
+        categoryId: 2,
+        name: 'Memorize',
+        desc: 'Memorize emoji pairs and match them after they disappear',
+        timeRequired: 5000,
+      ),
+      Exercise(
+        id: 18,
+        categoryId: 4,
+        name: 'Peripheral Vision',
+        desc: 'Memorize numbers in your peripheral vision and tap the higher number',
+        timeRequired: 400,
       ),
     ];
   }
