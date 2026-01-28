@@ -251,6 +251,16 @@ class ExerciseData {
         timeRequired: 400,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 26,
+        categoryId: 4,
+        name: 'Color Frames Count',
+        desc:
+            'Count the frames of the written color in the grid and select the correct count from the options.',
+        icon: Icons.grid_view,
+        timeRequired: 400,
+        penaltyTime: 1000,
+      ),
     ];
   }
 
