@@ -198,7 +198,8 @@ class _F1RacePageState extends State<F1RacePage> {
     // - If light is GREEN -> accelerator
     // - If light is RED or YELLOW -> brake
     final bool shouldAccelerate = _currentLight == _TrafficLightColor.green;
-    final bool isCorrect = (shouldAccelerate && isAccelerator) ||
+    final bool isCorrect =
+        (shouldAccelerate && isAccelerator) ||
         (!shouldAccelerate && !isAccelerator);
 
     if (isCorrect) {
@@ -289,7 +290,7 @@ class _F1RacePageState extends State<F1RacePage> {
     if (successfulRounds.isNotEmpty) {
       averageTime =
           successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              successfulRounds.length;
+          successfulRounds.length;
       bestTime = successfulRounds
           .map((r) => r.reactionTime)
           .reduce((a, b) => a < b ? a : b);
@@ -299,7 +300,7 @@ class _F1RacePageState extends State<F1RacePage> {
     } else if (_roundResults.isNotEmpty) {
       averageTime =
           _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              _roundResults.length;
+          _roundResults.length;
     }
 
     if (_roundResults.isNotEmpty) {
@@ -378,7 +379,9 @@ class _F1RacePageState extends State<F1RacePage> {
         case _TrafficLightColor.red:
           return isActive ? Colors.red : Colors.red.withOpacity(0.25);
         case _TrafficLightColor.yellow:
-          return isActive ? Colors.yellow.shade600 : Colors.yellow.withOpacity(0.25);
+          return isActive
+              ? Colors.yellow.shade600
+              : Colors.yellow.withOpacity(0.25);
         case _TrafficLightColor.green:
           return isActive ? Colors.green : Colors.green.withOpacity(0.25);
       }
@@ -396,10 +399,7 @@ class _F1RacePageState extends State<F1RacePage> {
             offset: const Offset(0, 10),
           ),
         ],
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 2,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.08), width: 2),
       ),
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       child: Column(
@@ -554,10 +554,11 @@ class _F1RacePageState extends State<F1RacePage> {
             return 'Wait...';
           }
           if (s.isRoundActive) {
-            if (_currentLight == _TrafficLightColor.green) {
-              return 'GO! TAP ACCELERATOR!';
-            }
-            return 'STOP! TAP BRAKE!';
+            return 'TAP NOW!';
+            // if (_currentLight == _TrafficLightColor.green) {
+            //   return 'GO! TAP ACCELERATOR!';
+            // }
+            // return 'STOP! TAP BRAKE!';
           }
           return 'Round ${s.currentRound}';
         },
@@ -596,4 +597,3 @@ class _F1RacePageState extends State<F1RacePage> {
     );
   }
 }
-
