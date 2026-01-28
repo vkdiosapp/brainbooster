@@ -184,7 +184,7 @@ class _ClickLimitPageState extends State<ClickLimitPage> {
       _isRoundActive = false;
       _completedRounds++;
       _reactionTimeMessage = '$taps taps';
-      _errorMessage = isFailed ? 'TARGET NOT MET ($_minClickCount MIN)' : null;
+      _errorMessage = isFailed ? null : null;
     });
 
     _overlayTimer = Timer(const Duration(milliseconds: 1500), () {
