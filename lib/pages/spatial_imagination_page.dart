@@ -53,10 +53,10 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
   final List<RoundResult> _roundResults = [];
   final math.Random _rand = math.Random();
 
-  // Current pair of patterns
-  List<List<bool>>? _leftPattern;
-  List<List<bool>>? _rightPattern;
-  bool _arePatternsSame = false; // whether right is rotation of left
+  // Current pair of pattern groups (each group holds multiple shapes)
+  List<List<List<bool>>>? _leftPatterns;
+  List<List<List<bool>>>? _rightPatterns;
+  bool _arePatternsSame = false; // whether all right shapes match left by rotation
 
   // Predefined base shapes (5x5 grids)
   static const int _gridSize = 5;
@@ -88,8 +88,8 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
     _errorMessage = null;
     _reactionTimeMessage = null;
     _roundResults.clear();
-    _leftPattern = null;
-    _rightPattern = null;
+    _leftPatterns = null;
+    _rightPatterns = null;
     _arePatternsSame = false;
   }
 
@@ -119,8 +119,8 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
       _errorMessage = null;
       _reactionTimeMessage = null;
       _roundStartTime = null;
-      _leftPattern = null;
-      _rightPattern = null;
+      _leftPatterns = null;
+      _rightPatterns = null;
       _arePatternsSame = false;
     });
 
@@ -132,39 +132,57 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
   }
 
   void _generateNewPatterns() {
-    // Pick a random base shape
-    final baseIndex = _rand.nextInt(_baseShapes.length);
-    final baseShape = _baseShapes[baseIndex];
+    const int patternCount = 4; // number of shapes inside each box (4 corners)
 
-    // Random rotation for the left pattern
-    final leftRotations = _rand.nextInt(4);
-    final left = _rotateNTimes(baseShape, leftRotations);
+    final List<List<List<bool>>> leftGroup = [];
+    final List<List<List<bool>>> rightGroup = [];
 
-    // Decide whether this round should be "same" or "not same"
+    // Decide whether this round should be "same" or "not same" overall
     final shouldBeSame = _rand.nextBool();
 
-    List<List<bool>> right;
-    if (shouldBeSame) {
-      // Same up to rotation - use the same base with a different random rotation
-      final rightRotations = _rand.nextInt(4);
-      right = _rotateNTimes(baseShape, rightRotations);
-    } else {
-      // Different shape (not equal under rotation)
-      List<List<bool>> otherBase;
-      int safety = 0;
-      do {
-        final idx = _rand.nextInt(_baseShapes.length);
-        otherBase = _baseShapes[idx];
-        safety++;
-      } while (_areSameWithRotation(baseShape, otherBase) && safety < 20);
+    bool madeDifferentShape = false;
+
+    for (int i = 0; i < patternCount; i++) {
+      // Pick a random base for the left shape
+      final baseIndex = _rand.nextInt(_baseShapes.length);
+      final baseShape = _baseShapes[baseIndex];
+      final leftRotations = _rand.nextInt(4);
+      final leftShape = _rotateNTimes(baseShape, leftRotations);
+
+      List<List<bool>> rightBase;
+      if (shouldBeSame) {
+        // Always use the same base, just another rotation
+        rightBase = baseShape;
+      } else {
+        // At least one of the three shapes must be truly different (not rotation-equivalent)
+        // Decide if this slot will be the different one (or force it on the last slot).
+        final makeThisDifferent =
+            (!madeDifferentShape && i == patternCount - 1) ||
+                (!madeDifferentShape && _rand.nextBool());
+
+        if (makeThisDifferent) {
+          int safety = 0;
+          do {
+            final idx = _rand.nextInt(_baseShapes.length);
+            rightBase = _baseShapes[idx];
+            safety++;
+          } while (_areSameWithRotation(baseShape, rightBase) && safety < 20);
+          madeDifferentShape = true;
+        } else {
+          rightBase = baseShape;
+        }
+      }
 
       final rightRotations = _rand.nextInt(4);
-      right = _rotateNTimes(otherBase, rightRotations);
+      final rightShape = _rotateNTimes(rightBase, rightRotations);
+
+      leftGroup.add(leftShape);
+      rightGroup.add(rightShape);
     }
 
     setState(() {
-      _leftPattern = left;
-      _rightPattern = right;
+      _leftPatterns = leftGroup;
+      _rightPatterns = rightGroup;
       _arePatternsSame = shouldBeSame;
       _isWaitingForRound = false;
       _isRoundActive = true;
@@ -393,7 +411,7 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
 
   // ---------- UI ----------
 
-  Widget _buildPatternBox(List<List<bool>>? pattern) {
+  Widget _buildPatternBox(List<List<List<bool>>>? patterns) {
     return AspectRatio(
       aspectRatio: 1,
       child: Container(
@@ -403,30 +421,61 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
           border: Border.all(color: const Color(0xFF111827), width: 2),
         ),
         padding: const EdgeInsets.all(6),
-        child: pattern == null
+        child: patterns == null
             ? const SizedBox.shrink()
             : LayoutBuilder(
                 builder: (context, constraints) {
-                  final cellSize = constraints.maxWidth / _gridSize;
-                  return Column(
-                    children: List.generate(_gridSize, (r) {
-                      return Row(
-                        children: List.generate(_gridSize, (c) {
-                          final isFilled = pattern[r][c];
-                          return Container(
-                            width: cellSize,
-                            height: cellSize,
-                            color: isFilled
-                                ? const Color(0xFF22C55E)
-                                : Colors.white,
-                          );
-                        }),
+                  // Each mini shape will take about 45% of the box width
+                  final miniSize = constraints.maxWidth * 0.45;
+                  final positions = <Offset>[
+                    const Offset(0, 0), // top-left
+                    Offset(constraints.maxWidth - miniSize, 0), // top-right
+                    Offset(0, constraints.maxWidth - miniSize), // bottom-left
+                    Offset(
+                      constraints.maxWidth - miniSize,
+                      constraints.maxWidth - miniSize,
+                    ), // bottom-right
+                  ];
+
+                  return Stack(
+                    children: List.generate(patterns.length, (index) {
+                      if (index >= positions.length) return const SizedBox();
+                      final pattern = patterns[index];
+                      final pos = positions[index];
+                      return Positioned(
+                        left: pos.dx,
+                        top: pos.dy,
+                        width: miniSize,
+                        height: miniSize,
+                        child: _buildPatternGrid(pattern),
                       );
                     }),
                   );
                 },
               ),
       ),
+    );
+  }
+
+  Widget _buildPatternGrid(List<List<bool>> pattern) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cellSize = constraints.maxWidth / _gridSize;
+        return Column(
+          children: List.generate(_gridSize, (r) {
+            return Row(
+              children: List.generate(_gridSize, (c) {
+                final isFilled = pattern[r][c];
+                return Container(
+                  width: cellSize,
+                  height: cellSize,
+                  color: isFilled ? const Color(0xFF22C55E) : Colors.white,
+                );
+              }),
+            );
+          }),
+        );
+      },
     );
   }
 
@@ -437,8 +486,8 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
         final containerHeight = constraints.maxHeight;
         final isPortrait = containerHeight >= containerWidth;
         final maxPatternWidth = isPortrait
-            ? containerWidth * 0.32
-            : containerHeight * 0.35;
+            ? containerWidth * 0.40
+            : containerHeight * 0.45;
 
         // When we're in the "WAIT..." phase, keep the game area clean
         // so the overlay text doesn't overlap any UI.
@@ -457,11 +506,11 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
                   children: [
                     SizedBox(
                       width: maxPatternWidth,
-                      child: _buildPatternBox(_leftPattern),
+                      child: _buildPatternBox(_leftPatterns),
                     ),
                     SizedBox(
                       width: maxPatternWidth,
-                      child: _buildPatternBox(_rightPattern),
+                      child: _buildPatternBox(_rightPatterns),
                     ),
                   ],
                 ),
@@ -473,16 +522,14 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
                   children: [
                     Expanded(
                       child: _buildAnswerButton(
-                        label: '≠',
-                        description: 'NOT SAME',
+                        text: 'NOT SAME',
                         onTap: () => _handleAnswer(false),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildAnswerButton(
-                        label: '=',
-                        description: 'SAME',
+                        text: 'SAME',
                         onTap: () => _handleAnswer(true),
                       ),
                     ),
@@ -497,8 +544,7 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
   }
 
   Widget _buildAnswerButton({
-    required String label,
-    required String description,
+    required String text,
     required VoidCallback onTap,
   }) {
     final bool enabled = _isRoundActive;
@@ -523,28 +569,16 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
             ],
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF111827),
-                ),
+          child: Center(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.9,
+                color: Color(0xFF111827),
               ),
-              const SizedBox(width: 12),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.8,
-                  color: Color(0xFF4B5563),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
