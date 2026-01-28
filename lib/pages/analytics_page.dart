@@ -615,21 +615,25 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                               index < _sessions.length - 1
                                               ? _sessions[index + 1]
                                               : null;
+                                          
+                                          // Calculate average from all rounds (including penalties)
+                                          final sessionAvg = session.roundResults.isEmpty
+                                              ? 0
+                                              : (session.roundResults
+                                                    .map((r) => r.reactionTime)
+                                                    .reduce((a, b) => a + b) ~/
+                                                session.roundResults.length);
+                                          
                                           final previousAvg =
                                               previousSession != null
-                                              ? (previousSession.roundResults
-                                                        .map(
-                                                          (r) => r.reactionTime,
-                                                        )
-                                                        .reduce(
-                                                          (a, b) => a + b,
-                                                        ) ~/
-                                                    previousSession
-                                                        .roundResults
-                                                        .length)
-                                              : session.averageTime;
-                                          final diff =
-                                              session.averageTime - previousAvg;
+                                              ? (previousSession.roundResults.isEmpty
+                                                  ? 0
+                                                  : (previousSession.roundResults
+                                                        .map((r) => r.reactionTime)
+                                                        .reduce((a, b) => a + b) ~/
+                                                    previousSession.roundResults.length))
+                                              : sessionAvg;
+                                          final diff = sessionAvg - previousAvg;
 
                                           return Container(
                                             padding: const EdgeInsets.all(16),
@@ -723,8 +727,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                   children: [
                                                     Text(
                                                       _isClickLimitGame
-                                                          ? '${session.averageTime} clicks'
-                                                          : '${session.averageTime}ms',
+                                                          ? '$sessionAvg clicks'
+                                                          : '${sessionAvg}ms',
                                                       style: TextStyle(
                                                         fontSize: 14,
                                                         fontWeight:
@@ -828,9 +832,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       final roundedMin = ((minTime / 10).floor() * 10).toDouble();
       final step = (roundedMax - roundedMin) / 3;
 
-      // Calculate 4 label values from max (top) to min (bottom) - reversed order
+      // Calculate 4 label values from max (top) to min (bottom)
       for (int i = 0; i < 4; i++) {
-        // Reverse: start from max and go down to min
+        // Start from max and go down to min
         final labelValue = roundedMax - (step * i);
 
         // Calculate normalized position for this label value (same formula as data points)
@@ -845,19 +849,39 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         yAxisLabelData.add({'value': labelValue, 'yPosition': yPosition});
       }
     } else {
-      // Default values if range is 0
+      // Handle single data point or zero range case
       final singleValue = maxTime.toDouble();
-      final defaultValues = [
-        singleValue + 12.5,
-        singleValue,
-        singleValue - 12.5,
-        singleValue - 25,
+      
+      // Round the single value to nearest 10
+      final roundedValue = ((singleValue / 10).round() * 10).toDouble();
+      
+      // Determine spacing based on value magnitude
+      final spacing = roundedValue >= 100 ? 20.0 : 10.0;
+      
+      // Create 4 rounded labels with the rounded center value included
+      // Position them so the rounded value aligns with chart center (where the data point is)
+      final roundedLabels = [
+        roundedValue + spacing * 1.5, // Top
+        roundedValue + spacing * 0.5, // Upper middle  
+        roundedValue, // Center - the rounded value itself
+        roundedValue - spacing * 0.5, // Lower middle
+      ].map((v) => ((v / 10).round() * 10).toDouble()).toList();
+      
+      // Position labels: center label (index 2, closest to actual value) at chart center
+      // Chart center is at 96px from top (50% of 192px) where the data point is positioned
+      final centerY = 96.0; // Center of chart where data point is
+      final labelSpacing = 64.0; // Space between adjacent labels
+      
+      final positions = [
+        (centerY - labelSpacing * 1.5).clamp(0.0, 192.0), // Top label
+        (centerY - labelSpacing * 0.5).clamp(0.0, 192.0), // Upper middle label
+        centerY, // Center label - aligns with data point
+        (centerY + labelSpacing * 0.5).clamp(0.0, 192.0), // Lower middle label
       ];
-      // For zero range, space evenly from top to bottom (reversed)
-      final positions = [192.0, 128.0, 64.0, 0.0];
+      
       for (int i = 0; i < 4; i++) {
         yAxisLabelData.add({
-          'value': defaultValues[i],
+          'value': roundedLabels[i],
           'yPosition': positions[i],
         });
       }
