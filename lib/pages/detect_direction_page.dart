@@ -144,9 +144,11 @@ class _DetectDirectionPageState extends State<DetectDirectionPage> {
 
     // Calculate how many cells should have the most common direction
     // At least 50% + 1 should have the most common direction to ensure it's the majority
+    // But ensure at least one cell has a different direction (commonCount < _totalCells)
     final minCommonCount = (_totalCells ~/ 2) + 1;
-    final commonCount =
-        minCommonCount + _rand.nextInt(_totalCells - minCommonCount + 1);
+    final maxCommonCount = _totalCells - 1; // Ensure at least one different triangle
+    final commonCount = minCommonCount +
+        _rand.nextInt(maxCommonCount - minCommonCount + 1);
 
     // Create new triangle directions map
     final newTriangleDirections = <int, TriangleDirection>{};

@@ -8,6 +8,49 @@ import '../services/game_history_service.dart';
 import '../widgets/gradient_background.dart';
 import 'package:intl/intl.dart';
 
+/// Helper widget for glassy container effect similar to GameContainer
+class _GlassyContainer extends StatelessWidget {
+  final Widget child;
+  final Color? backgroundColor;
+  final double borderRadius;
+  final EdgeInsetsGeometry? padding;
+  final Border? border;
+
+  const _GlassyContainer({
+    required this.child,
+    this.backgroundColor,
+    this.borderRadius = 32,
+    this.padding,
+    this.border,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: (backgroundColor ?? Colors.white).withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: border,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
 class AnalyticsPage extends StatefulWidget {
   final String gameId;
   final String gameName;
@@ -209,17 +252,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                             children: [
                               const SizedBox(height: 24),
                               // Chart card
-                              Container(
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(40),
-                                  border: Border.all(
-                                    color: const Color(0xFFF1F5F9),
-                                    width: 1,
-                                  ),
-                                ),
+                              _GlassyContainer(
+                                borderRadius: 40,
                                 padding: const EdgeInsets.all(24),
+                                border: Border.all(
+                                  color: const Color(0xFFF1F5F9),
+                                  width: 1,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -310,15 +349,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: Container(
+                                    child: _GlassyContainer(
+                                      borderRadius: 24,
                                       padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(24),
-                                        border: Border.all(
-                                          color: const Color(0xFFF1F5F9),
-                                          width: 1,
-                                        ),
+                                      border: Border.all(
+                                        color: const Color(0xFFF1F5F9),
+                                        width: 1,
                                       ),
                                       child: Column(
                                         mainAxisAlignment:
@@ -326,15 +362,15 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
                                         children: [
-                                              const Text(
-                                                'AVERAGE',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF94A3B8),
-                                                  letterSpacing: 1.0,
-                                                ),
-                                              ),
+                                          const Text(
+                                            'AVERAGE',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF94A3B8),
+                                              letterSpacing: 1.0,
+                                            ),
+                                          ),
                                           const SizedBox(height: 4),
                                           RichText(
                                             text: TextSpan(
@@ -367,21 +403,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: Container(
+                                    child: _GlassyContainer(
+                                      backgroundColor: const Color(0xFF6366F1),
+                                      borderRadius: 24,
                                       padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF6366F1),
-                                        borderRadius: BorderRadius.circular(24),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(
-                                              0xFF6366F1,
-                                            ).withOpacity(0.2),
-                                            blurRadius: 16,
-                                            offset: const Offset(0, 8),
-                                          ),
-                                        ],
-                                      ),
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
@@ -429,15 +454,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: Container(
+                                    child: _GlassyContainer(
+                                      borderRadius: 24,
                                       padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(24),
-                                        border: Border.all(
-                                          color: const Color(0xFFF1F5F9),
-                                          width: 1,
-                                        ),
+                                      border: Border.all(
+                                        color: const Color(0xFFF1F5F9),
+                                        width: 1,
                                       ),
                                       child: Column(
                                         mainAxisAlignment:
@@ -489,16 +511,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               const SizedBox(height: 12),
                               const SizedBox(height: 24),
                               // Progress Insight card
-                              Container(
-                                width: double.infinity,
+                              _GlassyContainer(
+                                backgroundColor: const Color(0xFFECFDF5),
+                                borderRadius: 32,
                                 padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFECFDF5),
-                                  borderRadius: BorderRadius.circular(32),
-                                  border: Border.all(
-                                    color: const Color(0xFFD1FAE5),
-                                    width: 1,
-                                  ),
+                                border: Border.all(
+                                  color: const Color(0xFFD1FAE5),
+                                  width: 1,
                                 ),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,26 +553,27 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           Text(
                                             _sessions.length >= 2
                                                 ? !_isClickLimitGame
-                                                    ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
-                                                    : (() {
-                                                        final prevAvg =
-                                                            _getPreviousAverage();
-                                                        if (prevAvg <= 0) {
-                                                          return 'Keep playing to see your progress!';
-                                                        }
-                                                        final diffPercent =
-                                                            ((_averageTime -
-                                                                        prevAvg) /
-                                                                    prevAvg *
-                                                                    100)
-                                                                .abs()
-                                                                .toStringAsFixed(
-                                                                    0);
-                                                        final isBetter =
-                                                            _averageTime >
-                                                                prevAvg;
-                                                        return 'Great effort! You are $diffPercent% ${isBetter ? "above" : "below"} your previous average tap count. Aim for more taps to keep improving.';
-                                                      })()
+                                                      ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
+                                                      : (() {
+                                                          final prevAvg =
+                                                              _getPreviousAverage();
+                                                          if (prevAvg <= 0) {
+                                                            return 'Keep playing to see your progress!';
+                                                          }
+                                                          final diffPercent =
+                                                              ((_averageTime -
+                                                                          prevAvg) /
+                                                                      prevAvg *
+                                                                      100)
+                                                                  .abs()
+                                                                  .toStringAsFixed(
+                                                                    0,
+                                                                  );
+                                                          final isBetter =
+                                                              _averageTime >
+                                                              prevAvg;
+                                                          return 'Great effort! You are $diffPercent% ${isBetter ? "above" : "below"} your previous average tap count. Aim for more taps to keep improving.';
+                                                        })()
                                                 : 'Keep playing to see your progress!',
                                             style: const TextStyle(
                                               fontSize: 14,
@@ -578,14 +598,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(
-                                    color: const Color(0xFFF1F5F9),
-                                    width: 1,
-                                  ),
+                              _GlassyContainer(
+                                borderRadius: 24,
+                                border: Border.all(
+                                  color: const Color(0xFFF1F5F9),
+                                  width: 1,
                                 ),
                                 child: _sessions.isEmpty
                                     ? Padding(
@@ -615,23 +632,40 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                               index < _sessions.length - 1
                                               ? _sessions[index + 1]
                                               : null;
-                                          
+
                                           // Calculate average from all rounds (including penalties)
-                                          final sessionAvg = session.roundResults.isEmpty
+                                          final sessionAvg =
+                                              session.roundResults.isEmpty
                                               ? 0
                                               : (session.roundResults
-                                                    .map((r) => r.reactionTime)
-                                                    .reduce((a, b) => a + b) ~/
-                                                session.roundResults.length);
-                                          
+                                                        .map(
+                                                          (r) => r.reactionTime,
+                                                        )
+                                                        .reduce(
+                                                          (a, b) => a + b,
+                                                        ) ~/
+                                                    session
+                                                        .roundResults
+                                                        .length);
+
                                           final previousAvg =
                                               previousSession != null
-                                              ? (previousSession.roundResults.isEmpty
-                                                  ? 0
-                                                  : (previousSession.roundResults
-                                                        .map((r) => r.reactionTime)
-                                                        .reduce((a, b) => a + b) ~/
-                                                    previousSession.roundResults.length))
+                                              ? (previousSession
+                                                        .roundResults
+                                                        .isEmpty
+                                                    ? 0
+                                                    : (previousSession
+                                                              .roundResults
+                                                              .map(
+                                                                (r) => r
+                                                                    .reactionTime,
+                                                              )
+                                                              .reduce(
+                                                                (a, b) => a + b,
+                                                              ) ~/
+                                                          previousSession
+                                                              .roundResults
+                                                              .length))
                                               : sessionAvg;
                                           final diff = sessionAvg - previousAvg;
 
@@ -643,7 +677,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                   : Border(
                                                       bottom: BorderSide(
                                                         color: const Color(
-                                                          0xFFF8FAFC,
+                                                          0xFFE2E8F0,
                                                         ),
                                                         width: 1,
                                                       ),
@@ -851,34 +885,34 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     } else {
       // Handle single data point or zero range case
       final singleValue = maxTime.toDouble();
-      
+
       // Round the single value to nearest 10
       final roundedValue = ((singleValue / 10).round() * 10).toDouble();
-      
+
       // Determine spacing based on value magnitude
       final spacing = roundedValue >= 100 ? 20.0 : 10.0;
-      
+
       // Create 4 rounded labels with the rounded center value included
       // Position them so the rounded value aligns with chart center (where the data point is)
       final roundedLabels = [
         roundedValue + spacing * 1.5, // Top
-        roundedValue + spacing * 0.5, // Upper middle  
+        roundedValue + spacing * 0.5, // Upper middle
         roundedValue, // Center - the rounded value itself
         roundedValue - spacing * 0.5, // Lower middle
       ].map((v) => ((v / 10).round() * 10).toDouble()).toList();
-      
+
       // Position labels: center label (index 2, closest to actual value) at chart center
       // Chart center is at 96px from top (50% of 192px) where the data point is positioned
       final centerY = 96.0; // Center of chart where data point is
       final labelSpacing = 64.0; // Space between adjacent labels
-      
+
       final positions = [
         (centerY - labelSpacing * 1.5).clamp(0.0, 192.0), // Top label
         (centerY - labelSpacing * 0.5).clamp(0.0, 192.0), // Upper middle label
         centerY, // Center label - aligns with data point
         (centerY + labelSpacing * 0.5).clamp(0.0, 192.0), // Lower middle label
       ];
-      
+
       for (int i = 0; i < 4; i++) {
         yAxisLabelData.add({
           'value': roundedLabels[i],
@@ -1062,7 +1096,7 @@ class ChartPainter extends CustomPainter {
 
     // Draw grid lines across chart area
     final gridPaint = Paint()
-      ..color = const Color(0xFFF1F5F9)
+      ..color = Colors.transparent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 

@@ -10,19 +10,21 @@ class GameHistoryService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = '$_historyKeyPrefix${session.gameId}';
-      
+
       // Get existing sessions
       final existingJson = prefs.getString(key);
       List<GameSession> sessions = [];
-      
+
       if (existingJson != null) {
         final List<dynamic> decoded = json.decode(existingJson);
-        sessions = decoded.map((s) => GameSession.fromJson(s as Map<String, dynamic>)).toList();
+        sessions = decoded
+            .map((s) => GameSession.fromJson(s as Map<String, dynamic>))
+            .toList();
       }
-      
+
       // Add new session
       sessions.add(session);
-      
+
       // Save back
       final encoded = json.encode(sessions.map((s) => s.toJson()).toList());
       await prefs.setString(key, encoded);
@@ -37,12 +39,16 @@ class GameHistoryService {
       final prefs = await SharedPreferences.getInstance();
       final key = '$_historyKeyPrefix$gameId';
       final json = prefs.getString(key);
-      
+
       if (json == null) return [];
-      
+
       final List<dynamic> decoded = jsonDecode(json);
-      return decoded.map((s) => GameSession.fromJson(s as Map<String, dynamic>)).toList()
-        ..sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Sort by newest first
+      return decoded
+          .map((s) => GameSession.fromJson(s as Map<String, dynamic>))
+          .toList()
+        ..sort(
+          (a, b) => b.timestamp.compareTo(a.timestamp),
+        ); // Sort by newest first
     } catch (e) {
       print('Error loading game sessions: $e');
       return [];
@@ -61,16 +67,16 @@ class GameHistoryService {
   static Future<int> getAverageTime(String gameId) async {
     final sessions = await getSessions(gameId);
     if (sessions.isEmpty) return 0;
-    
+
     // Get all round results from all sessions (including failed ones with penalties)
     final allRoundResults = sessions.expand((s) => s.roundResults).toList();
     if (allRoundResults.isEmpty) return 0;
-    
+
     // Calculate average from all rounds (including penalties)
     final sum = allRoundResults
         .map((r) => r.reactionTime)
         .reduce((a, b) => a + b);
-    
+
     return sum ~/ allRoundResults.length;
   }
 
@@ -78,10 +84,16 @@ class GameHistoryService {
   static Future<int> getBestTime(String gameId) async {
     final sessions = await getSessions(gameId);
     if (sessions.isEmpty) return 0;
-    
-    final allTimes = sessions.expand((s) => s.roundResults.where((r) => !r.isFailed).map((r) => r.reactionTime)).toList();
+
+    final allTimes = sessions
+        .expand(
+          (s) => s.roundResults
+              .where((r) => !r.isFailed)
+              .map((r) => r.reactionTime),
+        )
+        .toList();
     if (allTimes.isEmpty) return 0;
-    
+
     return allTimes.reduce((a, b) => a < b ? a : b);
   }
 
@@ -89,15 +101,15 @@ class GameHistoryService {
   static Future<double> getConsistency(String gameId) async {
     final sessions = await getSessions(gameId);
     if (sessions.isEmpty) return 0.0;
-    
+
     int totalRounds = 0;
     int successfulRounds = 0;
-    
+
     for (var session in sessions) {
       totalRounds += session.roundResults.length;
       successfulRounds += session.roundResults.where((r) => !r.isFailed).length;
     }
-    
+
     if (totalRounds == 0) return 0.0;
     return (successfulRounds / totalRounds) * 100;
   }
@@ -114,7 +126,7 @@ class GameHistoryService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys();
-      
+
       // Remove all keys that start with the history prefix
       for (final key in keys) {
         if (key.startsWith(_historyKeyPrefix)) {
