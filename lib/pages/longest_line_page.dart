@@ -137,7 +137,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
   }
 
   void _showLines() {
-    // Generate 5 lines with random sides and heights
+    // Generate 8 lines with random sides and heights
     _generateLines();
 
     // Lines appear and timer starts immediately - no memorize phase
@@ -325,16 +325,18 @@ class _LongestLinePageState extends State<LongestLinePage> {
     _lines.clear();
 
     // Available sides
-    final sides = ['top', 'bottom', 'left', 'right'];
+    // NOTE: Only use left and right so lines start from horizontal sides,
+    // not from top or bottom.
+    final sides = ['left', 'right'];
 
-    // Randomly select ONE side for all lines in this round
+    // Randomly select ONE side (left or right) for all lines in this round
     final selectedSide = sides[_rand.nextInt(sides.length)];
 
     // Generate relative lengths for each line (0.75 to 1.0)
     // All lengths must be different
     final relativeLengths = <double>[];
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 8; i++) {
       double relativeLength;
       int attempts = 0;
       do {
@@ -349,7 +351,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
     }
 
     // Create line data - all lines use the same side
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 8; i++) {
       _lines.add(
         LineData(
           side: selectedSide, // All lines use the same side
@@ -381,7 +383,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
     double x, y, width, height;
     const spacingBetweenLines = 25.0; // Fixed 25px spacing between lines
     const containerPadding = 20.0; // 20px padding on all sides
-    const totalLines = 5;
+    const totalLines = 8;
 
     // Calculate available space after padding (40px total: 20px on each side)
     final availableWidth = containerWidth - (containerPadding * 2);

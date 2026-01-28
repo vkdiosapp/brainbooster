@@ -19,6 +19,7 @@ import '../pages/memorize_game_page.dart';
 import '../pages/peripheral_vision_page.dart';
 import '../pages/longest_line_page.dart';
 import '../pages/f1_race_page.dart';
+import '../pages/spatial_imagination_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -252,6 +253,17 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => F1RacePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 21:
+        // Spatial Imagination game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SpatialImaginationPage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),

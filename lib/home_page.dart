@@ -762,6 +762,8 @@ class _HomePageState extends State<HomePage> {
         return 'longest_line';
       case 20:
         return 'f1_race';
+      case 21:
+        return 'spatial_imagination';
       default:
         return null; // Games without analytics yet
     }
@@ -813,6 +815,8 @@ class _HomePageState extends State<HomePage> {
         return 'Longest Line';
       case 'f1_race':
         return 'F1 Race';
+      case 'spatial_imagination':
+        return 'Spatial Imagination';
       default:
         return null;
     }

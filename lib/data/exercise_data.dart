@@ -202,6 +202,16 @@ class ExerciseData {
         timeRequired: 400,
         penaltyTime: 1050,
       ),
+      Exercise(
+        id: 21,
+        categoryId: 4,
+        name: 'Spatial Imagination',
+        desc:
+            'Decide if two shapes are the same even when rotated in your mind.',
+        icon: Icons.view_module,
+        timeRequired: 400,
+        penaltyTime: 1000,
+      ),
     ];
   }
 
