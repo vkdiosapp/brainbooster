@@ -26,25 +26,30 @@ class _GlassyContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: (backgroundColor ?? Colors.white).withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(borderRadius),
-            border: border,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
-          child: child,
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: (backgroundColor ?? Colors.white).withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: border,
+            ),
+            child: child,
+          ),
         ),
       ),
     );
@@ -73,6 +78,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   double _consistency = 0.0;
   bool _isLoading = true;
   final ScreenshotController _screenshotController = ScreenshotController();
+  final GlobalKey _shareButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -150,10 +156,27 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       ).create();
       await file.writeAsBytes(image);
 
+      // Get share button position for iOS/macOS share sheet
+      Rect? sharePositionOrigin;
+      if (_shareButtonKey.currentContext != null) {
+        final RenderBox renderBox =
+            _shareButtonKey.currentContext!.findRenderObject() as RenderBox;
+        final position = renderBox.localToGlobal(Offset.zero);
+        final size = renderBox.size;
+        sharePositionOrigin = Rect.fromLTWH(
+          position.dx,
+          position.dy,
+          size.width,
+          size.height,
+        );
+      }
+
       // Share the screenshot
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: '${widget.gameName} - Performance Analysis');
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: '${widget.gameName} - Performance Analysis',
+        sharePositionOrigin: sharePositionOrigin,
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -167,651 +190,692 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GradientBackground.backgroundColor,
-      body: GradientBackground(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Screenshot(
-                controller: _screenshotController,
-                child: SafeArea(
-                  child: Column(
-                    children: [
-                      // Header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.of(context).pop(),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.transparent,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_back_ios_new,
-                                  size: 20,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.gameName,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                  const Text(
-                                    'PERFORMANCE ANALYSIS',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF64748B),
-                                      letterSpacing: 2.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: _shareScreenshot,
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0xFFF1F5F9),
-                                ),
-                                child: const Icon(
-                                  Icons.share,
-                                  size: 20,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Main content
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+      body: _isLoading
+          ? GradientBackground(
+              child: const Center(child: CircularProgressIndicator()),
+            )
+          : Screenshot(
+              controller: _screenshotController,
+              child: Container(
+                color: GradientBackground.backgroundColor,
+                child: GradientBackground(
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        // Header
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          child: Row(
                             children: [
-                              const SizedBox(height: 24),
-                              // Chart card
-                              _GlassyContainer(
-                                borderRadius: 40,
-                                padding: const EdgeInsets.all(24),
-                                border: Border.all(
-                                  color: const Color(0xFFF1F5F9),
-                                  width: 1,
+                              GestureDetector(
+                                onTap: () => Navigator.of(context).pop(),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.transparent,
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new,
+                                    size: 20,
+                                    color: Color(0xFF0F172A),
+                                  ),
                                 ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
+                                    Text(
+                                      widget.gameName,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    const Text(
+                                      'PERFORMANCE ANALYSIS',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF64748B),
+                                        letterSpacing: 2.0,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: _shareScreenshot,
+                                child: Container(
+                                  key: _shareButtonKey,
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: const Color(0xFFF1F5F9),
+                                  ),
+                                  child: const Icon(
+                                    Icons.share,
+                                    size: 20,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Main content
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 24),
+                                // Chart card
+                                _GlassyContainer(
+                                  borderRadius: 40,
+                                  padding: const EdgeInsets.all(24),
+                                  border: Border.all(
+                                    color: const Color(0xFFF1F5F9),
+                                    width: 1,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _isClickLimitGame
+                                                    ? 'Average Taps'
+                                                    : 'Reaction Time (ms)',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _last10Sessions.isEmpty
+                                                    ? 'No sessions yet'
+                                                    : _last10Sessions.length <
+                                                          10
+                                                    ? 'Last ${_last10Sessions.length} ${_last10Sessions.length == 1 ? 'session' : 'sessions'}'
+                                                    : 'Last 10 sessions',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Color(0xFF94A3B8),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: BoxDecoration(
+                                                  color: const Color(
+                                                    0xFF6366F1,
+                                                  ),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      SizedBox(
+                                        height: 192,
+                                        child: _buildChart(),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 24,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: _last10Sessions.isEmpty
+                                              ? [
+                                                  Text(
+                                                    'Ses 01',
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: Color(0xFF94A3B8),
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ]
+                                              : _last10Sessions
+                                                    .asMap()
+                                                    .entries
+                                                    .map((entry) {
+                                                      return Text(
+                                                        'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                          color: Color(
+                                                            0xFF94A3B8,
+                                                          ),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      );
+                                                    })
+                                                    .toList(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                // Stats cards - 3 in a row
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _GlassyContainer(
+                                        borderRadius: 24,
+                                        padding: const EdgeInsets.all(16),
+                                        border: Border.all(
+                                          color: const Color(0xFFF1F5F9),
+                                          width: 1,
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'AVERAGE',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF94A3B8),
+                                                letterSpacing: 1.0,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            RichText(
+                                              text: TextSpan(
+                                                children: [
+                                                  TextSpan(
+                                                    text: '$_averageTime',
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      color: Color(0xFF0F172A),
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text: _isClickLimitGame
+                                                        ? ' clicks'
+                                                        : 'ms',
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: Color(0xFF94A3B8),
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _GlassyContainer(
+                                        backgroundColor: const Color(
+                                          0xFF6366F1,
+                                        ),
+                                        borderRadius: 24,
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'BEST',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFC7D2FE),
+                                                letterSpacing: 1.0,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            RichText(
+                                              text: TextSpan(
+                                                children: [
+                                                  TextSpan(
+                                                    text: '$_bestTime',
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text: _isClickLimitGame
+                                                        ? ' clicks'
+                                                        : 'ms',
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: Color(0xFFC7D2FE),
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _GlassyContainer(
+                                        borderRadius: 24,
+                                        padding: const EdgeInsets.all(16),
+                                        border: Border.all(
+                                          color: const Color(0xFFF1F5F9),
+                                          width: 1,
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            const Text(
+                                              'CONSISTENCY',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF94A3B8),
+                                                letterSpacing: 1.0,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            RichText(
+                                              text: TextSpan(
+                                                children: [
+                                                  TextSpan(
+                                                    text:
+                                                        '${_consistency.toStringAsFixed(0)}',
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      color: Color(0xFF0F172A),
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text: '%',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: const Color(
+                                                        0xFF0F172A,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                const SizedBox(height: 24),
+                                // Progress Insight card
+                                _GlassyContainer(
+                                  backgroundColor: const Color(0xFFECFDF5),
+                                  borderRadius: 32,
+                                  padding: const EdgeInsets.all(20),
+                                  border: Border.all(
+                                    color: const Color(0xFFD1FAE5),
+                                    width: 1,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF10B981),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.trending_up,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              _isClickLimitGame
-                                                  ? 'Average Taps'
-                                                  : 'Reaction Time (ms)',
-                                              style: const TextStyle(
+                                            const Text(
+                                              'Progress Insight',
+                                              style: TextStyle(
                                                 fontSize: 14,
-                                                fontWeight: FontWeight.w600,
-                                                color: Color(0xFF64748B),
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF065F46),
                                               ),
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              _last10Sessions.isEmpty
-                                                  ? 'No sessions yet'
-                                                  : _last10Sessions.length < 10
-                                                  ? 'Last ${_last10Sessions.length} ${_last10Sessions.length == 1 ? 'session' : 'sessions'}'
-                                                  : 'Last 10 sessions',
+                                              _sessions.length >= 2
+                                                  ? !_isClickLimitGame
+                                                        ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
+                                                        : (() {
+                                                            final prevAvg =
+                                                                _getPreviousAverage();
+                                                            if (prevAvg <= 0) {
+                                                              return 'Keep playing to see your progress!';
+                                                            }
+                                                            final diffPercent =
+                                                                ((_averageTime -
+                                                                            prevAvg) /
+                                                                        prevAvg *
+                                                                        100)
+                                                                    .abs()
+                                                                    .toStringAsFixed(
+                                                                      0,
+                                                                    );
+                                                            final isBetter =
+                                                                _averageTime >
+                                                                prevAvg;
+                                                            return 'Great effort! You are $diffPercent% ${isBetter ? "above" : "below"} your previous average tap count. Aim for more taps to keep improving.';
+                                                          })()
+                                                  : 'Keep playing to see your progress!',
                                               style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF94A3B8),
+                                                fontSize: 14,
+                                                color: Color(0xFF047857),
+                                                height: 1.5,
                                               ),
                                             ),
                                           ],
                                         ),
-                                        Row(
-                                          children: [
-                                            Container(
-                                              width: 8,
-                                              height: 8,
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF6366F1),
-                                                shape: BoxShape.circle,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                // Session History
+                                const Text(
+                                  'Session History',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                _GlassyContainer(
+                                  borderRadius: 24,
+                                  border: Border.all(
+                                    color: const Color(0xFFF1F5F9),
+                                    width: 1,
+                                  ),
+                                  child: _sessions.isEmpty
+                                      ? Padding(
+                                          padding: const EdgeInsets.all(40),
+                                          child: Center(
+                                            child: Text(
+                                              'No sessions yet.\nPlay the game to see your stats!',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: Colors.grey[400],
+                                                fontSize: 14,
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 16),
-                                    SizedBox(height: 192, child: _buildChart()),
-                                    const SizedBox(height: 16),
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 24),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: _last10Sessions.isEmpty
-                                            ? [
-                                                Text(
-                                                  'Ses 01',
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: Color(0xFF94A3B8),
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ]
-                                            : _last10Sessions.asMap().entries.map((
-                                                entry,
-                                              ) {
-                                                return Text(
-                                                  'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: Color(0xFF94A3B8),
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                );
-                                              }).toList(),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Stats cards - 3 in a row
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _GlassyContainer(
-                                      borderRadius: 24,
-                                      padding: const EdgeInsets.all(16),
-                                      border: Border.all(
-                                        color: const Color(0xFFF1F5F9),
-                                        width: 1,
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          const Text(
-                                            'AVERAGE',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF94A3B8),
-                                              letterSpacing: 1.0,
-                                            ),
                                           ),
-                                          const SizedBox(height: 4),
-                                          RichText(
-                                            text: TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: '$_averageTime',
-                                                  style: const TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.w900,
-                                                    color: Color(0xFF0F172A),
-                                                  ),
-                                                ),
-                                                TextSpan(
-                                                  text: _isClickLimitGame
-                                                      ? ' clicks'
-                                                      : 'ms',
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: Color(0xFF94A3B8),
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _GlassyContainer(
-                                      backgroundColor: const Color(0xFF6366F1),
-                                      borderRadius: 24,
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          const Text(
-                                            'BEST',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFFC7D2FE),
-                                              letterSpacing: 1.0,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          RichText(
-                                            text: TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: '$_bestTime',
-                                                  style: const TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.w900,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                TextSpan(
-                                                  text: _isClickLimitGame
-                                                      ? ' clicks'
-                                                      : 'ms',
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: Color(0xFFC7D2FE),
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _GlassyContainer(
-                                      borderRadius: 24,
-                                      padding: const EdgeInsets.all(16),
-                                      border: Border.all(
-                                        color: const Color(0xFFF1F5F9),
-                                        width: 1,
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          const Text(
-                                            'CONSISTENCY',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF94A3B8),
-                                              letterSpacing: 1.0,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          RichText(
-                                            text: TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text:
-                                                      '${_consistency.toStringAsFixed(0)}',
-                                                  style: const TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.w900,
-                                                    color: Color(0xFF0F172A),
-                                                  ),
-                                                ),
-                                                TextSpan(
-                                                  text: '%',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: const Color(
-                                                      0xFF0F172A,
-                                                    ),
-                                                    fontWeight: FontWeight.w900,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              const SizedBox(height: 24),
-                              // Progress Insight card
-                              _GlassyContainer(
-                                backgroundColor: const Color(0xFFECFDF5),
-                                borderRadius: 32,
-                                padding: const EdgeInsets.all(20),
-                                border: Border.all(
-                                  color: const Color(0xFFD1FAE5),
-                                  width: 1,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF10B981),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: const Icon(
-                                        Icons.trending_up,
-                                        color: Colors.white,
-                                        size: 24,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Progress Insight',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF065F46),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            _sessions.length >= 2
-                                                ? !_isClickLimitGame
-                                                      ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
-                                                      : (() {
-                                                          final prevAvg =
-                                                              _getPreviousAverage();
-                                                          if (prevAvg <= 0) {
-                                                            return 'Keep playing to see your progress!';
-                                                          }
-                                                          final diffPercent =
-                                                              ((_averageTime -
-                                                                          prevAvg) /
-                                                                      prevAvg *
-                                                                      100)
-                                                                  .abs()
-                                                                  .toStringAsFixed(
-                                                                    0,
-                                                                  );
-                                                          final isBetter =
-                                                              _averageTime >
-                                                              prevAvg;
-                                                          return 'Great effort! You are $diffPercent% ${isBetter ? "above" : "below"} your previous average tap count. Aim for more taps to keep improving.';
-                                                        })()
-                                                : 'Keep playing to see your progress!',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              color: Color(0xFF047857),
-                                              height: 1.5,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Session History
-                              const Text(
-                                'Session History',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              _GlassyContainer(
-                                borderRadius: 24,
-                                border: Border.all(
-                                  color: const Color(0xFFF1F5F9),
-                                  width: 1,
-                                ),
-                                child: _sessions.isEmpty
-                                    ? Padding(
-                                        padding: const EdgeInsets.all(40),
-                                        child: Center(
-                                          child: Text(
-                                            'No sessions yet.\nPlay the game to see your stats!',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: Colors.grey[400],
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    : Column(
-                                        children: _sessions.take(10).map((
-                                          session,
-                                        ) {
-                                          final index = _sessions.indexOf(
+                                        )
+                                      : Column(
+                                          children: _sessions.take(10).map((
                                             session,
-                                          );
-                                          final isLast =
-                                              index ==
-                                              _sessions.take(10).length - 1;
-                                          final previousSession =
-                                              index < _sessions.length - 1
-                                              ? _sessions[index + 1]
-                                              : null;
+                                          ) {
+                                            final index = _sessions.indexOf(
+                                              session,
+                                            );
+                                            final isLast =
+                                                index ==
+                                                _sessions.take(10).length - 1;
+                                            final previousSession =
+                                                index < _sessions.length - 1
+                                                ? _sessions[index + 1]
+                                                : null;
 
-                                          // Calculate average from all rounds (including penalties)
-                                          final sessionAvg =
-                                              session.roundResults.isEmpty
-                                              ? 0
-                                              : (session.roundResults
-                                                        .map(
-                                                          (r) => r.reactionTime,
-                                                        )
-                                                        .reduce(
-                                                          (a, b) => a + b,
-                                                        ) ~/
-                                                    session
-                                                        .roundResults
-                                                        .length);
+                                            // Calculate average from all rounds (including penalties)
+                                            final sessionAvg =
+                                                session.roundResults.isEmpty
+                                                ? 0
+                                                : (session.roundResults
+                                                          .map(
+                                                            (r) =>
+                                                                r.reactionTime,
+                                                          )
+                                                          .reduce(
+                                                            (a, b) => a + b,
+                                                          ) ~/
+                                                      session
+                                                          .roundResults
+                                                          .length);
 
-                                          final previousAvg =
-                                              previousSession != null
-                                              ? (previousSession
-                                                        .roundResults
-                                                        .isEmpty
-                                                    ? 0
-                                                    : (previousSession
-                                                              .roundResults
-                                                              .map(
-                                                                (r) => r
-                                                                    .reactionTime,
-                                                              )
-                                                              .reduce(
-                                                                (a, b) => a + b,
-                                                              ) ~/
-                                                          previousSession
-                                                              .roundResults
-                                                              .length))
-                                              : sessionAvg;
-                                          final diff = sessionAvg - previousAvg;
+                                            final previousAvg =
+                                                previousSession != null
+                                                ? (previousSession
+                                                          .roundResults
+                                                          .isEmpty
+                                                      ? 0
+                                                      : (previousSession
+                                                                .roundResults
+                                                                .map(
+                                                                  (r) => r
+                                                                      .reactionTime,
+                                                                )
+                                                                .reduce(
+                                                                  (a, b) =>
+                                                                      a + b,
+                                                                ) ~/
+                                                            previousSession
+                                                                .roundResults
+                                                                .length))
+                                                : sessionAvg;
+                                            final diff =
+                                                sessionAvg - previousAvg;
 
-                                          return Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                              border: isLast
-                                                  ? null
-                                                  : Border(
-                                                      bottom: BorderSide(
-                                                        color: const Color(
-                                                          0xFFE2E8F0,
-                                                        ),
-                                                        width: 1,
-                                                      ),
-                                                    ),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Container(
-                                                      width: 32,
-                                                      height: 32,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: const Color(
-                                                          0xFFF1F5F9,
-                                                        ),
-                                                      ),
-                                                      child: Center(
-                                                        child: Text(
-                                                          session.sessionNumber
-                                                              .toString()
-                                                              .padLeft(2, '0'),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 12,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Color(
-                                                                  0xFF64748B,
-                                                                ),
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          _formatDate(
-                                                            session.timestamp,
+                                            return Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                border: isLast
+                                                    ? null
+                                                    : Border(
+                                                        bottom: BorderSide(
+                                                          color: const Color(
+                                                            0xFFE2E8F0,
                                                           ),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: Color(
-                                                                  0xFF0F172A,
-                                                                ),
-                                                              ),
+                                                          width: 1,
                                                         ),
-                                                        Text(
-                                                          'Session #${session.sessionNumber.toString().padLeft(2, "0")}',
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 10,
-                                                                color: Color(
-                                                                  0xFF94A3B8,
-                                                                ),
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
-                                                  children: [
-                                                    Text(
-                                                      _isClickLimitGame
-                                                          ? '$sessionAvg clicks'
-                                                          : '${sessionAvg}ms',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: diff < 0
-                                                            ? const Color(
-                                                                0xFF6366F1,
-                                                              )
-                                                            : const Color(
-                                                                0xFF0F172A,
-                                                              ),
                                                       ),
-                                                    ),
-                                                    if (previousSession != null)
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Container(
+                                                        width: 32,
+                                                        height: 32,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                              color:
+                                                                  const Color(
+                                                                    0xFFF1F5F9,
+                                                                  ),
+                                                            ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            session
+                                                                .sessionNumber
+                                                                .toString()
+                                                                .padLeft(
+                                                                  2,
+                                                                  '0',
+                                                                ),
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Color(
+                                                                    0xFF64748B,
+                                                                  ),
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 12),
+                                                      Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            _formatDate(
+                                                              session.timestamp,
+                                                            ),
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Color(
+                                                                    0xFF0F172A,
+                                                                  ),
+                                                                ),
+                                                          ),
+                                                          Text(
+                                                            'Session #${session.sessionNumber.toString().padLeft(2, "0")}',
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 10,
+                                                                  color: Color(
+                                                                    0xFF94A3B8,
+                                                                  ),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
                                                       Text(
                                                         _isClickLimitGame
-                                                            ? '${diff < 0 ? "-" : "+"}${diff.abs()} taps'
-                                                            : '${diff < 0 ? "-" : "+"}${diff.abs()}ms',
+                                                            ? '$sessionAvg clicks'
+                                                            : '${sessionAvg}ms',
                                                         style: TextStyle(
-                                                          fontSize: 10,
+                                                          fontSize: 14,
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           color: diff < 0
                                                               ? const Color(
-                                                                  0xFF10B981,
+                                                                  0xFF6366F1,
                                                                 )
                                                               : const Color(
-                                                                  0xFFEF4444,
+                                                                  0xFF0F172A,
                                                                 ),
                                                         ),
                                                       ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                              ),
-                              const SizedBox(height: 96),
-                            ],
+                                                      if (previousSession !=
+                                                          null)
+                                                        Text(
+                                                          _isClickLimitGame
+                                                              ? '${diff < 0 ? "-" : "+"}${diff.abs()} taps'
+                                                              : '${diff < 0 ? "-" : "+"}${diff.abs()}ms',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: diff < 0
+                                                                ? const Color(
+                                                                    0xFF10B981,
+                                                                  )
+                                                                : const Color(
+                                                                    0xFFEF4444,
+                                                                  ),
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                ),
+                                const SizedBox(height: 96),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-      ),
+            ),
     );
   }
 
