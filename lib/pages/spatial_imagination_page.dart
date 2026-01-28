@@ -137,14 +137,25 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
     final List<List<List<bool>>> leftGroup = [];
     final List<List<List<bool>>> rightGroup = [];
 
+    // Ensure all 4 shapes inside each pattern box are different by
+    // picking distinct base shapes (no repeats) whenever possible.
+    final List<int> baseIndices = List<int>.generate(
+      _baseShapes.length,
+      (i) => i,
+    )..shuffle(_rand);
+    final List<int> selectedIndices =
+        baseIndices.take(patternCount).toList(growable: false);
+
     // Decide whether this round should be "same" or "not same" overall
     final shouldBeSame = _rand.nextBool();
 
     bool madeDifferentShape = false;
 
     for (int i = 0; i < patternCount; i++) {
-      // Pick a random base for the left shape
-      final baseIndex = _rand.nextInt(_baseShapes.length);
+      // Pick a (mostly) unique base for the left shape
+      final baseIndex = i < selectedIndices.length
+          ? selectedIndices[i]
+          : _rand.nextInt(_baseShapes.length);
       final baseShape = _baseShapes[baseIndex];
       final leftRotations = _rand.nextInt(4);
       final leftShape = _rotateNTimes(baseShape, leftRotations);
@@ -416,9 +427,17 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
       aspectRatio: 1,
       child: Container(
         decoration: BoxDecoration(
+          // Match white box/grid cell styling from other games
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF111827), width: 2),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(6),
         child: patterns == null
@@ -557,14 +576,15 @@ class _SpatialImaginationPageState extends State<SpatialImaginationPage> {
         child: Container(
           height: 64,
           decoration: BoxDecoration(
+            // Match button look with other grid-cell style UI
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF111827), width: 2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
