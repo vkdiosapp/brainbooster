@@ -10,9 +10,7 @@ import '../models/game_session.dart';
 import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
-import '../widgets/category_header.dart';
-import '../widgets/game_container.dart';
-import '../widgets/gradient_background.dart';
+import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
 enum SameShapeType {
@@ -38,6 +36,20 @@ class SameShapePage extends StatefulWidget {
 }
 
 class _SameShapePageState extends State<SameShapePage> {
+  // Normal mode constants
+  static const int _normalGridSize = 3; // 3x3 grid
+  static const int _normalTotalCells = 9;
+
+  // Advanced mode constants
+  static const int _advancedGridSize = 4; // 4x4 grid
+  static const int _advancedTotalCells = 16;
+
+  bool _isAdvanced = false; // false = Normal, true = Advanced
+
+  // Dynamic getters based on difficulty
+  int get _gridSize => _isAdvanced ? _advancedGridSize : _normalGridSize;
+  int get _totalCells => _isAdvanced ? _advancedTotalCells : _normalTotalCells;
+
   int _currentRound = 0;
   int _completedRounds = 0;
   int _bestSession = 240; // in milliseconds
@@ -96,6 +108,7 @@ class _SameShapePageState extends State<SameShapePage> {
   }
 
   void _resetGame() {
+    // Keep _isAdvanced state when resetting (don't reset to false)
     _currentRound = 0;
     _completedRounds = 0;
     _isPlaying = false;
@@ -151,19 +164,35 @@ class _SameShapePageState extends State<SameShapePage> {
     final targetIndex = _random.nextInt(_availableShapes.length);
     final targetShape = _availableShapes[targetIndex];
 
-    // Create a grid of 9 shapes, ensuring target is included
-    final shapesPool = List<SameShapeType>.from(_availableShapes);
-    shapesPool.shuffle(_random);
+    // Create a grid of shapes based on difficulty, ensuring target is included
+    List<SameShapeType> grid;
 
-    List<SameShapeType> grid = shapesPool.take(9).toList();
+    if (!_isAdvanced) {
+      // Normal mode: original 3x3 behavior using unique-ish shapes
+      final shapesPool = List<SameShapeType>.from(_availableShapes);
+      shapesPool.shuffle(_random);
 
-    if (!grid.contains(targetShape)) {
-      // Replace a random position to guarantee target is in the grid
-      final replaceIndex = _random.nextInt(9);
-      grid[replaceIndex] = targetShape;
+      grid = shapesPool.take(_normalTotalCells).toList();
+
+      if (!grid.contains(targetShape)) {
+        // Replace a random position to guarantee target is in the grid
+        final replaceIndex = _random.nextInt(_normalTotalCells);
+        grid[replaceIndex] = targetShape;
+      }
+
+      grid.shuffle(_random);
+    } else {
+      // Advanced mode: 4x4 grid, allow repeated shapes but ensure at least one target
+      grid = List<SameShapeType>.generate(
+        _advancedTotalCells,
+        (_) => _availableShapes[_random.nextInt(_availableShapes.length)],
+      );
+
+      if (!grid.contains(targetShape)) {
+        final replaceIndex = _random.nextInt(_advancedTotalCells);
+        grid[replaceIndex] = targetShape;
+      }
     }
-
-    grid.shuffle(_random);
 
     setState(() {
       _targetShape = targetShape;
@@ -179,8 +208,9 @@ class _SameShapePageState extends State<SameShapePage> {
 
     if (tappedShape == _targetShape) {
       SoundService.playTapSound();
-      final reactionTime =
-          DateTime.now().difference(_roundStartTime!).inMilliseconds;
+      final reactionTime = DateTime.now()
+          .difference(_roundStartTime!)
+          .inMilliseconds;
       _completeRound(reactionTime, false);
     } else {
       _handleWrongTap();
@@ -241,6 +271,120 @@ class _SameShapePageState extends State<SameShapePage> {
     );
   }
 
+  Widget _buildDifficultySelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = false;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: !_isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Normal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: !_isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = true;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Advanced',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _completeRound(int reactionTime, bool isFailed) {
     _roundResults.add(
       RoundResult(
@@ -282,7 +426,7 @@ class _SameShapePageState extends State<SameShapePage> {
     if (successfulRounds.isNotEmpty) {
       averageTime =
           successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              successfulRounds.length;
+          successfulRounds.length;
 
       bestTime = successfulRounds
           .map((r) => r.reactionTime)
@@ -294,7 +438,7 @@ class _SameShapePageState extends State<SameShapePage> {
     } else if (_roundResults.isNotEmpty) {
       averageTime =
           _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              _roundResults.length;
+          _roundResults.length;
     }
 
     if (_roundResults.isNotEmpty) {
@@ -330,347 +474,141 @@ class _SameShapePageState extends State<SameShapePage> {
           ),
         )
         .then((_) {
-      if (mounted) {
-        _resetGame();
-        setState(() {});
-      }
-    });
+          if (mounted) {
+            _resetGame();
+            setState(() {});
+          }
+        });
+  }
+
+  Widget _buildGrid() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        if (_targetShape != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF475569),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: CustomPaint(
+                  painter: SameShapePainter(_targetShape!),
+                  size: const Size(96, 96),
+                ),
+              ),
+            ),
+          ),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: _gridSize,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: _totalCells,
+                  itemBuilder: (context, index) {
+                    return _buildShapeCell(_gridShapes[index]);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
-      body: GradientBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                      ),
-                    ),
-                    const Spacer(),
-                    const Text(
-                      'SAME SHAPE',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2.0,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    const Spacer(),
-                    ValueListenableBuilder<int>(
-                      valueListenable: GameSettings.repetitionsNotifier,
-                      builder: (context, numberOfRepetitions, _) {
-                        return Row(
-                          children: [
-                            Text(
-                              _isPlaying
-                                  ? '$_completedRounds / $numberOfRepetitions'
-                                  : '0 / $numberOfRepetitions',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: () {
-                                _resetGame();
-                                setState(() {});
-                              },
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.4),
-                                shape: const CircleBorder(),
-                                padding: const EdgeInsets.all(8),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              // Main content
-              Expanded(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    CategoryHeader(
-                      categoryName: widget.categoryName ?? 'Visual',
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _isPlaying
-                          ? (_isWaitingForRound
-                              ? 'Wait for the shape...'
-                              : (_isRoundActive
-                                  ? 'TAP THE SAME SHAPE!'
-                                  : 'Round $_currentRound'))
-                          : 'Tap the exact same shape',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
-                        child: GameContainer(
-                          child: Stack(
-                            children: [
-                              if (_isRoundActive &&
-                                  _gridShapes.isNotEmpty &&
-                                  _targetShape != null)
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        12,
-                                        12,
-                                        12,
-                                        8,
-                                      ),
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 24,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF475569),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Center(
-                                          child: CustomPaint(
-                                            painter:
-                                                SameShapePainter(_targetShape!),
-                                            size: const Size(96, 96),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: AspectRatio(
-                                            aspectRatio: 1.0,
-                                            child: GridView.builder(
-                                              physics:
-                                                  const NeverScrollableScrollPhysics(),
-                                              gridDelegate:
-                                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount: 3,
-                                                crossAxisSpacing: 12,
-                                                mainAxisSpacing: 12,
-                                              ),
-                                              itemCount: 9,
-                                              itemBuilder: (context, index) {
-                                                return _buildShapeCell(
-                                                  _gridShapes[index],
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              else
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: !_isRoundActive && !_isPlaying
-                                        ? BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                const Color(
-                                                  0xFFDBEAFE,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFE2E8F0,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFFCE7F3,
-                                                ).withOpacity(0.4),
-                                              ],
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              if (_isWaitingForRound)
-                                const Center(
-                                  child: Text(
-                                    'WAIT...',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF94A3B8),
-                                      letterSpacing: 4.0,
-                                    ),
-                                  ),
-                                ),
-                              if (_errorMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.red.withOpacity(0.9),
-                                    child: Center(
-                                      child: Text(
-                                        _errorMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (_reactionTimeMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.green.withOpacity(0.8),
-                                    child: Center(
-                                      child: Text(
-                                        _reactionTimeMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (!_isPlaying &&
-                                  _errorMessage == null &&
-                                  _reactionTimeMessage == null)
-                                Center(
-                                  child: GestureDetector(
-                                    onTap: _startGame,
-                                    child: const Text(
-                                      'START',
-                                      style: TextStyle(
-                                        fontSize: 48,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 4.0,
-                                        color: Color(0xFF475569),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFFDBEAFE),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFDBEAFE,
-                                        ).withOpacity(0.8),
-                                        blurRadius: 8,
-                                        spreadRadius: 0,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'BEST SESSION: ${_bestSession}MS',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.5,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+    final state = GameState(
+      isPlaying: _isPlaying,
+      isWaiting: _isWaitingForRound,
+      isRoundActive: _isRoundActive,
+      currentRound: _currentRound,
+      completedRounds: _completedRounds,
+      errorMessage: _errorMessage,
+      reactionTimeMessage: _reactionTimeMessage,
+    );
+
+    return BaseGamePage(
+      config: GamePageConfig(
+        gameName: 'Same Shape',
+        categoryName: widget.categoryName ?? 'Visual',
+        gameId: 'same_shape',
+        bestSession: _bestSession,
       ),
+      state: state,
+      callbacks: GameCallbacks(
+        onStart: _startGame,
+        onReset: () {
+          _resetGame();
+          setState(() {});
+        },
+      ),
+      builders: GameBuilders(
+        titleBuilder: (s) {
+          if (!s.isPlaying) return 'Tap the exact same shape';
+          if (s.isWaiting) return 'Wait...';
+          if (s.isRoundActive) return 'TAP THE SAME SHAPE!';
+          return 'Round ${s.currentRound}';
+        },
+        contentBuilder: (s, context) {
+          if (s.isRoundActive &&
+              _gridShapes.isNotEmpty &&
+              _targetShape != null) {
+            return Positioned.fill(child: _buildGrid());
+          }
+          // idle background similar to Color Frames Count
+          return Positioned.fill(
+            child: Container(
+              decoration: !s.isRoundActive && !s.isPlaying
+                  ? BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFDBEAFE).withOpacity(0.4),
+                          const Color(0xFFE2E8F0).withOpacity(0.4),
+                          const Color(0xFFFCE7F3).withOpacity(0.4),
+                        ],
+                      ),
+                    )
+                  : null,
+              child: const SizedBox.shrink(),
+            ),
+          );
+        },
+        waitingTextBuilder: (_) => 'WAIT...',
+        startButtonText: 'START',
+        middleContentBuilder: (s, context) {
+          // Show difficulty selector only before game starts
+          if (!s.isPlaying) {
+            return _buildDifficultySelector();
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+      useBackdropFilter: true,
     );
   }
 }
@@ -728,11 +666,7 @@ class SameShapePainter extends CustomPainter {
 
     // Vertical edges
     canvas.drawLine(top, bottom, paint);
-    canvas.drawLine(
-      Offset(w * 0.8, top.dy),
-      Offset(w * 0.8, bottom.dy),
-      paint,
-    );
+    canvas.drawLine(Offset(w * 0.8, top.dy), Offset(w * 0.8, bottom.dy), paint);
 
     // Top and bottom hex-like edges
     final topPath = Path()
@@ -954,5 +888,3 @@ class SameShapePainter extends CustomPainter {
     return oldDelegate.type != type;
   }
 }
-
-

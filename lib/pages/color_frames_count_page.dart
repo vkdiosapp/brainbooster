@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/game_session.dart';
@@ -21,8 +22,21 @@ class ColorFramesCountPage extends StatefulWidget {
 }
 
 class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
-  static const int _gridSize = 4; // 4x4
+  // Normal mode constants
+  static const int _normalGridSize = 3; // 3x3 grid
+  static const int _normalTotalBoxes = 9; // 3x3 = 9 boxes
+
+  // Advanced mode constants
+  static const int _advancedGridSize = 4; // 4x4 grid
+  static const int _advancedTotalBoxes = 16; // 4x4 = 16 boxes
+
   static const int _displayDurationMs = 2000; // Show colors for 2 seconds
+
+  bool _isAdvanced = false; // false = Normal, true = Advanced
+
+  // Getters for dynamic values based on difficulty
+  int get _gridSize => _isAdvanced ? _advancedGridSize : _normalGridSize;
+  int get _totalBoxes => _isAdvanced ? _advancedTotalBoxes : _normalTotalBoxes;
 
   // Get penalty time from exercise data (exercise ID 26)
   late final int _wrongTapPenaltyMs = ExerciseData.getExercises()
@@ -34,7 +48,7 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
 
   int _currentRound = 0;
   int _completedRounds = 0;
-  int _bestSession = 240; // ms
+  int _bestSession = 0; // ms - will be loaded from GameHistoryService
 
   bool _isPlaying = false;
   bool _isWaitingForRound = false;
@@ -92,6 +106,16 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
   void initState() {
     super.initState();
     _resetGame();
+    _loadBestSession();
+  }
+
+  Future<void> _loadBestSession() async {
+    final bestTime = await GameHistoryService.getBestTime('color_frames_count');
+    if (mounted) {
+      setState(() {
+        _bestSession = bestTime;
+      });
+    }
   }
 
   @override
@@ -121,11 +145,12 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
     _options.clear();
     _correctOption = null;
     _roundStartTime = null;
-      _errorMessage = null;
-      _reactionTimeMessage = null;
-      _roundResults.clear();
+    _errorMessage = null;
+    _reactionTimeMessage = null;
+    _roundResults.clear();
+    // Keep _isAdvanced state when resetting (don't reset to false)
 
-      _remainingColors = List<Color>.from(_availableColors)..shuffle(_rand);
+    _remainingColors = List<Color>.from(_availableColors)..shuffle(_rand);
   }
 
   void _startGame() {
@@ -181,20 +206,25 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
     _targetColorName = _colorNames[_targetColor];
 
     // Generate grid colors
-    // Random count of target color boxes (between 6 and 8)
-    _targetColorCount = 6 + _rand.nextInt(3); // 6..8
+    // Random count of target color boxes based on difficulty
+    if (_isAdvanced) {
+      // Advanced: 6-8 boxes out of 16
+      _targetColorCount = 6 + _rand.nextInt(3); // 6..8
+    } else {
+      // Normal: 3-5 boxes out of 9
+      _targetColorCount = 3 + _rand.nextInt(3); // 3..5
+    }
 
     // Get 3 other different colors for distraction
-    final distractionColors = _availableColors
-        .where((c) => c != _targetColor)
-        .toList()
-      ..shuffle(_rand);
+    final distractionColors =
+        _availableColors.where((c) => c != _targetColor).toList()
+          ..shuffle(_rand);
     final distractor1 = distractionColors[0];
     final distractor2 = distractionColors[1];
     final distractor3 = distractionColors[2];
 
-    // Create list of all 16 positions
-    final allPositions = List.generate(_gridSize * _gridSize, (i) => i);
+    // Create list of all positions based on grid size
+    final allPositions = List.generate(_totalBoxes, (i) => i);
     allPositions.shuffle(_rand);
 
     // Assign target color to first _targetColorCount positions
@@ -231,7 +261,7 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
       final delta = _rand.nextInt(3) + 1; // 1..3
       final sign = _rand.nextBool() ? 1 : -1;
       final candidate = correct + delta * sign;
-      if (candidate > 0 && candidate <= 16) {
+      if (candidate > 0 && candidate <= _totalBoxes) {
         optionSet.add(candidate);
       }
     }
@@ -247,13 +277,16 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
     });
 
     // After 2 seconds, hide colors and enable options
-    _hideColorsTimer = Timer(const Duration(milliseconds: _displayDurationMs), () {
-      if (!mounted || !_isRoundActive) return;
-      setState(() {
-        _isShowingColors = false;
-        _optionsEnabled = true;
-      });
-    });
+    _hideColorsTimer = Timer(
+      const Duration(milliseconds: _displayDurationMs),
+      () {
+        if (!mounted || !_isRoundActive) return;
+        setState(() {
+          _isShowingColors = false;
+          _optionsEnabled = true;
+        });
+      },
+    );
   }
 
   void _handleOptionTap(int value) {
@@ -274,7 +307,8 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
     SoundService.playPenaltySound();
 
     setState(() {
-      _errorMessage = 'PENALTY +${(_wrongTapPenaltyMs / 1000).toStringAsFixed(0)} SECOND';
+      _errorMessage =
+          'PENALTY +${(_wrongTapPenaltyMs / 1000).toStringAsFixed(0)} SECOND';
       _isRoundActive = false;
       _optionsEnabled = false;
     });
@@ -349,9 +383,6 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
       bestTime = successfulRounds
           .map((r) => r.reactionTime)
           .reduce((a, b) => a < b ? a : b);
-      if (averageTime < _bestSession || _bestSession == 0) {
-        _bestSession = averageTime;
-      }
     } else if (_roundResults.isNotEmpty) {
       averageTime =
           _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
@@ -372,6 +403,16 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
         bestTime: bestTime,
       );
       await GameHistoryService.saveSession(session);
+
+      // Update best session from all saved sessions
+      final savedBestTime = await GameHistoryService.getBestTime(
+        'color_frames_count',
+      );
+      if (mounted) {
+        setState(() {
+          _bestSession = savedBestTime;
+        });
+      }
     }
 
     _showResults();
@@ -390,10 +431,14 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
             ),
           ),
         )
-        .then((_) {
+        .then((_) async {
           if (!mounted) return;
           _resetGame();
-          setState(() {});
+          // Reload best session after returning from results
+          await _loadBestSession();
+          if (mounted) {
+            setState(() {});
+          }
         });
   }
 
@@ -440,12 +485,12 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
                 aspectRatio: 1.0,
                 child: GridView.builder(
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: _gridSize,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                   ),
-                  itemCount: _gridSize * _gridSize,
+                  itemCount: _totalBoxes,
                   itemBuilder: (context, index) {
                     final color = _isShowingColors ? _gridColors[index] : null;
                     return Container(
@@ -503,10 +548,7 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFE2E8F0),
-            width: 2,
-          ),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -521,9 +563,125 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
-              color: enabled ? const Color(0xFF0F172A) : const Color(0xFF94A3B8),
+              color: enabled
+                  ? const Color(0xFF0F172A)
+                  : const Color(0xFF94A3B8),
             ),
             textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultySelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = false;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: !_isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Normal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: !_isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isAdvanced = true;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _isAdvanced
+                          ? const Color(0xFF475569)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Advanced',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _isAdvanced
+                            ? Colors.white
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -593,6 +751,13 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
         },
         waitingTextBuilder: (_) => 'WAIT...',
         startButtonText: 'START',
+        middleContentBuilder: (s, context) {
+          // Show difficulty selector only before game starts
+          if (!s.isPlaying) {
+            return _buildDifficultySelector();
+          }
+          return const SizedBox.shrink();
+        },
       ),
       useBackdropFilter: true,
     );

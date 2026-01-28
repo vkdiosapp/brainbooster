@@ -261,6 +261,15 @@ class ExerciseData {
         timeRequired: 400,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 27,
+        categoryId: 3,
+        name: 'More 100',
+        desc: 'Determine if the math answer is greater than or less than 100.',
+        icon: Icons.functions,
+        timeRequired: 600,
+        penaltyTime: 1000,
+      ),
     ];
   }
 

@@ -772,6 +772,10 @@ class _HomePageState extends State<HomePage> {
         return 'dots_count';
       case 25:
         return 'same_shape';
+      case 26:
+        return 'color_frames_count';
+      case 27:
+        return 'more_100';
       default:
         return null; // Games without analytics yet
     }
@@ -833,6 +837,10 @@ class _HomePageState extends State<HomePage> {
         return 'Dots Count';
       case 'same_shape':
         return 'Same Shape';
+      case 'color_frames_count':
+        return 'Color Frames Count';
+      case 'more_100':
+        return 'More 100';
       default:
         return null;
     }

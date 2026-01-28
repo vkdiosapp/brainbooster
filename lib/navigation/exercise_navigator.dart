@@ -25,6 +25,7 @@ import '../pages/spatial_imagination_page.dart';
 import '../pages/same_number_page.dart';
 import '../pages/same_shape_page.dart';
 import '../pages/color_frames_count_page.dart';
+import '../pages/more_100_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -324,6 +325,17 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => ColorFramesCountPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 27:
+        // More 100 game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => More100Page(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),
