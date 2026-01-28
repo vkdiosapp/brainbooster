@@ -100,12 +100,25 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
   @override
   Widget build(BuildContext context) {
     final averageTime = _calculateAverage();
-    // Get Color Change exercise (id: 1) to get timeRequired
+    // Determine exercise ID (falls back to Color Change for legacy behavior)
+    final exerciseId = widget.exerciseId ??
+        (widget.gameId != null
+            ? _getExerciseIdFromGameId(widget.gameId!)
+            : null);
+
+    // Default: use Color Change (id: 1) timeRequired for backwards compatibility
     final colorChangeExercise = ExerciseData.getExercises().firstWhere(
       (e) => e.id == 1,
       orElse: () => ExerciseData.getExercises().first,
     );
-    final timeRequired = colorChangeExercise.timeRequired;
+    final defaultTimeRequired = colorChangeExercise.timeRequired;
+
+    // For Click Limit (id: 22) we use its own timeRequired as minimum taps
+    final clickLimitExercise = ExerciseData.getExercises().firstWhere(
+      (e) => e.id == 22,
+      orElse: () => ExerciseData.getExercises().first,
+    );
+    final clickLimitMinTaps = clickLimitExercise.timeRequired;
 
     return Scaffold(
       backgroundColor: GradientBackground.backgroundColor,
@@ -243,28 +256,61 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              '${_formatMilliseconds(averageTime)} milliseconds',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF0F172A),
-                                letterSpacing: -0.5,
+                            // For Click Limit (id: 22) we show clicks instead of milliseconds
+                            if (exerciseId == 22)
+                              Text(
+                                '${_formatMilliseconds(averageTime)} clicks',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0F172A),
+                                  letterSpacing: -0.5,
+                                ),
+                              )
+                            else
+                              Text(
+                                '${_formatMilliseconds(averageTime)} milliseconds',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0F172A),
+                                  letterSpacing: -0.5,
+                                ),
                               ),
-                            ),
                             const SizedBox(height: 16),
-                            Text(
-                              averageTime < timeRequired
-                                  ? 'GREAT JOB! YOU MET THE TARGET.'
-                                  : 'TRY AGAIN, YOU CAN DO BETTER. THE AVERAGE TIME IS REQUIRED TO BE LESS THAN ${_formatMilliseconds(timeRequired)} MILLISECONDS',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF64748B),
-                                height: 1.5,
+                            // Target logic: reversed and text-adjusted only for Click Limit (id: 22)
+                            if (exerciseId == 22)
+                              Builder(
+                                builder: (context) {
+                                  final metTarget =
+                                      averageTime >= clickLimitMinTaps;
+                                  return Text(
+                                    metTarget
+                                        ? 'GREAT JOB! YOU MET THE TARGET.'
+                                        : 'TRY AGAIN, YOU CAN DO BETTER. THE AVERAGE CLICKS ARE REQUIRED TO BE AT LEAST ${_formatMilliseconds(clickLimitMinTaps)} CLICKS.',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF64748B),
+                                      height: 1.5,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  );
+                                },
+                              )
+                            else
+                              Text(
+                                averageTime < defaultTimeRequired
+                                    ? 'GREAT JOB! YOU MET THE TARGET.'
+                                    : 'TRY AGAIN, YOU CAN DO BETTER. THE AVERAGE TIME IS REQUIRED TO BE LESS THAN ${_formatMilliseconds(defaultTimeRequired)} MILLISECONDS',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF64748B),
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
                           ],
                         ),
                       ),
@@ -284,18 +330,33 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                                 ),
                               ),
                               const Spacer(),
-                              Text(
-                                result.isFailed
-                                    ? '${_formatMilliseconds(result.reactionTime)} ms (FAILED)'
-                                    : '${_formatMilliseconds(result.reactionTime)} ms',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: result.isFailed
-                                      ? Colors.red
-                                      : const Color(0xFF0F172A),
+                              // For Click Limit (id: 22) show clicks instead of milliseconds
+                              if (exerciseId == 22)
+                                Text(
+                                  result.isFailed
+                                      ? '${_formatMilliseconds(result.reactionTime)} clicks (FAILED)'
+                                      : '${_formatMilliseconds(result.reactionTime)} clicks',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: result.isFailed
+                                        ? Colors.red
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  result.isFailed
+                                      ? '${_formatMilliseconds(result.reactionTime)} ms (FAILED)'
+                                      : '${_formatMilliseconds(result.reactionTime)} ms',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: result.isFailed
+                                        ? Colors.red
+                                        : const Color(0xFF0F172A),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         );

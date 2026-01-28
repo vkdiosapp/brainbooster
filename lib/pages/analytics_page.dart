@@ -37,6 +37,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     _loadData();
   }
 
+  bool get _isClickLimitGame => widget.gameId == 'click_limit';
+
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
@@ -229,9 +231,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            const Text(
-                                              'Reaction Time (ms)',
-                                              style: TextStyle(
+                                            Text(
+                                              _isClickLimitGame
+                                                  ? 'Average Taps'
+                                                  : 'Reaction Time (ms)',
+                                              style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w600,
                                                 color: Color(0xFF64748B),
@@ -322,15 +326,15 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
                                         children: [
-                                          const Text(
-                                            'AVERAGE',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF94A3B8),
-                                              letterSpacing: 1.0,
-                                            ),
-                                          ),
+                                              const Text(
+                                                'AVERAGE',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF94A3B8),
+                                                  letterSpacing: 1.0,
+                                                ),
+                                              ),
                                           const SizedBox(height: 4),
                                           RichText(
                                             text: TextSpan(
@@ -343,9 +347,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                     color: Color(0xFF0F172A),
                                                   ),
                                                 ),
-                                                const TextSpan(
-                                                  text: 'ms',
-                                                  style: TextStyle(
+                                                TextSpan(
+                                                  text: _isClickLimitGame
+                                                      ? ' clicks'
+                                                      : 'ms',
+                                                  style: const TextStyle(
                                                     fontSize: 10,
                                                     color: Color(0xFF94A3B8),
                                                     fontWeight:
@@ -403,9 +409,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                     color: Colors.white,
                                                   ),
                                                 ),
-                                                const TextSpan(
-                                                  text: 'ms',
-                                                  style: TextStyle(
+                                                TextSpan(
+                                                  text: _isClickLimitGame
+                                                      ? ' clicks'
+                                                      : 'ms',
+                                                  style: const TextStyle(
                                                     fontSize: 10,
                                                     color: Color(0xFFC7D2FE),
                                                     fontWeight:
@@ -525,7 +533,27 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           const SizedBox(height: 4),
                                           Text(
                                             _sessions.length >= 2
-                                                ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
+                                                ? !_isClickLimitGame
+                                                    ? 'Incredible work! You are ${((_getPreviousAverage() - _averageTime) / _getPreviousAverage() * 100).abs().toStringAsFixed(0)}% ${_averageTime < _getPreviousAverage() ? "faster" : "slower"} than your previous average. Keep this momentum to break your all-time record.'
+                                                    : (() {
+                                                        final prevAvg =
+                                                            _getPreviousAverage();
+                                                        if (prevAvg <= 0) {
+                                                          return 'Keep playing to see your progress!';
+                                                        }
+                                                        final diffPercent =
+                                                            ((_averageTime -
+                                                                        prevAvg) /
+                                                                    prevAvg *
+                                                                    100)
+                                                                .abs()
+                                                                .toStringAsFixed(
+                                                                    0);
+                                                        final isBetter =
+                                                            _averageTime >
+                                                                prevAvg;
+                                                        return 'Great effort! You are $diffPercent% ${isBetter ? "above" : "below"} your previous average tap count. Aim for more taps to keep improving.';
+                                                      })()
                                                 : 'Keep playing to see your progress!',
                                             style: const TextStyle(
                                               fontSize: 14,
@@ -694,7 +722,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                       CrossAxisAlignment.end,
                                                   children: [
                                                     Text(
-                                                      '${session.averageTime}ms',
+                                                      _isClickLimitGame
+                                                          ? '${session.averageTime} clicks'
+                                                          : '${session.averageTime}ms',
                                                       style: TextStyle(
                                                         fontSize: 14,
                                                         fontWeight:
@@ -710,7 +740,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                     ),
                                                     if (previousSession != null)
                                                       Text(
-                                                        '${diff < 0 ? "-" : "+"}${diff.abs()}ms',
+                                                        _isClickLimitGame
+                                                            ? '${diff < 0 ? "-" : "+"}${diff.abs()} taps'
+                                                            : '${diff < 0 ? "-" : "+"}${diff.abs()}ms',
                                                         style: TextStyle(
                                                           fontSize: 10,
                                                           fontWeight:
