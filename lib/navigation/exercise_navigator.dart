@@ -15,11 +15,14 @@ import '../pages/visual_memory_page.dart';
 import '../pages/swipe_game_page.dart';
 import '../pages/excess_cells_page.dart';
 import '../pages/aim_game_page.dart';
+import '../pages/dots_count_page.dart';
 import '../pages/memorize_game_page.dart';
 import '../pages/peripheral_vision_page.dart';
 import '../pages/longest_line_page.dart';
+import '../pages/click_limit_page.dart';
 import '../pages/f1_race_page.dart';
 import '../pages/spatial_imagination_page.dart';
+import '../pages/same_number_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -264,6 +267,39 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SpatialImaginationPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 22:
+        // Click Limit game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ClickLimitPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 23:
+        // Same Number game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SameNumberPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 24:
+        // Dots Count game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => DotsCountPage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),

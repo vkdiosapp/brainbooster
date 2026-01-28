@@ -764,6 +764,12 @@ class _HomePageState extends State<HomePage> {
         return 'f1_race';
       case 21:
         return 'spatial_imagination';
+      case 22:
+        return 'click_limit';
+      case 23:
+        return 'same_number';
+      case 24:
+        return 'dots_count';
       default:
         return null; // Games without analytics yet
     }
@@ -817,6 +823,12 @@ class _HomePageState extends State<HomePage> {
         return 'F1 Race';
       case 'spatial_imagination':
         return 'Spatial Imagination';
+      case 'click_limit':
+        return 'Click Limit';
+      case 'same_number':
+        return 'Same Number';
+      case 'dots_count':
+        return 'Dots Count';
       default:
         return null;
     }

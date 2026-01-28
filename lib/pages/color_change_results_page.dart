@@ -36,18 +36,20 @@ int? _getExerciseIdFromGameId(String gameId) {
       return 13;
     case 'swipe':
       return 14;
-      case 'excess_cells':
-        return 15;
-      case 'aim':
-        return 16;
-      case 'memorize':
-        return 17;
-      case 'peripheral_vision':
-        return 18;
-      case 'longest_line':
-        return 19;
-      default:
-        return null;
+    case 'excess_cells':
+      return 15;
+    case 'aim':
+      return 16;
+    case 'memorize':
+      return 17;
+    case 'peripheral_vision':
+      return 18;
+    case 'longest_line':
+      return 19;
+    case 'click_limit':
+      return 22;
+    default:
+      return null;
   }
 }
 
@@ -82,7 +84,9 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
   int _calculateAverage() {
     if (widget.roundResults.isEmpty) return 0;
     // Include all rounds (including failed ones with penalty) in average
-    return widget.roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
+    return widget.roundResults
+            .map((r) => r.reactionTime)
+            .reduce((a, b) => a + b) ~/
         widget.roundResults.length;
   }
 
@@ -175,8 +179,11 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                         const SizedBox(height: 2),
                         Text(
                           () {
-                            final exerciseId = widget.exerciseId ?? 
-                                (widget.gameId != null ? _getExerciseIdFromGameId(widget.gameId!) : null);
+                            final exerciseId =
+                                widget.exerciseId ??
+                                (widget.gameId != null
+                                    ? _getExerciseIdFromGameId(widget.gameId!)
+                                    : null);
                             return exerciseId != null
                                 ? '$exerciseId - ${widget.gameName.toUpperCase()}'
                                 : widget.gameName.toUpperCase();

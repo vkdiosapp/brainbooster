@@ -212,6 +212,35 @@ class ExerciseData {
         timeRequired: 400,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 22,
+        categoryId: 1,
+        name: 'Click Limit',
+        desc:
+            'Tap inside the area as fast as you can within 10 seconds and reach the minimum number of clicks.',
+        icon: Icons.touch_app,
+        timeRequired: 90,
+        penaltyTime: 0,
+      ),
+      Exercise(
+        id: 23,
+        categoryId: 2,
+        name: 'Same Number',
+        desc:
+            'Memorize a 7-digit number and tap the exact same one among look-alike options.',
+        icon: Icons.pin,
+        timeRequired: 400,
+        penaltyTime: 1000,
+      ),
+      Exercise(
+        id: 24,
+        categoryId: 2,
+        name: 'Dots Count',
+        desc: 'Count the black dots.',
+        icon: Icons.blur_on,
+        timeRequired: 400,
+        penaltyTime: 1000,
+      ),
     ];
   }
 
