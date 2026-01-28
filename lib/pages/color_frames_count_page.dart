@@ -30,7 +30,7 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
   static const int _advancedGridSize = 4; // 4x4 grid
   static const int _advancedTotalBoxes = 16; // 4x4 = 16 boxes
 
-  static const int _displayDurationMs = 2000; // Show colors for 2 seconds
+  static const int _displayDurationMs = 1000; // Show colors for 2 seconds
 
   bool _isAdvanced = false; // false = Normal, true = Advanced
 
