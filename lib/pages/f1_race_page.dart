@@ -344,9 +344,6 @@ class _F1RacePageState extends State<F1RacePage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final containerWidth = constraints.maxWidth;
-        final containerHeight = constraints.maxHeight;
-
-        final trafficLightHeight = containerHeight * 0.4;
         final buttonHeight = 64.0;
         // Extra space between lights and pedals
         final verticalSpacing = 40.0;
@@ -357,7 +354,6 @@ class _F1RacePageState extends State<F1RacePage> {
             children: [
               SizedBox(
                 width: containerWidth * 0.4,
-                height: trafficLightHeight,
                 child: _buildTrafficLight(),
               ),
               SizedBox(height: verticalSpacing),
@@ -403,10 +399,13 @@ class _F1RacePageState extends State<F1RacePage> {
       ),
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           _buildLightCircle(_lightColorFor(_TrafficLightColor.red)),
+          const SizedBox(height: 14),
           _buildLightCircle(_lightColorFor(_TrafficLightColor.yellow)),
+          const SizedBox(height: 14),
           _buildLightCircle(_lightColorFor(_TrafficLightColor.green)),
         ],
       ),
@@ -438,26 +437,32 @@ class _F1RacePageState extends State<F1RacePage> {
     return Row(
       children: [
         Expanded(
-          child: _buildControlButton(
-            label: 'BRAKE',
-            color: const Color(0xFF0F172A),
-            accentColor: Colors.redAccent,
-            icon: Icons.stop_circle_outlined,
-            height: buttonHeight,
-            enabled: canTap,
-            onTap: _handleBrakeTap,
+          child: Transform.rotate(
+            angle: -0.08, // slight tilt like a brake pedal
+            child: _buildControlButton(
+              label: 'BRAKE',
+              color: const Color(0xFF0F172A),
+              accentColor: Colors.redAccent,
+              icon: Icons.stop_circle_outlined,
+              height: buttonHeight,
+              enabled: canTap,
+              onTap: _handleBrakeTap,
+            ),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _buildControlButton(
-            label: 'ACCELERATOR',
-            color: const Color(0xFF0F172A),
-            accentColor: Colors.greenAccent.shade400,
-            icon: Icons.speed,
-            height: buttonHeight,
-            enabled: canTap,
-            onTap: _handleAcceleratorTap,
+          child: Transform.rotate(
+            angle: 0.08, // slight tilt like an accelerator pedal
+            child: _buildControlButton(
+              label: 'ACCELERATOR',
+              color: const Color(0xFF0F172A),
+              accentColor: Colors.greenAccent.shade400,
+              icon: Icons.speed,
+              height: buttonHeight,
+              enabled: canTap,
+              onTap: _handleAcceleratorTap,
+            ),
           ),
         ),
       ],
@@ -481,10 +486,14 @@ class _F1RacePageState extends State<F1RacePage> {
         child: Container(
           height: height,
           decoration: BoxDecoration(
-            // Solid, non‑colored background (no gradient)
+            // Pedal-like shape: flatter top, more rounded bottom
             color: const Color(0xFF0F172A),
-            borderRadius: BorderRadius.circular(18),
-            // Neutral shadow (not tinted by accent color)
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+              bottomLeft: Radius.circular(18),
+              bottomRight: Radius.circular(18),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.35),
@@ -493,22 +502,35 @@ class _F1RacePageState extends State<F1RacePage> {
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.7,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Thin colored strip at top, like pedal edge
+              Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.visible,
               ),
-            ),
+              const Spacer(),
+              Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.7,
+                    ),
+                    maxLines: 1,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
