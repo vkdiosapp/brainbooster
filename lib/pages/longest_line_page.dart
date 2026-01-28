@@ -14,15 +14,17 @@ import 'color_change_results_page.dart';
 class LineData {
   final String side; // 'top', 'bottom', 'left', 'right'
   final double
-  relativeLength; // Relative length (0.5 to 1.0) - 0.5 = half, 1.0 = full
+      relativeLength; // Relative length (0.5 to 1.0) - 0.5 = half, 1.0 = full
   final double position; // Position along the perpendicular axis (0.0 to 1.0)
   final int index; // Index in the lines list
+  final Color color; // Original color of the line
 
   LineData({
     required this.side,
     required this.relativeLength,
     required this.position,
     required this.index,
+    required this.color,
   });
 }
 
@@ -52,10 +54,13 @@ class _LongestLinePageState extends State<LongestLinePage> {
   bool _isPlaying = false;
   bool _isWaitingForRound = false;
   bool _isRoundActive = false; // User can tap lines
+  bool _isShowingColors = false; // Phase 1: showing colored lines
 
   // Line data: each line has a side and relative height (0.5 to 1.0)
   List<LineData> _lines = [];
-  int? _longestLineIndex; // Index of the longest line
+  int? _longestLineIndex; // Index of the longest line of target color
+  Color? _targetColor; // Color user must focus on
+  String _targetColorName = '';
   DateTime? _roundStartTime;
   Timer? _roundDelayTimer;
   Timer? _lineDisplayTimer;
@@ -91,8 +96,11 @@ class _LongestLinePageState extends State<LongestLinePage> {
     _isPlaying = false;
     _isWaitingForRound = false;
     _isRoundActive = false;
+    _isShowingColors = false;
     _lines.clear();
     _longestLineIndex = null;
+    _targetColor = null;
+    _targetColorName = '';
     _roundStartTime = null;
     _errorMessage = null;
     _reactionTimeMessage = null;
@@ -123,10 +131,13 @@ class _LongestLinePageState extends State<LongestLinePage> {
       _currentRound++;
       _isWaitingForRound = true;
       _isRoundActive = false;
+      _isShowingColors = false;
       _errorMessage = null;
       _reactionTimeMessage = null;
       _lines.clear();
       _longestLineIndex = null;
+      _targetColor = null;
+      _targetColorName = '';
       _roundStartTime = null;
     });
 
@@ -137,14 +148,25 @@ class _LongestLinePageState extends State<LongestLinePage> {
   }
 
   void _showLines() {
-    // Generate 8 lines with random sides and heights
+    // Generate 8 lines with random sides, lengths and colors
     _generateLines();
 
-    // Lines appear and timer starts immediately - no memorize phase
+    // Phase 1: show colored lines for 2 seconds (memorization)
     setState(() {
       _isWaitingForRound = false;
-      _isRoundActive = true;
-      _roundStartTime = DateTime.now(); // Start timing immediately
+      _isShowingColors = true;
+      _isRoundActive = false;
+      _roundStartTime = null;
+    });
+
+    _lineDisplayTimer = Timer(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      // Phase 2: hide colors (turn all lines black) and start timing
+      setState(() {
+        _isShowingColors = false;
+        _isRoundActive = true;
+        _roundStartTime = DateTime.now();
+      });
     });
   }
 
@@ -237,6 +259,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
       _isPlaying = false;
       _isWaitingForRound = false;
       _isRoundActive = false;
+      _isShowingColors = false;
     });
 
     // Calculate average/best
@@ -307,14 +330,60 @@ class _LongestLinePageState extends State<LongestLinePage> {
           return const SizedBox.shrink();
         }
 
-        return Stack(
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Draw all lines
-            ..._lines.asMap().entries.map((entry) {
-              final index = entry.key;
-              final line = entry.value;
-              return _buildLine(line, index, containerWidth, containerHeight);
-            }),
+            if (_targetColor != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _isShowingColors
+                        ? const Color(0xFF475569) // hidden / neutral state
+                        : _targetColor, // reveal actual color after lines go black
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    _isShowingColors ? '???' : _targetColorName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: 2.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            Expanded(
+              child: Stack(
+                children: [
+                  // Draw all lines
+                  ..._lines.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final line = entry.value;
+                    return _buildLine(
+                      line,
+                      index,
+                      containerWidth,
+                      containerHeight,
+                    );
+                  }),
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -332,11 +401,27 @@ class _LongestLinePageState extends State<LongestLinePage> {
     // Randomly select ONE side (left or right) for all lines in this round
     final selectedSide = sides[_rand.nextInt(sides.length)];
 
-    // Generate relative lengths for each line (0.75 to 1.0)
-    // All lengths must be different
-    final relativeLengths = <double>[];
+    // Define 3 colors to use
+    final colors = <Color>[
+      Colors.red,
+      Colors.green,
+      Colors.blue,
+    ];
 
-    for (int i = 0; i < 8; i++) {
+    // Choose target color for this round
+    final targetIndex = _rand.nextInt(colors.length);
+    _targetColor = colors[targetIndex];
+    _targetColorName = targetIndex == 0
+        ? 'RED'
+        : targetIndex == 1
+            ? 'GREEN'
+            : 'BLUE';
+
+    const totalLines = 8;
+
+    // Generate relative lengths for each line (0.75 to 1.0), all different
+    final relativeLengths = <double>[];
+    for (int i = 0; i < totalLines; i++) {
       double relativeLength;
       int attempts = 0;
       do {
@@ -346,27 +431,91 @@ class _LongestLinePageState extends State<LongestLinePage> {
         // Ensure all lengths are different (with tolerance of 0.01)
         if (attempts > 200) break; // Prevent infinite loop
       } while (relativeLengths.any((l) => (l - relativeLength).abs() < 0.01));
-
       relativeLengths.add(relativeLength);
     }
 
+    // Assign colors so that:
+    // - Each of the 3 colors appears at least twice
+    // - No two adjacent lines have the same color
+    // - The chosen target color is automatically present (>= 2 times)
+    final List<int> colorCounts = [2, 2, 2]; // base: each color at least twice
+    int remaining = totalLines - colorCounts.reduce((a, b) => a + b); // 8 - 6 = 2
+
+    // Distribute remaining lines randomly among the 3 colors
+    while (remaining > 0) {
+      final idx = _rand.nextInt(colors.length);
+      colorCounts[idx]++;
+      remaining--;
+    }
+
+    // Build a list of color indices according to counts
+    final List<int> colorIndices = [];
+    for (int c = 0; c < colors.length; c++) {
+      for (int i = 0; i < colorCounts[c]; i++) {
+        colorIndices.add(c);
+      }
+    }
+
+    // Try to arrange colors so that no adjacent indices are equal
+    List<int> arranged = [];
+    for (int attempt = 0; attempt < 20; attempt++) {
+      arranged = [];
+      final countsCopy = List<int>.from(colorCounts);
+      int? prev;
+
+      for (int i = 0; i < totalLines; i++) {
+        // Collect available colors that are not same as previous and still have remaining count
+        final List<int> available = [];
+        for (int c = 0; c < colors.length; c++) {
+          if (countsCopy[c] > 0 && c != prev) {
+            available.add(c);
+          }
+        }
+
+        if (available.isEmpty) {
+          // Failed this attempt, break and retry with a new attempt
+          arranged = [];
+          break;
+        }
+
+        final chosen = available[_rand.nextInt(available.length)];
+        arranged.add(chosen);
+        countsCopy[chosen]--;
+        prev = chosen;
+      }
+
+      if (arranged.length == totalLines) {
+        break;
+      }
+    }
+
+    // Fallback: if for some reason arrangement failed, just use the flat list
+    if (arranged.length != totalLines) {
+      arranged = List<int>.from(colorIndices);
+      arranged.shuffle(_rand);
+    }
+
+    final List<Color> lineColors = arranged.map((i) => colors[i]).toList();
+
     // Create line data - all lines use the same side
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < totalLines; i++) {
       _lines.add(
         LineData(
-          side: selectedSide, // All lines use the same side
+          side: selectedSide,
           relativeLength: relativeLengths[i],
           position: 0.0, // Not used anymore since we'll evenly space them
           index: i,
+          color: lineColors[i],
         ),
       );
     }
 
-    // Find the longest line (by relative length)
-    double maxLength = 0;
+    // Find the longest line among the target color lines
+    double maxLength = -1;
     int longestIndex = 0;
     for (int i = 0; i < _lines.length; i++) {
-      if (_lines[i].relativeLength > maxLength) {
+      if (_lines[i].color == _targetColor &&
+          _lines[i].relativeLength > maxLength) {
         maxLength = _lines[i].relativeLength;
         longestIndex = i;
       }
@@ -381,13 +530,22 @@ class _LongestLinePageState extends State<LongestLinePage> {
     double containerHeight,
   ) {
     double x, y, width, height;
-    const spacingBetweenLines = 25.0; // Fixed 25px spacing between lines
     const containerPadding = 20.0; // 20px padding on all sides
     const totalLines = 8;
 
     // Calculate available space after padding (40px total: 20px on each side)
     final availableWidth = containerWidth - (containerPadding * 2);
     final availableHeight = containerHeight - (containerPadding * 2);
+
+    // Dynamically compute line thickness and spacing so that
+    // lines + spaces exactly fill the available height.
+    // Let h = lineThickness, s = spacing, N = totalLines
+    // We choose a ratio r = s / h, then:
+    // N*h + (N-1)*s = availableHeight => h = availableHeight / (N + (N-1)*r)
+    const double spacingToThicknessRatio = 0.6;
+    final double lineThickness =
+        availableHeight / (totalLines + (totalLines - 1) * spacingToThicknessRatio);
+    final double spacingBetweenLines = lineThickness * spacingToThicknessRatio;
 
     if (line.side == 'top') {
       // Line starts from top edge, extends DOWNWARD (vertically)
@@ -413,18 +571,13 @@ class _LongestLinePageState extends State<LongestLinePage> {
     } else if (line.side == 'left') {
       // Line starts from left edge, extends RIGHTWARD (horizontally)
       width = availableWidth * line.relativeLength; // Length extends rightward
-      // Auto-calculate line thickness to fill available space with fixed spacing
-      final totalSpacingHeight = (totalLines - 1) * spacingBetweenLines;
-      final lineThickness = (availableHeight - totalSpacingHeight) / totalLines;
       height = lineThickness;
       x = containerPadding; // Start from left with padding
-      // Position along vertical axis with fixed 20px spacing, starting from padding
+      // Position along vertical axis with dynamic spacing, starting from padding
       y = containerPadding + (index * (lineThickness + spacingBetweenLines));
     } else {
       // Line starts from right edge, extends LEFTWARD (horizontally)
       width = availableWidth * line.relativeLength;
-      final totalSpacingHeight = (totalLines - 1) * spacingBetweenLines;
-      final lineThickness = (availableHeight - totalSpacingHeight) / totalLines;
       height = lineThickness;
       x =
           containerPadding +
@@ -468,9 +621,11 @@ class _LongestLinePageState extends State<LongestLinePage> {
               width: width,
               height: height,
               decoration: BoxDecoration(
-                color: const Color(
-                  0xFF1E293B,
-                ), // Dark grey/black like screenshot
+                color: _isShowingColors
+                    ? line.color
+                    : const Color(
+                        0xFF1E293B,
+                      ), // Dark grey/black when hidden
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -484,7 +639,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
   Widget build(BuildContext context) {
     final state = GameState(
       isPlaying: _isPlaying,
-      isWaiting: _isWaitingForRound,
+      isWaiting: _isWaitingForRound || _isShowingColors,
       isRoundActive: _isRoundActive,
       currentRound: _currentRound,
       completedRounds: _completedRounds,
@@ -509,16 +664,25 @@ class _LongestLinePageState extends State<LongestLinePage> {
       ),
       builders: GameBuilders(
         titleBuilder: (s) {
-          if (!s.isPlaying) return 'Tap the longest line';
-          if (s.isWaiting) return 'Wait...';
+          if (!s.isPlaying) {
+            return 'Tap the longest line of the shown color';
+          }
+          if (s.isWaiting) {
+            if (_isShowingColors) {
+              return 'MEMORIZE THE LINES!';
+            }
+            return 'Wait...';
+          }
           if (s.isRoundActive) {
-            return 'TAP THE LONGEST LINE!';
+            return _targetColorName.isNotEmpty
+                ? 'TAP THE LONGEST $_targetColorName LINE!'
+                : 'TAP THE LONGEST LINE!';
           }
           return 'Round ${s.currentRound}';
         },
         contentBuilder: (s, context) {
-          // Show game container when round is active
-          if (s.isRoundActive) {
+          // Show game container when showing colors or when round is active
+          if (_isShowingColors || s.isRoundActive) {
             return Positioned.fill(child: _buildGameContainer());
           }
           // idle background or wait state
@@ -542,6 +706,7 @@ class _LongestLinePageState extends State<LongestLinePage> {
           );
         },
         waitingTextBuilder: (_) {
+          if (_isShowingColors) return '';
           return 'WAIT...';
         },
         startButtonText: 'START',
