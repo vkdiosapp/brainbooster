@@ -241,6 +241,16 @@ class ExerciseData {
         timeRequired: 400,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 25,
+        categoryId: 4,
+        name: 'Same Shape',
+        desc:
+            'Match the exact same 3D shape among look-alike options as fast as you can.',
+        icon: Icons.view_in_ar,
+        timeRequired: 400,
+        penaltyTime: 1000,
+      ),
     ];
   }
 

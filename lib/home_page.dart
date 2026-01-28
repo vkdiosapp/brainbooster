@@ -770,6 +770,8 @@ class _HomePageState extends State<HomePage> {
         return 'same_number';
       case 24:
         return 'dots_count';
+      case 25:
+        return 'same_shape';
       default:
         return null; // Games without analytics yet
     }
@@ -829,6 +831,8 @@ class _HomePageState extends State<HomePage> {
         return 'Same Number';
       case 'dots_count':
         return 'Dots Count';
+      case 'same_shape':
+        return 'Same Shape';
       default:
         return null;
     }

@@ -23,6 +23,7 @@ import '../pages/click_limit_page.dart';
 import '../pages/f1_race_page.dart';
 import '../pages/spatial_imagination_page.dart';
 import '../pages/same_number_page.dart';
+import '../pages/same_shape_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -300,6 +301,17 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => DotsCountPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 25:
+        // Same Shape game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SameShapePage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),
