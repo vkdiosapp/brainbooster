@@ -23,13 +23,13 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(32),
           border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              offset: const Offset(0, 4),
+              blurRadius: 0,
             ),
           ],
         ),
@@ -179,7 +179,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(32),
                               border: Border.all(
                                 color: const Color(0xFFE2E8F0),
                                 width: 1,
@@ -187,8 +187,8 @@ class _SettingsPageState extends State<SettingsPage> {
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 0,
                                 ),
                               ],
                             ),
@@ -243,7 +243,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(32),
                               border: Border.all(
                                 color: const Color(0xFFE2E8F0),
                                 width: 1,
@@ -251,8 +251,8 @@ class _SettingsPageState extends State<SettingsPage> {
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 0,
                                 ),
                               ],
                             ),

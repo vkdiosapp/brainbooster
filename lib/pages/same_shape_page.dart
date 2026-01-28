@@ -506,7 +506,7 @@ class _SameShapePageState extends State<SameShapePage> {
               ),
               child: Center(
                 child: CustomPaint(
-                  painter: SameShapePainter(_targetShape!),
+                  painter: SameShapePainter(_targetShape!, color: Colors.white),
                   size: const Size(96, 96),
                 ),
               ),
@@ -615,13 +615,14 @@ class _SameShapePageState extends State<SameShapePage> {
 
 class SameShapePainter extends CustomPainter {
   final SameShapeType type;
+  final Color color;
 
-  SameShapePainter(this.type);
+  SameShapePainter(this.type, {this.color = const Color(0xFF111827)});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF111827)
+      ..color = color
       ..strokeWidth = 2.4
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -885,6 +886,6 @@ class SameShapePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant SameShapePainter oldDelegate) {
-    return oldDelegate.type != type;
+    return oldDelegate.type != type || oldDelegate.color != color;
   }
 }

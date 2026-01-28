@@ -506,89 +506,93 @@ class _More100PageState extends State<More100Page> {
                         child: GameContainer(
                           child: Stack(
                             children: [
-                              // Main content - Column for active round, gradient for idle
+                              // Main content - Column centered vertically for active round, gradient for idle
                               if (_isRoundActive &&
                                   _currentQuestion != null &&
                                   _correctAnswerIsGreaterThan100 != null)
-                                Column(
-                                  children: [
-                                    // Math question banner
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        12,
-                                        12,
-                                        12,
-                                        8,
-                                      ),
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 20,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF475569),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
+                                Positioned.fill(
+                                  child: Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // Math question banner
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                                            child: Container(
+                                              width: double.infinity,
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 20,
                                               ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 4),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF475569),
+                                                borderRadius: BorderRadius.circular(
+                                                  16,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(
+                                                      0.1,
+                                                    ),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Text(
+                                                _currentQuestion!.question,
+                                                style: const TextStyle(
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Colors.white,
+                                                  letterSpacing: 1.0,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
                                             ),
-                                          ],
-                                        ),
-                                        child: Text(
-                                          _currentQuestion!.question,
-                                          style: const TextStyle(
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: 1.0,
                                           ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ),
-                                    // Options - two buttons side by side
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Row(
-                                          children: [
-                                            // < 100 button
-                                            Expanded(
-                                              child: AspectRatio(
-                                                aspectRatio: 1.0,
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8),
-                                                  child: _buildOptionButton(
-                                                    false,
+                                          // 30 spacing between question and buttons
+                                          const SizedBox(height: 30),
+                                          // Options - two buttons side by side
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                // < 100 button
+                                                Expanded(
+                                                  child: AspectRatio(
+                                                    aspectRatio: 1.0,
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.all(8),
+                                                      child: _buildOptionButton(
+                                                        false,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            // > 100 button
-                                            Expanded(
-                                              child: AspectRatio(
-                                                aspectRatio: 1.0,
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8),
-                                                  child: _buildOptionButton(
-                                                    true,
+                                                const SizedBox(width: 16),
+                                                // > 100 button
+                                                Expanded(
+                                                  child: AspectRatio(
+                                                    aspectRatio: 1.0,
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.all(8),
+                                                      child: _buildOptionButton(
+                                                        true,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 )
                               else
                                 Positioned.fill(

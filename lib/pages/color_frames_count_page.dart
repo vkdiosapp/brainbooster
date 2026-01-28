@@ -729,6 +729,14 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
           if (s.isRoundActive) {
             return Positioned.fill(child: _buildGrid());
           }
+          // Show difficulty selector centered vertically in game container when not playing
+          if (!s.isPlaying) {
+            return Positioned.fill(
+              child: Center(
+                child: _buildDifficultySelector(),
+              ),
+            );
+          }
           // idle background similar to Catch Color
           return Positioned.fill(
             child: Container(
@@ -751,13 +759,6 @@ class _ColorFramesCountPageState extends State<ColorFramesCountPage> {
         },
         waitingTextBuilder: (_) => 'WAIT...',
         startButtonText: 'START',
-        middleContentBuilder: (s, context) {
-          // Show difficulty selector only before game starts
-          if (!s.isPlaying) {
-            return _buildDifficultySelector();
-          }
-          return const SizedBox.shrink();
-        },
       ),
       useBackdropFilter: true,
     );

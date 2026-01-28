@@ -135,14 +135,12 @@ class _DetectDirectionPageState extends State<DetectDirectionPage> {
   void _showRound() {
     // Randomly choose a most common direction (most triangles will use this)
     final allDirections = TriangleDirection.values;
-    _mostCommonDirection = allDirections[_rand.nextInt(allDirections.length)];
+    final mostCommonDirection =
+        allDirections[_rand.nextInt(allDirections.length)];
 
     // Generate all positions
     final positions = List.generate(_totalCells, (i) => i);
     positions.shuffle(_rand);
-
-    // Set most triangles to most common direction
-    _triangleDirections = {};
 
     // Calculate how many cells should have the most common direction
     // At least 50% + 1 should have the most common direction to ensure it's the majority
@@ -150,23 +148,28 @@ class _DetectDirectionPageState extends State<DetectDirectionPage> {
     final commonCount =
         minCommonCount + _rand.nextInt(_totalCells - minCommonCount + 1);
 
+    // Create new triangle directions map
+    final newTriangleDirections = <int, TriangleDirection>{};
+
     // Assign most common direction to majority of cells
     for (int i = 0; i < commonCount; i++) {
-      _triangleDirections[positions[i]] = _mostCommonDirection;
+      newTriangleDirections[positions[i]] = mostCommonDirection;
     }
 
     // Assign random other directions to remaining cells
     final otherDirections = allDirections
-        .where((d) => d != _mostCommonDirection)
+        .where((d) => d != mostCommonDirection)
         .toList();
 
     for (int i = commonCount; i < _totalCells; i++) {
       final randomDirection =
           otherDirections[_rand.nextInt(otherDirections.length)];
-      _triangleDirections[positions[i]] = randomDirection;
+      newTriangleDirections[positions[i]] = randomDirection;
     }
 
     setState(() {
+      _mostCommonDirection = mostCommonDirection;
+      _triangleDirections = newTriangleDirections;
       _isWaitingForRound = false;
       _isRoundActive = true;
       _roundStartTime = DateTime.now();
