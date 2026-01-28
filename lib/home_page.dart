@@ -760,6 +760,8 @@ class _HomePageState extends State<HomePage> {
         return 'peripheral_vision';
       case 19:
         return 'longest_line';
+      case 20:
+        return 'f1_race';
       default:
         return null; // Games without analytics yet
     }
@@ -809,6 +811,8 @@ class _HomePageState extends State<HomePage> {
         return 'Peripheral Vision';
       case 'longest_line':
         return 'Longest Line';
+      case 'f1_race':
+        return 'F1 Race';
       default:
         return null;
     }

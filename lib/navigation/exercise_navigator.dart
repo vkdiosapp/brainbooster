@@ -18,6 +18,7 @@ import '../pages/aim_game_page.dart';
 import '../pages/memorize_game_page.dart';
 import '../pages/peripheral_vision_page.dart';
 import '../pages/longest_line_page.dart';
+import '../pages/f1_race_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -240,6 +241,17 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => LongestLinePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 20:
+        // F1 Race game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => F1RacePage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),

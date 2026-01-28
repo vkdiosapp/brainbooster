@@ -192,6 +192,16 @@ class ExerciseData {
         timeRequired: 400,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 20,
+        categoryId: 1,
+        name: 'F1 Race',
+        desc:
+            'React to changing traffic lights with the correct pedal as fast as you can.',
+        icon: Icons.sports_motorsports,
+        timeRequired: 400,
+        penaltyTime: 1050,
+      ),
     ];
   }
 
