@@ -776,6 +776,8 @@ class _HomePageState extends State<HomePage> {
         return 'color_frames_count';
       case 27:
         return 'more_100';
+      case 28:
+        return 'rotation';
       default:
         return null; // Games without analytics yet
     }
@@ -841,6 +843,8 @@ class _HomePageState extends State<HomePage> {
         return 'Color Frames Count';
       case 'more_100':
         return 'More 100';
+      case 'rotation':
+        return 'Rotation';
       default:
         return null;
     }

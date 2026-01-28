@@ -270,6 +270,16 @@ class ExerciseData {
         timeRequired: 600,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 28,
+        categoryId: 4,
+        name: 'Rotation',
+        desc:
+            'Memorize the red dots and find them again after the grid slowly rotates.',
+        icon: Icons.rotate_90_degrees_ccw,
+        timeRequired: 3000,
+        penaltyTime: 1000,
+      ),
     ];
   }
 

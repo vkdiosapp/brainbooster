@@ -26,6 +26,7 @@ import '../pages/same_number_page.dart';
 import '../pages/same_shape_page.dart';
 import '../pages/color_frames_count_page.dart';
 import '../pages/more_100_page.dart';
+import '../pages/rotation_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -336,6 +337,17 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => More100Page(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 28:
+        // Rotation game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => RotationPage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),
