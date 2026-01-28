@@ -778,6 +778,8 @@ class _HomePageState extends State<HomePage> {
         return 'more_100';
       case 28:
         return 'rotation';
+      case 29:
+        return 'detect_direction';
       default:
         return null; // Games without analytics yet
     }
@@ -845,6 +847,8 @@ class _HomePageState extends State<HomePage> {
         return 'More 100';
       case 'rotation':
         return 'Rotation';
+      case 'detect_direction':
+        return 'Detect Direction';
       default:
         return null;
     }

@@ -280,6 +280,16 @@ class ExerciseData {
         timeRequired: 3000,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 29,
+        categoryId: 4,
+        name: 'Detect Direction',
+        desc:
+            'Find the most common direction arrows in the grid and tap the correct direction.',
+        icon: Icons.navigation,
+        timeRequired: 500,
+        penaltyTime: 1000,
+      ),
     ];
   }
 

@@ -27,6 +27,7 @@ import '../pages/same_shape_page.dart';
 import '../pages/color_frames_count_page.dart';
 import '../pages/more_100_page.dart';
 import '../pages/rotation_page.dart';
+import '../pages/detect_direction_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -348,6 +349,17 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => RotationPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 29:
+        // Detect Direction game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => DetectDirectionPage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),
