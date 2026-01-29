@@ -100,6 +100,7 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
   @override
   Widget build(BuildContext context) {
     final averageTime = _calculateAverage();
+    final isDark = AppTheme.isDark(context);
     // Determine exercise ID (falls back to Color Change for legacy behavior)
     final exerciseId =
         widget.exerciseId ??
@@ -204,15 +205,17 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppTheme.cardColor(context),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFFE2E8F0),
+                            color: AppTheme.borderColor(context),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: AppTheme.shadowColor(
+                                opacity: isDark ? 0.2 : 0.05,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -220,13 +223,13 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                         ),
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               'AVERAGE RESULT',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 2.5,
-                                color: Color(0xFF94A3B8),
+                                color: AppTheme.textTertiary(context),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -234,20 +237,20 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                             if (exerciseId == 22)
                               Text(
                                 '${_formatMilliseconds(averageTime)} clicks',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF0F172A),
+                                  color: AppTheme.textPrimary(context),
                                   letterSpacing: -0.5,
                                 ),
                               )
                             else
                               Text(
                                 '${_formatMilliseconds(averageTime)} milliseconds',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF0F172A),
+                                  color: AppTheme.textPrimary(context),
                                   letterSpacing: -0.5,
                                 ),
                               ),
@@ -262,10 +265,10 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                                     metTarget
                                         ? 'GREAT JOB! YOU MET THE TARGET.'
                                         : 'TRY AGAIN, YOU CAN DO BETTER. THE AVERAGE CLICKS ARE REQUIRED TO BE AT LEAST ${_formatMilliseconds(clickLimitMinTaps)} CLICKS.',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
-                                      color: Color(0xFF64748B),
+                                      color: AppTheme.textSecondary(context),
                                       height: 1.5,
                                     ),
                                     textAlign: TextAlign.center,
@@ -277,10 +280,10 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                                 averageTime < defaultTimeRequired
                                     ? 'GREAT JOB! YOU MET THE TARGET.'
                                     : 'TRY AGAIN, YOU CAN DO BETTER. THE AVERAGE TIME IS REQUIRED TO BE LESS THAN ${_formatMilliseconds(defaultTimeRequired)} MILLISECONDS',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF64748B),
+                                  color: AppTheme.textSecondary(context),
                                   height: 1.5,
                                 ),
                                 textAlign: TextAlign.center,
@@ -297,10 +300,10 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                             children: [
                               Text(
                                 'REPETITION ${result.roundNumber}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0F172A),
+                                  color: AppTheme.textPrimary(context),
                                 ),
                               ),
                               const Spacer(),
@@ -314,8 +317,8 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: result.isFailed
-                                        ? Colors.red
-                                        : const Color(0xFF0F172A),
+                                        ? AppTheme.errorColor
+                                        : AppTheme.textPrimary(context),
                                   ),
                                 )
                               else
@@ -327,8 +330,8 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: result.isFailed
-                                        ? Colors.red
-                                        : const Color(0xFF0F172A),
+                                        ? AppTheme.errorColor
+                                        : AppTheme.textPrimary(context),
                                   ),
                                 ),
                             ],
@@ -361,27 +364,29 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppTheme.cardColor(context),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: AppTheme.borderColor(context),
                                 width: 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: AppTheme.shadowColor(
+                                    opacity: isDark ? 0.2 : 0.05,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
                                 'GO TO MENU',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0F172A),
+                                  color: AppTheme.textPrimary(context),
                                   letterSpacing: 1.0,
                                 ),
                               ),
@@ -405,27 +410,29 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppTheme.cardColor(context),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: AppTheme.borderColor(context),
                                 width: 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: AppTheme.shadowColor(
+                                    opacity: isDark ? 0.2 : 0.05,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
                                 'TRY AGAIN',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0F172A),
+                                  color: AppTheme.textPrimary(context),
                                   letterSpacing: 1.0,
                                 ),
                               ),
