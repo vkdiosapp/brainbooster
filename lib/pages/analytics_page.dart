@@ -642,12 +642,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 ),
                                 const SizedBox(height: 24),
                                 // Session History
-                                const Text(
+                                Text(
                                   'Session History',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0F172A),
+                                    color: AppTheme.textPrimary(context),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
