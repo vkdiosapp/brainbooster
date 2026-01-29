@@ -260,12 +260,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: const Color(0xFFF1F5F9),
+                                    color: AppTheme.buttonBackground(context),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.share,
                                     size: 20,
-                                    color: Color(0xFF0F172A),
+                                    color: AppTheme.iconColor(context),
                                   ),
                                 ),
                               ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import 'language_settings.dart';
 import 'home_page.dart';
 import 'app_localizations_helper.dart';
 import 'pages/login_page.dart';
 import 'widgets/gradient_background.dart';
+import 'theme/app_theme.dart';
 
 class LanguageSelectionPage extends StatefulWidget {
   const LanguageSelectionPage({super.key});
@@ -81,23 +81,22 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final accentColor = AppTheme.primaryColor;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardColor(context),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF6366F1)
-                : const Color(0xFFE2E8F0),
+            color: isSelected ? accentColor : AppTheme.borderColor(context),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: const Color(0xFF6366F1).withOpacity(0.2),
+                color: accentColor.withOpacity(0.2),
                 blurRadius: 12,
                 spreadRadius: 0,
                 offset: const Offset(0, 4),
@@ -115,20 +114,21 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   }
 
   Widget _buildCustomRadio({required bool isSelected}) {
+    final accentColor = AppTheme.primaryColor;
     return Container(
       width: 24,
       height: 24,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFCBD5E1),
+          color: isSelected ? accentColor : AppTheme.borderColor(context),
           width: 2,
         ),
-        color: isSelected ? const Color(0xFF6366F1) : Colors.white,
+        color: isSelected ? accentColor : AppTheme.cardColor(context),
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                  color: accentColor.withOpacity(0.3),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
@@ -162,7 +162,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                 ),
                 child: Row(
                   children: [
-                    // Back button - left aligned with frosted glass effect
+                    // Back button - match Analytics page style
                     GestureDetector(
                       onTap: () {
                         if (Navigator.of(context).canPop()) {
@@ -178,56 +178,30 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                       child: Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.4),
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.6),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.8),
-                              blurRadius: 1,
-                              offset: const Offset(0, 1),
-                              blurStyle: BlurStyle.inner,
-                            ),
-                          ],
+                          color: Colors.transparent,
                         ),
-                        child: ClipOval(
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: const Icon(
-                              Icons.arrow_back,
-                              color: Color(0xFF475569),
-                              size: 20,
-                            ),
-                          ),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 20,
+                          color: AppTheme.iconColor(context),
                         ),
                       ),
                     ),
-                    // Spacer to center the title
-                    const Spacer(),
-                    // Title - centered on screen
-                    Text(
-                      l10n.languages,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.languages,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          color: AppTheme.textPrimary(context),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
                       ),
                     ),
-                    // Spacer to balance the back button
-                    const Spacer(),
-                    // Invisible placeholder to balance the back button width
-                    const SizedBox(width: 40),
                   ],
                 ),
               ),
@@ -255,8 +229,8 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                           ),
                           child: Text(
                             letter,
-                            style: const TextStyle(
-                              color: Color(0xFF94A3B8),
+                            style: TextStyle(
+                              color: AppTheme.textSecondary(context),
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 2.0,
@@ -290,8 +264,10 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                                                 name,
                                                 style: TextStyle(
                                                   color: isSelected
-                                                      ? const Color(0xFF6366F1)
-                                                      : const Color(0xFF334155),
+                                                      ? AppTheme.primaryColor
+                                                      : AppTheme.textPrimary(
+                                                          context,
+                                                        ),
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w700,
                                                   height: 1.0,
@@ -300,8 +276,10 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                                               const SizedBox(height: 4),
                                               Text(
                                                 native,
-                                                style: const TextStyle(
-                                                  color: Color(0xFF94A3B8),
+                                                style: TextStyle(
+                                                  color: AppTheme.textSecondary(
+                                                    context,
+                                                  ),
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -312,8 +290,10 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                                             name,
                                             style: TextStyle(
                                               color: isSelected
-                                                  ? const Color(0xFF6366F1)
-                                                  : const Color(0xFF334155),
+                                                  ? AppTheme.primaryColor
+                                                  : AppTheme.textPrimary(
+                                                      context,
+                                                    ),
                                               fontSize: 16,
                                               fontWeight: FontWeight.w700,
                                             ),

@@ -312,10 +312,13 @@ class BaseGamePage extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   IconButton(
-                    icon: const Icon(Icons.refresh),
+                    icon: Icon(
+                      Icons.refresh,
+                      color: AppTheme.iconColor(context),
+                    ),
                     onPressed: callbacks.onReset,
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.4),
+                      backgroundColor: AppTheme.buttonBackground(context),
                       shape: const CircleBorder(),
                       padding: const EdgeInsets.all(8),
                     ),
