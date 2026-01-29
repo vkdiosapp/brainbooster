@@ -11,6 +11,13 @@ class DifficultySelector extends StatelessWidget {
   final String normalLabel;
   final String advancedLabel;
   final double gap;
+  final bool? reverseEnabled;
+  final ValueChanged<bool>? onReverseChanged;
+  final String reverseLabel;
+  final bool? notSequenceEnabled;
+  final ValueChanged<bool>? onNotSequenceChanged;
+  final String notSequenceLabel;
+  final double optionsSpacing;
 
   const DifficultySelector({
     super.key,
@@ -26,6 +33,13 @@ class DifficultySelector extends StatelessWidget {
     this.normalLabel = 'Normal',
     this.advancedLabel = 'Advanced',
     this.gap = 16,
+    this.reverseEnabled,
+    this.onReverseChanged,
+    this.reverseLabel = 'Reverse',
+    this.notSequenceEnabled,
+    this.onNotSequenceChanged,
+    this.notSequenceLabel = 'Not Sequence',
+    this.optionsSpacing = 24,
   });
 
   @override
@@ -85,6 +99,10 @@ class DifficultySelector extends StatelessWidget {
       return Padding(padding: outerPadding!, child: optionsRow);
     }
 
+    final showExtraOptions =
+        reverseEnabled != null && onReverseChanged != null ||
+            notSequenceEnabled != null && onNotSequenceChanged != null;
+
     final inner = Container(
       padding: contentPadding,
       decoration: BoxDecoration(
@@ -99,7 +117,41 @@ class DifficultySelector extends StatelessWidget {
           ),
         ],
       ),
-      child: optionsRow,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          optionsRow,
+          if (showExtraOptions) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (reverseEnabled != null && onReverseChanged != null)
+                  _buildOptionToggle(
+                    context,
+                    label: reverseLabel,
+                    value: reverseEnabled!,
+                    onChanged: onReverseChanged!,
+                  ),
+                if (reverseEnabled != null &&
+                    onReverseChanged != null &&
+                    notSequenceEnabled != null &&
+                    onNotSequenceChanged != null)
+                  SizedBox(width: optionsSpacing),
+                if (notSequenceEnabled != null &&
+                    onNotSequenceChanged != null)
+                  _buildOptionToggle(
+                    context,
+                    label: notSequenceLabel,
+                    value: notSequenceEnabled!,
+                    onChanged: onNotSequenceChanged!,
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
     if (outerPadding == null) {
       return inner;
@@ -147,6 +199,36 @@ class DifficultySelector extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOptionToggle(
+    BuildContext context, {
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final isDark = AppTheme.isDark(context);
+    final textColor = isDark ? AppTheme.textPrimary(context) : const Color(0xFF475569);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Checkbox(
+          value: value,
+          onChanged: (newValue) => onChanged(newValue ?? false),
+          activeColor: const Color(0xFF475569),
+          checkColor: Colors.white,
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
+      ],
     );
   }
 }

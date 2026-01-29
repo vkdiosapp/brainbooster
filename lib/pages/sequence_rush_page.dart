@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/game_session.dart';
@@ -10,7 +9,6 @@ import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
 import '../widgets/difficulty_selector.dart';
 import '../data/exercise_data.dart';
-import '../theme/app_theme.dart';
 import 'color_change_results_page.dart';
 
 class SequenceRushPage extends StatefulWidget {
@@ -328,102 +326,27 @@ class _SequenceRushPageState extends State<SequenceRushPage> {
   }
 
   Widget _buildGridSizeSelector() {
-    final isDark = AppTheme.isDark(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.cardColor(context).withOpacity(isDark ? 0.6 : 0.7),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppTheme.borderColor(
-              context,
-            ).withOpacity(isDark ? 0.6 : 0.4),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.shadowColor(opacity: isDark ? 0.25 : 0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DifficultySelector(
-                  isAdvanced: _gridSize == 5,
-                  onChanged: (value) {
-                    setState(() {
-                      _gridSize = value ? 5 : 4;
-                    });
-                  },
-                  showContainer: false,
-                ),
-                // Reverse and Not Sequence checkboxes row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Checkbox(
-                          value: _isReverse,
-                          onChanged: (value) {
-                            setState(() {
-                              _isReverse = value ?? false;
-                            });
-                          },
-                          activeColor: const Color(0xFF475569),
-                          checkColor: Colors.white,
-                        ),
-                        const Text(
-                          'Reverse',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 24),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Checkbox(
-                          value: _isNotSequence,
-                          onChanged: (value) {
-                            setState(() {
-                              _isNotSequence = value ?? false;
-                            });
-                          },
-                          activeColor: const Color(0xFF475569),
-                          checkColor: Colors.white,
-                        ),
-                        const Text(
-                          'Not Sequence',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+      child: DifficultySelector(
+        isAdvanced: _gridSize == 5,
+        onChanged: (value) {
+          setState(() {
+            _gridSize = value ? 5 : 4;
+          });
+        },
+        reverseEnabled: _isReverse,
+        onReverseChanged: (value) {
+          setState(() {
+            _isReverse = value;
+          });
+        },
+        notSequenceEnabled: _isNotSequence,
+        onNotSequenceChanged: (value) {
+          setState(() {
+            _isNotSequence = value;
+          });
+        },
       ),
     );
   }
