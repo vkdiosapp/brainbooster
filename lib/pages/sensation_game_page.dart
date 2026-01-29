@@ -331,21 +331,25 @@ class _SensationGamePageState extends State<SensationGamePage> {
         contentBuilder: (state, context) {
           return Stack(
             children: [
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFFDBEAFE).withOpacity(0.4),
-                        const Color(0xFFE2E8F0).withOpacity(0.4),
-                        const Color(0xFFFCE7F3).withOpacity(0.4),
-                      ],
+              if (!(state.isPlaying &&
+                  (state.isWaiting || state.isRoundActive) &&
+                  state.errorMessage == null &&
+                  state.reactionTimeMessage == null))
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFDBEAFE).withOpacity(0.4),
+                          const Color(0xFFE2E8F0).withOpacity(0.4),
+                          const Color(0xFFFCE7F3).withOpacity(0.4),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
               if (state.isPlaying &&
                   (state.isWaiting || state.isRoundActive) &&
                   state.errorMessage == null &&
@@ -365,7 +369,7 @@ class _SensationGamePageState extends State<SensationGamePage> {
             ],
           );
         },
-        waitingTextBuilder: (state) => 'WAIT...',
+        waitingTextBuilder: (state) => '',
         startButtonText: 'START',
       ),
       useBackdropFilter: true,

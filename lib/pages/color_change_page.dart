@@ -328,7 +328,12 @@ class _ColorChangePageState extends State<ColorChangePage> {
         contentBuilder: (state, context) {
           return Stack(
             children: [
-              if (!_isColorVisible)
+              if (!_isColorVisible &&
+                  !(state.isPlaying &&
+                      state.isWaiting &&
+                      !state.isRoundActive &&
+                      state.errorMessage == null &&
+                      state.reactionTimeMessage == null))
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(

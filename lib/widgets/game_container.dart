@@ -59,7 +59,7 @@ class GameContainer extends StatelessWidget {
           // ),
           BoxShadow(
             color: shadowColor.withOpacity(0.3),
-            blurRadius: isDark ? 24 : 18,
+            blurRadius: 24,
             offset: const Offset(0, 8),
           ),
         ],
