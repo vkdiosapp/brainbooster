@@ -101,7 +101,8 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
   Widget build(BuildContext context) {
     final averageTime = _calculateAverage();
     // Determine exercise ID (falls back to Color Change for legacy behavior)
-    final exerciseId = widget.exerciseId ??
+    final exerciseId =
+        widget.exerciseId ??
         (widget.gameId != null
             ? _getExerciseIdFromGameId(widget.gameId!)
             : null);
@@ -121,7 +122,7 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
     final clickLimitMinTaps = clickLimitExercise.timeRequired;
 
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
+      backgroundColor: GradientBackground.getBackgroundColor(context),
       body: GradientBackground(
         child: SafeArea(
           child: Column(

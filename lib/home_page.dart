@@ -11,6 +11,7 @@ import 'pages/analytics_page.dart';
 import 'navigation/exercise_navigator.dart';
 import 'widgets/gradient_background.dart';
 import '../services/favorites_service.dart';
+import '../theme/app_theme.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -158,7 +159,7 @@ class _HomePageState extends State<HomePage> {
     return PopScope(
       canPop: false, // Prevent back navigation
       child: Scaffold(
-        backgroundColor: GradientBackground.backgroundColor,
+        backgroundColor: GradientBackground.getBackgroundColor(context),
         extendBody: true,
         body: GradientBackground(
           child: SafeArea(
@@ -204,11 +205,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Row(
                         children: [
-                          IconButton(
-                            icon: Icon(
-                              _showSearchField ? Icons.close : Icons.search,
-                            ),
-                            onPressed: () {
+                          GestureDetector(
+                            onTap: () {
                               setState(() {
                                 _showSearchField = !_showSearchField;
                                 if (!_showSearchField) {
@@ -232,24 +230,79 @@ class _HomePageState extends State<HomePage> {
                                 }
                               });
                             },
-                            style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xFFF1F5F9),
-                              shape: const CircleBorder(),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    offset: const Offset(0, 4),
+                                    blurRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                _showSearchField ? Icons.close : Icons.search,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF475569),
+                                size: 20,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
-                          IconButton(
-                            icon: const Icon(Icons.settings),
-                            onPressed: () {
+                          GestureDetector(
+                            onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => const SettingsPage(),
                                 ),
                               );
                             },
-                            style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xFFF1F5F9),
-                              shape: const CircleBorder(),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    offset: const Offset(0, 4),
+                                    blurRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.settings,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF475569),
+                                size: 20,
+                              ),
                             ),
                           ),
                         ],
@@ -1133,10 +1186,10 @@ class _HomePageState extends State<HomePage> {
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppTheme.cardColor(context),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: const Color(0xFFF1F5F9),
+                      color: AppTheme.borderColor(context),
                       width: 1,
                     ),
                   ),
@@ -1145,16 +1198,16 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text(
                         '${index + 1}. ${game['name']!}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
+                          color: AppTheme.textPrimary(context),
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Color(0xFF94A3B8),
+                        color: AppTheme.iconSecondary(context),
                       ),
                     ],
                   ),
@@ -1180,9 +1233,9 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(35),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 0,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -1192,12 +1245,13 @@ class _HomePageState extends State<HomePage> {
               filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.6),
+                  color: AppTheme.cardColor(context).withOpacity(0.9),
                   borderRadius: BorderRadius.circular(35),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 1.5,
+                    color: AppTheme.borderColor(context),
+                    width: 1,
                   ),
+                  boxShadow: AppTheme.cardShadow(),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1250,6 +1304,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildExerciseTabSelector() {
+    final selectedColor = AppTheme.iconColor(context);
+    final unselectedColor = AppTheme.textSecondary(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
@@ -1269,7 +1325,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border(
                   bottom: BorderSide(
                     color: _exerciseTab == 0
-                        ? const Color(0xFF475569)
+                        ? selectedColor
                         : Colors.transparent,
                     width: 4,
                   ),
@@ -1280,7 +1336,7 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF475569),
+                  color: _exerciseTab == 0 ? selectedColor : unselectedColor,
                 ),
               ),
             ),
@@ -1300,7 +1356,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border(
                   bottom: BorderSide(
                     color: _exerciseTab == 1
-                        ? const Color(0xFF475569)
+                        ? selectedColor
                         : Colors.transparent,
                     width: 4,
                   ),
@@ -1311,7 +1367,7 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF475569),
+                  color: _exerciseTab == 1 ? selectedColor : unselectedColor,
                 ),
               ),
             ),

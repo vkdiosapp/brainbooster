@@ -137,11 +137,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
       ),
       child: isSelected
           ? const Center(
-              child: Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 16,
-              ),
+              child: Icon(Icons.check, color: Colors.white, size: 16),
             )
           : null,
     );
@@ -153,7 +149,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
     final sortedKeys = _groupedLanguages.keys.toList()..sort();
 
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
+      backgroundColor: GradientBackground.getBackgroundColor(context),
       body: GradientBackground(
         child: SafeArea(
           child: Column(
@@ -351,25 +347,20 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                             ? const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  Color(0xFF6366F1),
-                                  Color(0xFFA855F7),
-                                ],
+                                colors: [Color(0xFF6366F1), Color(0xFFA855F7)],
                               )
                             : LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.grey[400]!,
-                                  Colors.grey[500]!,
-                                ],
+                                colors: [Colors.grey[400]!, Colors.grey[500]!],
                               ),
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: _selectedLanguageCode != null
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFF6366F1)
-                                      .withOpacity(0.4),
+                                  color: const Color(
+                                    0xFF6366F1,
+                                  ).withOpacity(0.4),
                                   blurRadius: 24,
                                   offset: const Offset(0, 8),
                                 ),

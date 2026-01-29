@@ -189,7 +189,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
+      backgroundColor: GradientBackground.getBackgroundColor(context),
       body: _isLoading
           ? GradientBackground(
               child: const Center(child: CircularProgressIndicator()),
@@ -197,7 +197,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           : Screenshot(
               controller: _screenshotController,
               child: Container(
-                color: GradientBackground.backgroundColor,
+                color: GradientBackground.getBackgroundColor(context),
                 child: GradientBackground(
                   child: SafeArea(
                     child: Column(

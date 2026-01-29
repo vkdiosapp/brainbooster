@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,9 +11,7 @@ import '../models/round_result.dart';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
-import '../widgets/game_container.dart';
-import '../widgets/category_header.dart';
-import '../widgets/gradient_background.dart';
+import '../widgets/base_game_page.dart';
 import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
@@ -429,320 +426,78 @@ class _SoundGamePageState extends State<SoundGamePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
-      body: GradientBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                      ),
-                    ),
-                    const Spacer(),
-                    const Text(
-                      'SOUND',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2.0,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    const Spacer(),
-                    ValueListenableBuilder<int>(
-                      valueListenable: GameSettings.repetitionsNotifier,
-                      builder: (context, numberOfRepetitions, _) {
-                        return Row(
-                          children: [
-                            Text(
-                              _isPlaying
-                                  ? '$_completedRounds / $numberOfRepetitions'
-                                  : '0 / $numberOfRepetitions',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: () {
-                                _resetGame();
-                                setState(() {});
-                              },
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.4),
-                                shape: const CircleBorder(),
-                                padding: const EdgeInsets.all(8),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              // Main content
-              Expanded(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    // Category header
-                    CategoryHeader(
-                      categoryName: widget.categoryName ?? 'Reaction',
-                    ),
-                    const SizedBox(height: 4),
-                    // Title
-                    Text(
-                      _isPlaying
-                          ? (_isWaitingForSound
-                                ? 'Wait for the sound...'
-                                : (_isSoundPlayed
-                                      ? 'TAP NOW!'
-                                      : 'Round $_currentRound'))
-                          : 'Tap when you hear the sound',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    // Main game card - flexible with 20 padding on all sides
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
-                        child: GameContainer(
-                          onTap: _handleTap,
-                          useBackdropFilter: true,
-                          child: Stack(
-                            children: [
-                              // Background gradient blur effect (always shown)
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        const Color(
-                                          0xFFDBEAFE,
-                                        ).withOpacity(0.4),
-                                        const Color(
-                                          0xFFE2E8F0,
-                                        ).withOpacity(0.4),
-                                        const Color(
-                                          0xFFFCE7F3,
-                                        ).withOpacity(0.4),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Error message overlay
-                              if (_errorMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.red.withOpacity(0.9),
-                                    child: Center(
-                                      child: Text(
-                                        _errorMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              // Reaction time message
-                              if (_reactionTimeMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.green.withOpacity(0.8),
-                                    child: Center(
-                                      child: Text(
-                                        _reactionTimeMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              // Start button
-                              if (!_isPlaying &&
-                                  _errorMessage == null &&
-                                  _reactionTimeMessage == null)
-                                Center(
-                                  child: GestureDetector(
-                                    onTap: _handleTap,
-                                    child: const Text(
-                                      'START',
-                                      style: TextStyle(
-                                        fontSize: 48,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 4.0,
-                                        color: Color(0xFF475569),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              // Show "Tap when sound plays" - both while waiting and after sound plays
-                              if (_isPlaying &&
-                                  (_isWaitingForSound || _isSoundPlayed) &&
-                                  _errorMessage == null &&
-                                  _reactionTimeMessage == null)
-                                const Center(
-                                  child: Text(
-                                    'TAP WHEN\nSOUND PLAYS',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF475569),
-                                      letterSpacing: 2.0,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Best session indicator
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFFDBEAFE),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFDBEAFE,
-                                        ).withOpacity(0.8),
-                                        blurRadius: 8,
-                                        spreadRadius: 0,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'BEST SESSION: ${_bestSession}MS',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.5,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Bottom indicator
-              // Padding(
-              //   padding: const EdgeInsets.only(bottom: 32),
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     children: [
-              //       Container(
-              //         width: 6,
-              //         height: 6,
-              //         decoration: BoxDecoration(
-              //           shape: BoxShape.circle,
-              //           color: const Color(0xFFCBD5E1),
-              //         ),
-              //       ),
-              //       const SizedBox(width: 12),
-              //       Container(
-              //         width: 6,
-              //         height: 6,
-              //         decoration: BoxDecoration(
-              //           shape: BoxShape.circle,
-              //           color: const Color(0xFFCBD5E1),
-              //         ),
-              //       ),
-              //       const SizedBox(width: 12),
-              //       Container(
-              //         width: 40,
-              //         height: 6,
-              //         decoration: BoxDecoration(
-              //           borderRadius: BorderRadius.circular(3),
-              //           color: const Color(0xFF94A3B8),
-              //           boxShadow: [
-              //             BoxShadow(
-              //               color: Colors.black.withOpacity(0.1),
-              //               blurRadius: 4,
-              //               offset: const Offset(0, 2),
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-            ],
-          ),
-        ),
+    return BaseGamePage(
+      config: GamePageConfig(
+        gameName: 'Sound',
+        categoryName: widget.categoryName ?? 'Reaction',
+        gameId: 'sound',
+        bestSession: _bestSession,
       ),
+      state: GameState(
+        isPlaying: _isPlaying,
+        isWaiting: _isWaitingForSound,
+        isRoundActive: _isSoundPlayed,
+        currentRound: _currentRound,
+        completedRounds: _completedRounds,
+        errorMessage: _errorMessage,
+        reactionTimeMessage: _reactionTimeMessage,
+      ),
+      callbacks: GameCallbacks(
+        onStart: _startGame,
+        onTap: _handleTap,
+        onReset: () {
+          _resetGame();
+          setState(() {});
+        },
+      ),
+      builders: GameBuilders(
+        titleBuilder: (state) {
+          if (!state.isPlaying) return 'Tap when you hear the sound';
+          if (state.isWaiting) return 'Wait for the sound...';
+          if (state.isRoundActive) return 'TAP NOW!';
+          return 'Round ${state.currentRound}';
+        },
+        contentBuilder: (state, context) {
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFFDBEAFE).withOpacity(0.4),
+                        const Color(0xFFE2E8F0).withOpacity(0.4),
+                        const Color(0xFFFCE7F3).withOpacity(0.4),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (state.isPlaying &&
+                  (state.isWaiting || state.isRoundActive) &&
+                  state.errorMessage == null &&
+                  state.reactionTimeMessage == null)
+                const Center(
+                  child: Text(
+                    'TAP WHEN\nSOUND PLAYS',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF475569),
+                      letterSpacing: 2.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          );
+        },
+        waitingTextBuilder: (state) => 'WAIT...',
+        startButtonText: 'START',
+      ),
+      useBackdropFilter: true,
     );
   }
 }

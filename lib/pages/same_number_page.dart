@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -10,9 +9,7 @@ import '../models/game_session.dart';
 import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
-import '../widgets/category_header.dart';
-import '../widgets/game_container.dart';
-import '../widgets/gradient_background.dart';
+import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
 class SameNumberPage extends StatefulWidget {
@@ -353,341 +350,121 @@ class _SameNumberPageState extends State<SameNumberPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
-      body: GradientBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                      ),
+    return BaseGamePage(
+      config: GamePageConfig(
+        gameName: 'Same Number',
+        categoryName: widget.categoryName ?? 'Memory',
+        gameId: 'same_number',
+        bestSession: _bestSession,
+      ),
+      state: GameState(
+        isPlaying: _isPlaying,
+        isWaiting: _isWaitingForRound,
+        isRoundActive: _isRoundActive,
+        currentRound: _currentRound,
+        completedRounds: _completedRounds,
+        errorMessage: _errorMessage,
+        reactionTimeMessage: _reactionTimeMessage,
+      ),
+      callbacks: GameCallbacks(
+        onStart: _startGame,
+        onReset: () {
+          _resetGame();
+          setState(() {});
+        },
+      ),
+      builders: GameBuilders(
+        titleBuilder: (state) {
+          if (!state.isPlaying) return 'Tap the exact same number';
+          if (state.isWaiting) return 'Wait for the numbers...';
+          if (state.isRoundActive) return 'TAP THE SAME NUMBER!';
+          return 'Round ${state.currentRound}';
+        },
+        contentBuilder: (state, context) {
+          if (_isRoundActive &&
+              _gridNumbers.isNotEmpty &&
+              _targetNumber != null) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
                     ),
-                    const Spacer(),
-                    const Text(
-                      'SAME NUMBER',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2.0,
-                        color: Color(0xFF94A3B8),
-                      ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF475569),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    const Spacer(),
-                    ValueListenableBuilder<int>(
-                      valueListenable: GameSettings.repetitionsNotifier,
-                      builder: (context, numberOfRepetitions, _) {
-                        return Row(
-                          children: [
-                            Text(
-                              _isPlaying
-                                  ? '$_completedRounds / $numberOfRepetitions'
-                                  : '0 / $numberOfRepetitions',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: () {
-                                _resetGame();
-                                setState(() {});
-                              },
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.4),
-                                shape: const CircleBorder(),
-                                padding: const EdgeInsets.all(8),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              // Main content
-              Expanded(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    CategoryHeader(
-                      categoryName: widget.categoryName ?? 'Memory',
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _isPlaying
-                          ? (_isWaitingForRound
-                                ? 'Wait for the numbers...'
-                                : (_isRoundActive
-                                      ? 'TAP THE SAME NUMBER!'
-                                      : 'Round $_currentRound'))
-                          : 'Tap the exact same number',
+                    child: Text(
+                      _targetNumber!,
                       style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 3.0,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
-                        child: GameContainer(
-                          child: Stack(
-                            children: [
-                              if (_isRoundActive &&
-                                  _gridNumbers.isNotEmpty &&
-                                  _targetNumber != null)
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        12,
-                                        12,
-                                        12,
-                                        8,
-                                      ),
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF475569),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Text(
-                                          _targetNumber!,
-                                          style: const TextStyle(
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: 3.0,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: AspectRatio(
-                                            aspectRatio: 1.0,
-                                            child: GridView.builder(
-                                              physics:
-                                                  const NeverScrollableScrollPhysics(),
-                                              gridDelegate:
-                                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                                    crossAxisCount: 2,
-                                                    crossAxisSpacing: 12,
-                                                    mainAxisSpacing: 12,
-                                                  ),
-                                              itemCount: 4,
-                                              itemBuilder: (context, index) {
-                                                return _buildNumberCell(
-                                                  _gridNumbers[index],
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              else
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: !_isRoundActive && !_isPlaying
-                                        ? BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                const Color(
-                                                  0xFFDBEAFE,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFE2E8F0,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFFCE7F3,
-                                                ).withOpacity(0.4),
-                                              ],
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              if (_isWaitingForRound)
-                                const Center(
-                                  child: Text(
-                                    'WAIT...',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF94A3B8),
-                                      letterSpacing: 4.0,
-                                    ),
-                                  ),
-                                ),
-                              if (_errorMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.red.withOpacity(0.9),
-                                    child: Center(
-                                      child: Text(
-                                        _errorMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (_reactionTimeMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.green.withOpacity(0.8),
-                                    child: Center(
-                                      child: Text(
-                                        _reactionTimeMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (!_isPlaying &&
-                                  _errorMessage == null &&
-                                  _reactionTimeMessage == null)
-                                Center(
-                                  child: GestureDetector(
-                                    onTap: _startGame,
-                                    child: const Text(
-                                      'START',
-                                      style: TextStyle(
-                                        fontSize: 48,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 4.0,
-                                        color: Color(0xFF475569),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFFDBEAFE),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFDBEAFE,
-                                        ).withOpacity(0.8),
-                                        blurRadius: 8,
-                                        spreadRadius: 0,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'BEST SESSION: ${_bestSession}MS',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.5,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+                Expanded(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: AspectRatio(
+                        aspectRatio: 1.0,
+                        child: GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
+                          itemCount: 4,
+                          itemBuilder: (context, index) {
+                            return _buildNumberCell(_gridNumbers[index]);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+          return Positioned.fill(
+            child: Container(
+              decoration: !state.isRoundActive && !state.isPlaying
+                  ? BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFDBEAFE).withOpacity(0.4),
+                          const Color(0xFFE2E8F0).withOpacity(0.4),
+                          const Color(0xFFFCE7F3).withOpacity(0.4),
+                        ],
+                      ),
+                    )
+                  : null,
+            ),
+          );
+        },
+        waitingTextBuilder: (state) => 'WAIT...',
+        startButtonText: 'START',
       ),
+      useBackdropFilter: false,
     );
   }
 }

@@ -5,6 +5,7 @@ import '../data/exercise_data.dart';
 import '../navigation/exercise_navigator.dart';
 import '../widgets/gradient_background.dart';
 import '../services/favorites_service.dart';
+import '../theme/app_theme.dart';
 
 class CategoryExercisesPage extends StatefulWidget {
   final Category category;
@@ -38,7 +39,9 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
       _favoriteExerciseIds = FavoritesService.favoritesNotifier.value;
       // Update cache
       for (final exercise in _exercises) {
-        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(exercise.id);
+        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(
+          exercise.id,
+        );
       }
     });
     _filterExercises();
@@ -53,7 +56,9 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
       _favoriteExerciseIds = FavoritesService.favoritesNotifier.value;
       // Update cache
       for (final exercise in _exercises) {
-        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(exercise.id);
+        _favoriteStatusCache[exercise.id] = _favoriteExerciseIds.contains(
+          exercise.id,
+        );
       }
     });
     _filterExercises();
@@ -104,7 +109,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
+      backgroundColor: GradientBackground.getBackgroundColor(context),
       body: GradientBackground(
         child: SafeArea(
           child: Column(
@@ -196,10 +201,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
         decoration: BoxDecoration(
           color: tileData['backgroundColor'] as Color,
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.5),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -255,7 +257,9 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
-                        color: (tileData['textColor'] as Color).withOpacity(0.7),
+                        color: (tileData['textColor'] as Color).withOpacity(
+                          0.7,
+                        ),
                         letterSpacing: 0.5,
                       ),
                       maxLines: 1,
@@ -275,7 +279,9 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: (tileData['iconColor'] as Color).withOpacity(0.2),
+                        color: (tileData['iconColor'] as Color).withOpacity(
+                          0.2,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(
@@ -389,6 +395,8 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
   }
 
   Widget _buildTabSelector() {
+    final selectedColor = AppTheme.iconColor(context);
+    final unselectedColor = AppTheme.textSecondary(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
@@ -408,7 +416,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                 border: Border(
                   bottom: BorderSide(
                     color: _selectedTab == 0
-                        ? const Color(0xFF475569)
+                        ? selectedColor
                         : Colors.transparent,
                     width: 4,
                   ),
@@ -419,7 +427,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF475569),
+                  color: _selectedTab == 0 ? selectedColor : unselectedColor,
                 ),
               ),
             ),
@@ -439,7 +447,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                 border: Border(
                   bottom: BorderSide(
                     color: _selectedTab == 1
-                        ? const Color(0xFF475569)
+                        ? selectedColor
                         : Colors.transparent,
                     width: 4,
                   ),
@@ -450,7 +458,7 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF475569),
+                  color: _selectedTab == 1 ? selectedColor : unselectedColor,
                 ),
               ),
             ),

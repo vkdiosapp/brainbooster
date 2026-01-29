@@ -5,10 +5,7 @@ import '../widgets/gradient_background.dart';
 class TermsWebViewPage extends StatefulWidget {
   final String url;
 
-  const TermsWebViewPage({
-    super.key,
-    required this.url,
-  });
+  const TermsWebViewPage({super.key, required this.url});
 
   @override
   State<TermsWebViewPage> createState() => _TermsWebViewPageState();
@@ -43,7 +40,7 @@ class _TermsWebViewPageState extends State<TermsWebViewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
+      backgroundColor: GradientBackground.getBackgroundColor(context),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -68,9 +65,7 @@ class _TermsWebViewPageState extends State<TermsWebViewPage> {
               Container(
                 color: Colors.white,
                 child: const Center(
-                  child: CircularProgressIndicator(
-                    color: Color(0xFF6366F1),
-                  ),
+                  child: CircularProgressIndicator(color: Color(0xFF6366F1)),
                 ),
               ),
           ],

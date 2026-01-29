@@ -6,6 +6,7 @@ import '../home_page.dart';
 import '../language_selection_page.dart';
 import '../language_settings.dart';
 import 'terms_webview_page.dart';
+import '../theme/app_theme.dart';
 
 class LoginPage extends StatefulWidget {
   final bool isEditMode;
@@ -152,6 +153,8 @@ class _LoginPageState extends State<LoginPage> {
       currentLanguageCode,
     );
 
+    final isDarkMode = AppTheme.isDark(context);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -160,15 +163,11 @@ class _LoginPageState extends State<LoginPage> {
           if (!widget.isEditMode)
             Positioned.fill(
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFFDBEAFE),
-                      Color(0xFFE2E8F0),
-                      Color(0xFFFCE7F3),
-                    ],
+                    colors: AppTheme.gradientColors(context),
                   ),
                 ),
               ),
@@ -206,21 +205,25 @@ class _LoginPageState extends State<LoginPage> {
                                           widget.isEditMode
                                               ? 'Welcome Again to'
                                               : 'Welcome to',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 36,
                                             fontWeight: FontWeight.w800,
                                             letterSpacing: -0.025,
-                                            color: Color(0xFF0F172A),
+                                            color: AppTheme.textPrimary(
+                                              context,
+                                            ),
                                             height: 1.2,
                                           ),
                                         ),
-                                        const Text(
+                                        Text(
                                           'Brain Booster',
                                           style: TextStyle(
                                             fontSize: 42,
                                             fontWeight: FontWeight.w800,
                                             letterSpacing: -0.025,
-                                            color: Color(0xFF0F172A),
+                                            color: AppTheme.textPrimary(
+                                              context,
+                                            ),
                                             height: 1.2,
                                           ),
                                         ),
@@ -251,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
                                           vertical: 8,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: AppTheme.cardColor(context),
                                           borderRadius: BorderRadius.circular(
                                             999,
                                           ),
@@ -280,10 +283,12 @@ class _LoginPageState extends State<LoginPage> {
                                             const SizedBox(width: 6),
                                             Text(
                                               currentLanguageName,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w600,
-                                                color: Color(0xFF334155),
+                                                color: AppTheme.textSecondary(
+                                                  context,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -299,7 +304,7 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[500],
+                                    color: AppTheme.textSecondary(context),
                                   ),
                                 ),
                             ],
@@ -309,24 +314,26 @@ class _LoginPageState extends State<LoginPage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.only(left: 8, bottom: 6),
                                 child: Text(
                                   'First Name',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF64748B),
+                                    color: AppTheme.textSecondary(context),
                                   ),
                                 ),
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppTheme.cardColor(context),
                                   borderRadius: BorderRadius.circular(32),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
+                                      color: AppTheme.shadowColor(
+                                        opacity: isDarkMode ? 0.2 : 0.05,
+                                      ),
                                       blurRadius: 20,
                                       offset: const Offset(0, -2),
                                     ),
@@ -344,11 +351,11 @@ class _LoginPageState extends State<LoginPage> {
                                   decoration: InputDecoration(
                                     hintText: 'Enter your first name',
                                     hintStyle: TextStyle(
-                                      color: Colors.grey[400],
+                                      color: AppTheme.textTertiary(context),
                                       fontSize: 16,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
+                                    fillColor: AppTheme.cardColor(context),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(32),
                                       borderSide: BorderSide.none,
@@ -366,10 +373,10 @@ class _LoginPageState extends State<LoginPage> {
                                       vertical: 20,
                                     ),
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: Color(0xFF0F172A),
+                                    color: AppTheme.textPrimary(context),
                                   ),
                                 ),
                               ),
@@ -394,24 +401,26 @@ class _LoginPageState extends State<LoginPage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.only(left: 8, bottom: 6),
                                 child: Text(
                                   'Last Name',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF64748B),
+                                    color: AppTheme.textSecondary(context),
                                   ),
                                 ),
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppTheme.cardColor(context),
                                   borderRadius: BorderRadius.circular(32),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
+                                      color: AppTheme.shadowColor(
+                                        opacity: isDarkMode ? 0.2 : 0.05,
+                                      ),
                                       blurRadius: 20,
                                       offset: const Offset(0, -2),
                                     ),
@@ -429,11 +438,11 @@ class _LoginPageState extends State<LoginPage> {
                                   decoration: InputDecoration(
                                     hintText: 'Enter your last name',
                                     hintStyle: TextStyle(
-                                      color: Colors.grey[400],
+                                      color: AppTheme.textTertiary(context),
                                       fontSize: 16,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
+                                    fillColor: AppTheme.cardColor(context),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(32),
                                       borderSide: BorderSide.none,
@@ -451,10 +460,10 @@ class _LoginPageState extends State<LoginPage> {
                                       vertical: 20,
                                     ),
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: Color(0xFF0F172A),
+                                    color: AppTheme.textPrimary(context),
                                   ),
                                 ),
                               ),
@@ -479,24 +488,26 @@ class _LoginPageState extends State<LoginPage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.only(left: 8, bottom: 6),
                                 child: Text(
                                   'Birthdate',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF64748B),
+                                    color: AppTheme.textSecondary(context),
                                   ),
                                 ),
                               ),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppTheme.cardColor(context),
                                   borderRadius: BorderRadius.circular(32),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
+                                      color: AppTheme.shadowColor(
+                                        opacity: isDarkMode ? 0.2 : 0.05,
+                                      ),
                                       blurRadius: 20,
                                       offset: const Offset(0, -2),
                                     ),
@@ -508,11 +519,11 @@ class _LoginPageState extends State<LoginPage> {
                                   decoration: InputDecoration(
                                     hintText: 'Select your birthdate',
                                     hintStyle: TextStyle(
-                                      color: Colors.grey[400],
+                                      color: AppTheme.textTertiary(context),
                                       fontSize: 16,
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
+                                    fillColor: AppTheme.cardColor(context),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(32),
                                       borderSide: BorderSide.none,
@@ -529,19 +540,19 @@ class _LoginPageState extends State<LoginPage> {
                                       horizontal: 24,
                                       vertical: 20,
                                     ),
-                                    suffixIcon: const Padding(
+                                    suffixIcon: Padding(
                                       padding: EdgeInsets.only(right: 24),
                                       child: Icon(
                                         Icons.calendar_today,
-                                        color: Color(0xFF94A3B8),
+                                        color: AppTheme.iconSecondary(context),
                                         size: 20,
                                       ),
                                     ),
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: Color(0xFF0F172A),
+                                    color: AppTheme.textPrimary(context),
                                   ),
                                   onTap: () {
                                     _selectDate(context).then((_) {
@@ -639,7 +650,9 @@ class _LoginPageState extends State<LoginPage> {
                                             text: TextSpan(
                                               style: TextStyle(
                                                 fontSize: 14,
-                                                color: Colors.grey[600],
+                                                color: AppTheme.textSecondary(
+                                                  context,
+                                                ),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                               children: [

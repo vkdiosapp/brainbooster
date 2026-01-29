@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../language_selection_page.dart';
 import '../game_settings.dart';
 import '../services/game_history_service.dart';
+import '../services/theme_service.dart';
+import '../theme/app_theme.dart';
 import '../widgets/gradient_background.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -22,16 +24,10 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardColor(context),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              offset: const Offset(0, 4),
-              blurRadius: 0,
-            ),
-          ],
+          border: Border.all(color: AppTheme.borderColor(context), width: 1),
+          boxShadow: AppTheme.cardShadow(),
         ),
         child: child,
       ),
@@ -41,7 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
+      backgroundColor: GradientBackground.getBackgroundColor(context),
       body: GradientBackground(
         child: SafeArea(
           child: Column(
@@ -63,10 +59,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Theme.of(context).cardColor.withOpacity(0.4),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Theme.of(context).cardColor.withOpacity(0.6),
                             width: 1,
                           ),
                           boxShadow: [
@@ -76,7 +72,9 @@ class _SettingsPageState extends State<SettingsPage> {
                               offset: const Offset(0, 4),
                             ),
                             BoxShadow(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Theme.of(
+                                context,
+                              ).cardColor.withOpacity(0.8),
                               blurRadius: 1,
                               offset: const Offset(0, 1),
                               blurStyle: BlurStyle.inner,
@@ -86,9 +84,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: ClipOval(
                           child: BackdropFilter(
                             filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: const Icon(
+                            child: Icon(
                               Icons.arrow_back,
-                              color: Color(0xFF475569),
+                              color: AppTheme.iconColor(context),
                               size: 20,
                             ),
                           ),
@@ -98,11 +96,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     // Spacer to center the title
                     const Spacer(),
                     // Title - centered on screen
-                    const Text(
+                    Text(
                       'Settings',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Color(0xFF0F172A),
+                        color: AppTheme.textPrimary(context),
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
@@ -140,48 +138,53 @@ class _SettingsPageState extends State<SettingsPage> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6366F1).withOpacity(0.1),
+                                color: AppTheme.primaryWithOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
                                 Icons.language,
-                                color: Color(0xFF6366F1),
+                                color: AppTheme.primaryColor,
                                 size: 20,
                               ),
                             ),
                             const SizedBox(width: 16),
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'Language',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0F172A),
+                                  color: AppTheme.textPrimary(context),
                                 ),
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.iconSecondary(context),
                               size: 20,
                             ),
                           ],
                         ),
                       ),
                     ),
-                    // Sound toggle
+                    // Theme toggle
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: GameSettings.soundEnabledNotifier,
-                        builder: (context, soundEnabled, _) {
+                      child: ValueListenableBuilder<ThemeMode>(
+                        valueListenable: ThemeService.themeModeNotifier,
+                        builder: (context, themeMode, _) {
+                          final isDark = themeMode == ThemeMode.dark;
                           return Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(32),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
                                 width: 1,
                               ),
                               boxShadow: [
@@ -197,9 +200,75 @@ class _SettingsPageState extends State<SettingsPage> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF6366F1,
-                                    ).withOpacity(0.1),
+                                    color: AppTheme.primaryWithOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    isDark ? Icons.dark_mode : Icons.light_mode,
+                                    color: const Color(0xFF6366F1),
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    'Dark Theme',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary(context),
+                                    ),
+                                  ),
+                                ),
+                                // Toggle switch
+                                Switch(
+                                  value: isDark,
+                                  onChanged: (value) {
+                                    ThemeService.setThemeMode(
+                                      value ? ThemeMode.dark : ThemeMode.light,
+                                    );
+                                  },
+                                  activeColor: AppTheme.primaryColor,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    // Sound toggle
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: GameSettings.soundEnabledNotifier,
+                        builder: (context, soundEnabled, _) {
+                          return Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryWithOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
@@ -209,13 +278,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 16),
-                                const Expanded(
+                                Expanded(
                                   child: Text(
                                     'Sound',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFF0F172A),
+                                      color: AppTheme.textPrimary(context),
                                     ),
                                   ),
                                 ),
@@ -225,7 +294,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   onChanged: (value) {
                                     GameSettings.setSoundEnabled(value);
                                   },
-                                  activeColor: const Color(0xFF6366F1),
+                                  activeColor: AppTheme.primaryColor,
                                 ),
                               ],
                             ),
@@ -242,10 +311,14 @@ class _SettingsPageState extends State<SettingsPage> {
                           return Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(32),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
                                 width: 1,
                               ),
                               boxShadow: [
@@ -261,9 +334,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF6366F1,
-                                    ).withOpacity(0.1),
+                                    color: AppTheme.primaryWithOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
@@ -273,13 +344,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 16),
-                                const Expanded(
+                                Expanded(
                                   child: Text(
                                     'Number of repetition in game',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFF0F172A),
+                                      color: AppTheme.textPrimary(context),
                                     ),
                                   ),
                                 ),
@@ -292,9 +363,20 @@ class _SettingsPageState extends State<SettingsPage> {
                                       );
                                     }
                                   },
-                                  icon: const Icon(Icons.remove),
+                                  icon: Icon(
+                                    Icons.remove,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF475569),
+                                  ),
                                   style: IconButton.styleFrom(
-                                    backgroundColor: const Color(0xFFF1F5F9),
+                                    backgroundColor:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
                                     shape: const CircleBorder(),
                                     padding: const EdgeInsets.all(8),
                                   ),
@@ -307,9 +389,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF6366F1,
-                                    ).withOpacity(0.1),
+                                    color: AppTheme.primaryWithOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -329,9 +409,20 @@ class _SettingsPageState extends State<SettingsPage> {
                                       repetitions + 1,
                                     );
                                   },
-                                  icon: const Icon(Icons.add),
+                                  icon: Icon(
+                                    Icons.add,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF475569),
+                                  ),
                                   style: IconButton.styleFrom(
-                                    backgroundColor: const Color(0xFFF1F5F9),
+                                    backgroundColor:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9),
                                     shape: const CircleBorder(),
                                     padding: const EdgeInsets.all(8),
                                   ),
@@ -351,32 +442,39 @@ class _SettingsPageState extends State<SettingsPage> {
                           final confirmed = await showDialog<bool>(
                             context: context,
                             builder: (context) => AlertDialog(
+                              backgroundColor: Theme.of(context).cardColor,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              title: const Text(
+                              title: Text(
                                 'Clear Analytics Data',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
                                 ),
                               ),
-                              content: const Text(
+                              content: Text(
                                 'Are you sure you want to delete all analytics data for all games? This action cannot be undone.',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Color(0xFF64748B),
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall?.color,
                                 ),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.of(context).pop(false),
-                                  child: const Text(
+                                  child: Text(
                                     'Cancel',
                                     style: TextStyle(
-                                      color: Color(0xFF94A3B8),
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.color,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -384,10 +482,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.of(context).pop(true),
-                                  child: const Text(
+                                  child: Text(
                                     'Clear',
                                     style: TextStyle(
-                                      color: Color(0xFFEF4444),
+                                      color: AppTheme.errorColor,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -438,13 +536,15 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                             ),
                             const SizedBox(width: 16),
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'Clear Analytics Data',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0F172A),
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
                                 ),
                               ),
                             ),

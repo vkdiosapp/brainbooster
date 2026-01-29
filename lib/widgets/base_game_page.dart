@@ -3,6 +3,7 @@ import 'game_container.dart';
 import 'category_header.dart';
 import 'gradient_background.dart';
 import '../game_settings.dart';
+import '../theme/app_theme.dart';
 
 /// Configuration for a game page
 class GamePageConfig {
@@ -68,7 +69,8 @@ class GameBuilders {
   final String? startButtonText;
 
   /// Optional: Builds content between title and game container
-  final Widget Function(GameState state, BuildContext context)? middleContentBuilder;
+  final Widget Function(GameState state, BuildContext context)?
+  middleContentBuilder;
 
   const GameBuilders({
     required this.titleBuilder,
@@ -97,10 +99,20 @@ class BaseGamePage extends StatelessWidget {
     this.useBackdropFilter = false,
   });
 
+  /// Centralized style for the game label. Change here to affect all games.
+  /// Game pages only provide the label text via [GameBuilders.titleBuilder].
+  static TextStyle gameLabelStyle(BuildContext context) {
+    return TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w800,
+      color: AppTheme.textPrimary(context),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
+      backgroundColor: GradientBackground.getBackgroundColor(context),
       body: GradientBackground(
         child: SafeArea(
           child: Column(
@@ -115,14 +127,10 @@ class BaseGamePage extends StatelessWidget {
                     // Category header
                     CategoryHeader(categoryName: config.categoryName),
                     const SizedBox(height: 4),
-                    // Title
+                    // Game label (text from game page, style from base - change here to affect all games)
                     Text(
                       builders.titleBuilder(state),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
-                      ),
+                      style: BaseGamePage.gameLabelStyle(context),
                       textAlign: TextAlign.center,
                     ),
                     // Optional middle content (between title and game container)
@@ -187,11 +195,11 @@ class BaseGamePage extends StatelessWidget {
                                     onTap: callbacks.onStart,
                                     child: Text(
                                       builders.startButtonText ?? 'START',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 48,
                                         fontWeight: FontWeight.w900,
                                         letterSpacing: 4.0,
-                                        color: Color(0xFF475569),
+                                        color: AppTheme.iconColor(context),
                                       ),
                                     ),
                                   ),
@@ -206,10 +214,10 @@ class BaseGamePage extends StatelessWidget {
                                   child: Text(
                                     builders.waitingTextBuilder?.call(state) ??
                                         'WAIT...',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 32,
                                       fontWeight: FontWeight.w900,
-                                      color: Color(0xFF94A3B8),
+                                      color: AppTheme.textSecondary(context),
                                       letterSpacing: 4.0,
                                     ),
                                   ),
@@ -246,10 +254,10 @@ class BaseGamePage extends StatelessWidget {
                           ),
                           child: Text(
                             'BEST SESSION: ${config.bestSession}ms',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF475569),
+                              color: AppTheme.iconColor(context),
                               letterSpacing: 1.0,
                             ),
                           ),
@@ -278,11 +286,11 @@ class BaseGamePage extends StatelessWidget {
           const Spacer(),
           Text(
             config.gameName.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w800,
               letterSpacing: 2.0,
-              color: Color(0xFF94A3B8),
+              color: AppTheme.textSecondary(context),
             ),
           ),
           const Spacer(),
@@ -295,10 +303,10 @@ class BaseGamePage extends StatelessWidget {
                     state.isPlaying
                         ? '${state.completedRounds} / $numberOfRepetitions'
                         : '0 / $numberOfRepetitions',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF94A3B8),
+                      color: AppTheme.textSecondary(context),
                     ),
                   ),
                   const SizedBox(width: 12),

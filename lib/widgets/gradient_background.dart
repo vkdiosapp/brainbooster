@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// Reusable gradient background widget for game pages
 /// Provides a consistent radial gradient background across all game pages
 class GradientBackground extends StatelessWidget {
   final Widget child;
 
-  const GradientBackground({
-    super.key,
-    required this.child,
-  });
+  const GradientBackground({super.key, required this.child});
 
-  /// The standard game page gradient
-  static const RadialGradient gameGradient = RadialGradient(
+  /// The standard game page gradient for light theme
+  static const RadialGradient lightGameGradient = RadialGradient(
     center: Alignment.topLeft,
     radius: 1.5,
     colors: [
@@ -23,14 +21,36 @@ class GradientBackground extends StatelessWidget {
     stops: [0.0, 0.3, 0.7, 1.0],
   );
 
-  /// The background color used with the gradient
-  static const Color backgroundColor = Color(0xFFF8FAFC);
+  /// The standard game page gradient for dark theme
+  static const RadialGradient darkGameGradient = RadialGradient(
+    center: Alignment.topLeft,
+    radius: 1.5,
+    colors: [
+      Color(0xFF1E293B),
+      Color(0xFF0F172A),
+      Color(0xFF1E293B),
+      Color(0xFF334155),
+    ],
+    stops: [0.0, 0.3, 0.7, 1.0],
+  );
+
+  /// The background color used with the gradient (light theme)
+  static const Color lightBackgroundColor = Color(0xFFF8FAFC);
+
+  /// The background color used with the gradient (dark theme)
+  static const Color darkBackgroundColor = Color(0xFF0F172A);
+
+  /// Get background color based on theme
+  static Color getBackgroundColor(BuildContext context) {
+    return AppTheme.backgroundColor(context);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
     return Container(
-      decoration: const BoxDecoration(
-        gradient: gameGradient,
+      decoration: BoxDecoration(
+        gradient: isDark ? darkGameGradient : lightGameGradient,
       ),
       child: child,
     );
@@ -58,13 +78,12 @@ class GradientScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor ?? GradientBackground.backgroundColor,
+      backgroundColor:
+          backgroundColor ?? GradientBackground.getBackgroundColor(context),
       extendBody: extendBody,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       appBar: appBar,
-      body: GradientBackground(
-        child: body,
-      ),
+      body: GradientBackground(child: body),
     );
   }
 }

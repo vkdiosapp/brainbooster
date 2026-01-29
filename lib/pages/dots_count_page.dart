@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -10,9 +9,7 @@ import '../models/game_session.dart';
 import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
-import '../widgets/category_header.dart';
-import '../widgets/game_container.dart';
-import '../widgets/gradient_background.dart';
+import '../widgets/base_game_page.dart';
 import 'color_change_results_page.dart';
 
 class DotsCountPage extends StatefulWidget {
@@ -342,396 +339,161 @@ class _DotsCountPageState extends State<DotsCountPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GradientBackground.backgroundColor,
-      body: GradientBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                      ),
-                    ),
-                    const Spacer(),
-                    const Text(
-                      'DOTS COUNT',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2.0,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    const Spacer(),
-                    ValueListenableBuilder<int>(
-                      valueListenable: GameSettings.repetitionsNotifier,
-                      builder: (context, numberOfRepetitions, _) {
-                        return Row(
+    return BaseGamePage(
+      config: GamePageConfig(
+        gameName: 'Dots Count',
+        categoryName: widget.categoryName ?? 'Memory',
+        gameId: 'dots_count',
+        bestSession: _bestSession,
+      ),
+      state: GameState(
+        isPlaying: _isPlaying,
+        isWaiting: _isWaitingForRound,
+        isRoundActive: _isRoundActive,
+        currentRound: _currentRound,
+        completedRounds: _completedRounds,
+        errorMessage: _errorMessage,
+        reactionTimeMessage: _reactionTimeMessage,
+      ),
+      callbacks: GameCallbacks(
+        onStart: _startGame,
+        onReset: () {
+          _resetGame();
+          setState(() {});
+        },
+      ),
+      builders: GameBuilders(
+        titleBuilder: (state) {
+          if (!state.isPlaying) return 'Count the black dots';
+          if (state.isWaiting) return 'Wait for the dots...';
+          if (state.isRoundActive) return 'COUNT THE DOTS AND TAP THE NUMBER!';
+          return 'Round ${state.currentRound}';
+        },
+        contentBuilder: (state, context) {
+          if (_isRoundActive && _options.isNotEmpty && _dotCount > 0) {
+            return Column(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        const dotSize = 16.0;
+                        const squareSize = 16.0;
+                        return Stack(
                           children: [
-                            Text(
-                              _isPlaying
-                                  ? '$_completedRounds / $numberOfRepetitions'
-                                  : '0 / $numberOfRepetitions',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: () {
-                                _resetGame();
-                                setState(() {});
-                              },
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.4),
-                                shape: const CircleBorder(),
-                                padding: const EdgeInsets.all(8),
-                              ),
-                            ),
+                            ..._dotPositions.map((relative) {
+                              final left =
+                                  relative.dx * constraints.maxWidth -
+                                  dotSize / 2;
+                              final top =
+                                  relative.dy * constraints.maxHeight -
+                                  dotSize / 2;
+                              return Positioned(
+                                left: left.clamp(
+                                  0.0,
+                                  constraints.maxWidth - dotSize,
+                                ),
+                                top: top.clamp(
+                                  0.0,
+                                  constraints.maxHeight - dotSize,
+                                ),
+                                child: Container(
+                                  width: dotSize,
+                                  height: dotSize,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black87,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              );
+                            }),
+                            ..._squarePositions.map((relative) {
+                              final left =
+                                  relative.dx * constraints.maxWidth -
+                                  squareSize / 2;
+                              final top =
+                                  relative.dy * constraints.maxHeight -
+                                  squareSize / 2;
+                              return Positioned(
+                                left: left.clamp(
+                                  0.0,
+                                  constraints.maxWidth - squareSize,
+                                ),
+                                top: top.clamp(
+                                  0.0,
+                                  constraints.maxHeight - squareSize,
+                                ),
+                                child: Container(
+                                  width: squareSize,
+                                  height: squareSize,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black87,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              );
+                            }),
                           ],
                         );
                       },
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              // Main content
-              Expanded(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    CategoryHeader(
-                      categoryName: widget.categoryName ?? 'Memory',
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _isPlaying
-                          ? (_isWaitingForRound
-                                ? 'Wait for the dots...'
-                                : (_isRoundActive
-                                      ? 'COUNT THE DOTS AND TAP THE NUMBER!'
-                                      : 'Round $_currentRound'))
-                          : 'Count the black dots',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(35, 20, 35, 20),
-                        child: GameContainer(
-                          child: Stack(
-                            children: [
-                              if (_isRoundActive &&
-                                  _options.isNotEmpty &&
-                                  _dotCount > 0)
-                                Column(
-                                  children: [
-                                    // Top: dots area
-                                    Expanded(
-                                      flex: 2,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12),
-                                        child: LayoutBuilder(
-                                          builder: (context, constraints) {
-                                            const dotSize = 16.0;
-                                            const squareSize = 16.0;
-                                            return Stack(
-                                              children: [
-                                                // Render dots (circles) - these are what we count
-                                                ..._dotPositions.map((
-                                                  relative,
-                                                ) {
-                                                  final left =
-                                                      relative.dx *
-                                                          constraints.maxWidth -
-                                                      dotSize / 2;
-                                                  final top =
-                                                      relative.dy *
-                                                          constraints
-                                                              .maxHeight -
-                                                      dotSize / 2;
-                                                  return Positioned(
-                                                    left: left.clamp(
-                                                      0.0,
-                                                      constraints.maxWidth -
-                                                          dotSize,
-                                                    ),
-                                                    top: top.clamp(
-                                                      0.0,
-                                                      constraints.maxHeight -
-                                                          dotSize,
-                                                    ),
-                                                    child: Container(
-                                                      width: dotSize,
-                                                      height: dotSize,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black87,
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }),
-                                                // Render squares (distractors) - don't count these
-                                                ..._squarePositions.map((
-                                                  relative,
-                                                ) {
-                                                  final left =
-                                                      relative.dx *
-                                                          constraints.maxWidth -
-                                                      squareSize / 2;
-                                                  final top =
-                                                      relative.dy *
-                                                          constraints
-                                                              .maxHeight -
-                                                      squareSize / 2;
-                                                  return Positioned(
-                                                    left: left.clamp(
-                                                      0.0,
-                                                      constraints.maxWidth -
-                                                          squareSize,
-                                                    ),
-                                                    top: top.clamp(
-                                                      0.0,
-                                                      constraints.maxHeight -
-                                                          squareSize,
-                                                    ),
-                                                    child: Container(
-                                                      width: squareSize,
-                                                      height: squareSize,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black87,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              2,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  );
-                                                }),
-                                              ],
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                    // Bottom: options grid (landscape row, each cell square)
-                                    Expanded(
-                                      flex: 1,
-                                      child: Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 20,
-                                            vertical: 12,
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: List.generate(
-                                              4,
-                                              (index) => Expanded(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 6,
-                                                      ),
-                                                  child: AspectRatio(
-                                                    aspectRatio: 1.0,
-                                                    child: _buildOptionCell(
-                                                      _options[index],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              else
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: !_isRoundActive && !_isPlaying
-                                        ? BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                const Color(
-                                                  0xFFDBEAFE,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFE2E8F0,
-                                                ).withOpacity(0.4),
-                                                const Color(
-                                                  0xFFFCE7F3,
-                                                ).withOpacity(0.4),
-                                              ],
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              if (_isWaitingForRound)
-                                const Center(
-                                  child: Text(
-                                    'WAIT...',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF94A3B8),
-                                      letterSpacing: 4.0,
-                                    ),
-                                  ),
-                                ),
-                              if (_errorMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.red.withOpacity(0.9),
-                                    child: Center(
-                                      child: Text(
-                                        _errorMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (_reactionTimeMessage != null)
-                                Positioned.fill(
-                                  child: Container(
-                                    color: Colors.green.withOpacity(0.8),
-                                    child: Center(
-                                      child: Text(
-                                        _reactionTimeMessage!,
-                                        style: const TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 2.0,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (!_isPlaying &&
-                                  _errorMessage == null &&
-                                  _reactionTimeMessage == null)
-                                Center(
-                                  child: GestureDetector(
-                                    onTap: _startGame,
-                                    child: const Text(
-                                      'START',
-                                      style: TextStyle(
-                                        fontSize: 48,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 4.0,
-                                        color: Color(0xFF475569),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFFDBEAFE),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFDBEAFE,
-                                        ).withOpacity(0.8),
-                                        blurRadius: 8,
-                                        spreadRadius: 0,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'BEST SESSION: ${_bestSession}MS',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.5,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          4,
+                          (index) => Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
+                              child: AspectRatio(
+                                aspectRatio: 1.0,
+                                child: _buildOptionCell(_options[index]),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            );
+          }
+          return Positioned.fill(
+            child: Container(
+              decoration: !state.isRoundActive && !state.isPlaying
+                  ? BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFDBEAFE).withOpacity(0.4),
+                          const Color(0xFFE2E8F0).withOpacity(0.4),
+                          const Color(0xFFFCE7F3).withOpacity(0.4),
+                        ],
+                      ),
+                    )
+                  : null,
+            ),
+          );
+        },
+        waitingTextBuilder: (state) => 'WAIT...',
+        startButtonText: 'START',
       ),
+      useBackdropFilter: false,
     );
   }
 }
