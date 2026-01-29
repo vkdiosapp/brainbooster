@@ -1085,13 +1085,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Map<String, dynamic> _getTileDataForExercise(
-    BuildContext context,
-    Exercise exercise,
-    int number,
-  ) {
-    // Pastel colors from HTML
-    final pastelColors = [
+  List<Map<String, dynamic>> _pastelColors() {
+    return [
       {
         'bg': const Color(0xFFE0F2FE), // blue
         'iconColor': const Color(0xFF0EA5E9), // sky-600
@@ -1147,10 +1142,61 @@ class _HomePageState extends State<HomePage> {
         'icon': Icons.psychology,
       },
     ];
+  }
+
+  Map<String, dynamic> _getTileDataForExercise(
+    BuildContext context,
+    Exercise exercise,
+    int number,
+  ) {
+    final pastelColors = _pastelColors();
 
     final colorIndex = (number - 1) % pastelColors.length;
     final baseColor = pastelColors[colorIndex];
     final icon = exercise.icon;
+    final accentColor = baseColor['iconColor'] as Color;
+    final isDark = AppTheme.isDark(context);
+    final backgroundColor = isDark
+        ? Color.alphaBlend(
+            accentColor.withOpacity(0.12),
+            AppTheme.cardColor(context),
+          )
+        : baseColor['bg'] as Color;
+    final iconContainerColor = isDark
+        ? Color.alphaBlend(
+            accentColor.withOpacity(0.18),
+            AppTheme.buttonBackground(context),
+          )
+        : Colors.white.withOpacity(0.8);
+    final textColor = isDark
+        ? AppTheme.textPrimary(context)
+        : baseColor['textColor'] as Color;
+    final secondaryTextColor = isDark
+        ? AppTheme.textSecondary(context)
+        : (baseColor['textColor'] as Color).withOpacity(0.7);
+    final borderColor = isDark
+        ? AppTheme.borderColor(context)
+        : Colors.white.withOpacity(0.5);
+
+    return {
+      'backgroundColor': backgroundColor,
+      'iconColor': accentColor,
+      'textColor': textColor,
+      'secondaryTextColor': secondaryTextColor,
+      'iconContainerColor': iconContainerColor,
+      'borderColor': borderColor,
+      'icon': icon,
+    };
+  }
+
+  Map<String, dynamic> _getStatsTileData(
+    BuildContext context,
+    int number,
+    IconData icon,
+  ) {
+    final pastelColors = _pastelColors();
+    final colorIndex = (number - 1) % pastelColors.length;
+    final baseColor = pastelColors[colorIndex];
     final accentColor = baseColor['iconColor'] as Color;
     final isDark = AppTheme.isDark(context);
     final backgroundColor = isDark
@@ -1204,6 +1250,18 @@ class _HomePageState extends State<HomePage> {
             ...gamesWithAnalytics.asMap().entries.map((entry) {
               final index = entry.key;
               final game = entry.value;
+              final IconData statsIcon;
+              if (_allExercises.isEmpty) {
+                statsIcon = Icons.bar_chart;
+              } else {
+                statsIcon = _allExercises
+                    .firstWhere(
+                      (item) => _getGameIdFromExerciseId(item.id) == game['id'],
+                      orElse: () => _allExercises.first,
+                    )
+                    .icon;
+              }
+              final tileData = _getStatsTileData(context, index + 1, statsIcon);
               return GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
@@ -1217,30 +1275,81 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppTheme.cardColor(context),
-                    borderRadius: BorderRadius.circular(24),
+                    color: tileData['backgroundColor'] as Color,
+                    borderRadius: BorderRadius.circular(32),
                     border: Border.all(
-                      color: AppTheme.borderColor(context),
+                      color: tileData['borderColor'] as Color,
                       width: 1,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.shadowColor(
+                          opacity: AppTheme.isDark(context) ? 0.3 : 0.05,
+                        ),
+                        offset: const Offset(0, 4),
+                        blurRadius: 0,
+                      ),
+                    ],
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${index + 1}. ${game['name']!}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary(context),
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: tileData['iconContainerColor'] as Color,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.shadowColor(
+                                opacity: AppTheme.isDark(context) ? 0.2 : 0.05,
+                              ),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          tileData['icon'] as IconData,
+                          color: tileData['iconColor'] as Color,
+                          size: 28,
                         ),
                       ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${index + 1}. ${game['name']!}'.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: tileData['textColor'] as Color,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'VIEW ANALYTICS',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: tileData['secondaryTextColor'] as Color,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
                       Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: AppTheme.iconSecondary(context),
+                        color: tileData['iconColor'] as Color,
                       ),
                     ],
                   ),
