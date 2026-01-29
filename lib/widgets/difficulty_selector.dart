@@ -69,10 +69,10 @@ class DifficultySelector extends StatelessWidget {
         ? AppTheme.borderColor(context)
         : Colors.white.withOpacity(0.5);
     final shadowColor = AppTheme.shadowColor(opacity: isDark ? 0.3 : 0.05);
-    final selectedBackground = AppTheme.textPrimary(context);
-    final selectedTextColor = AppTheme.cardColor(context);
+    final selectedBackground = Color(0xFF0F172A);
+    final selectedTextColor = Colors.white;
     final unselectedBackground = Colors.white;
-    final unselectedTextColor = AppTheme.textSecondary(context);
+    final unselectedTextColor = Color(0xFF64748B);
 
     final optionsRow = Row(
       mainAxisAlignment: MainAxisAlignment.center,
