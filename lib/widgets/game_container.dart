@@ -52,10 +52,15 @@ class GameContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         border: Border.all(color: borderColor, width: 1),
         boxShadow: [
+          // BoxShadow(
+          //   color: shadowColor,
+          //   blurRadius: 0,
+          //   offset: const Offset(0, 4),
+          // ),
           BoxShadow(
-            color: shadowColor,
-            blurRadius: 0,
-            offset: const Offset(0, 4),
+            color: shadowColor.withOpacity(0.3),
+            blurRadius: isDark ? 24 : 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
