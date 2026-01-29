@@ -11,6 +11,7 @@ class DifficultySelector extends StatelessWidget {
   final String normalLabel;
   final String advancedLabel;
   final double gap;
+  final bool showDifficultyOptions;
   final bool? reverseEnabled;
   final ValueChanged<bool>? onReverseChanged;
   final String reverseLabel;
@@ -18,6 +19,11 @@ class DifficultySelector extends StatelessWidget {
   final ValueChanged<bool>? onNotSequenceChanged;
   final String notSequenceLabel;
   final double optionsSpacing;
+  final int? aimCount;
+  final int aimMin;
+  final int aimMax;
+  final ValueChanged<int>? onAimCountChanged;
+  final double aimSpacing;
 
   const DifficultySelector({
     super.key,
@@ -33,6 +39,7 @@ class DifficultySelector extends StatelessWidget {
     this.normalLabel = 'Normal',
     this.advancedLabel = 'Advanced',
     this.gap = 16,
+    this.showDifficultyOptions = true,
     this.reverseEnabled,
     this.onReverseChanged,
     this.reverseLabel = 'Reverse',
@@ -40,6 +47,11 @@ class DifficultySelector extends StatelessWidget {
     this.onNotSequenceChanged,
     this.notSequenceLabel = 'Not Sequence',
     this.optionsSpacing = 24,
+    this.aimCount,
+    this.aimMin = 1,
+    this.aimMax = 10,
+    this.onAimCountChanged,
+    this.aimSpacing = 24,
   });
 
   @override
@@ -93,15 +105,22 @@ class DifficultySelector extends StatelessWidget {
     );
 
     if (!showContainer) {
+      final columnChildren = _buildContentChildren(context, optionsRow);
+      final content = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: columnChildren,
+      );
       if (outerPadding == null) {
-        return optionsRow;
+        return content;
       }
-      return Padding(padding: outerPadding!, child: optionsRow);
+      return Padding(padding: outerPadding!, child: content);
     }
 
     final showExtraOptions =
         reverseEnabled != null && onReverseChanged != null ||
-            notSequenceEnabled != null && onNotSequenceChanged != null;
+        notSequenceEnabled != null && onNotSequenceChanged != null;
+
+    final showAimControls = aimCount != null && onAimCountChanged != null;
 
     final inner = Container(
       padding: contentPadding,
@@ -119,38 +138,12 @@ class DifficultySelector extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: _buildContentChildren(
+          context,
           optionsRow,
-          if (showExtraOptions) ...[
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (reverseEnabled != null && onReverseChanged != null)
-                  _buildOptionToggle(
-                    context,
-                    label: reverseLabel,
-                    value: reverseEnabled!,
-                    onChanged: onReverseChanged!,
-                  ),
-                if (reverseEnabled != null &&
-                    onReverseChanged != null &&
-                    notSequenceEnabled != null &&
-                    onNotSequenceChanged != null)
-                  SizedBox(width: optionsSpacing),
-                if (notSequenceEnabled != null &&
-                    onNotSequenceChanged != null)
-                  _buildOptionToggle(
-                    context,
-                    label: notSequenceLabel,
-                    value: notSequenceEnabled!,
-                    onChanged: onNotSequenceChanged!,
-                  ),
-              ],
-            ),
-          ],
-        ],
+          showExtraOptions: showExtraOptions,
+          showAimControls: showAimControls,
+        ),
       ),
     );
     if (outerPadding == null) {
@@ -209,7 +202,9 @@ class DifficultySelector extends StatelessWidget {
     required ValueChanged<bool> onChanged,
   }) {
     final isDark = AppTheme.isDark(context);
-    final textColor = isDark ? AppTheme.textPrimary(context) : const Color(0xFF475569);
+    final textColor = isDark
+        ? AppTheme.textPrimary(context)
+        : const Color(0xFF475569);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -226,6 +221,149 @@ class DifficultySelector extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: textColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildContentChildren(
+    BuildContext context,
+    Widget optionsRow, {
+    bool showExtraOptions = false,
+    bool showAimControls = false,
+  }) {
+    final children = <Widget>[];
+
+    if (showDifficultyOptions) {
+      children.add(optionsRow);
+    }
+
+    if (showExtraOptions) {
+      if (children.isNotEmpty) {
+        children.add(const SizedBox(height: 12));
+      }
+      children.add(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (reverseEnabled != null && onReverseChanged != null)
+              _buildOptionToggle(
+                context,
+                label: reverseLabel,
+                value: reverseEnabled!,
+                onChanged: onReverseChanged!,
+              ),
+            if (reverseEnabled != null &&
+                onReverseChanged != null &&
+                notSequenceEnabled != null &&
+                onNotSequenceChanged != null)
+              SizedBox(width: optionsSpacing),
+            if (notSequenceEnabled != null && onNotSequenceChanged != null)
+              _buildOptionToggle(
+                context,
+                label: notSequenceLabel,
+                value: notSequenceEnabled!,
+                onChanged: onNotSequenceChanged!,
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (showAimControls) {
+      if (children.isNotEmpty) {
+        children.add(const SizedBox(height: 12));
+      }
+      children.add(_buildAimCountControl(context));
+    }
+
+    return children;
+  }
+
+  Widget _buildAimCountControl(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    final enabledColor = const Color(0xFF475569);
+    final disabledColor = Colors.grey.withOpacity(0.3);
+    final textColor = isDark
+        ? AppTheme.textPrimary(context)
+        : const Color(0xFF475569);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: () {
+            if (aimCount != null &&
+                onAimCountChanged != null &&
+                aimCount! > aimMin) {
+              onAimCountChanged!(aimCount! - 1);
+            }
+          },
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (aimCount != null && aimCount! > aimMin)
+                  ? enabledColor
+                  : disabledColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.borderColor(context),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.shadowColor(opacity: isDark ? 0.2 : 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.remove, color: Colors.white, size: 24),
+          ),
+        ),
+        SizedBox(width: aimSpacing),
+        Text(
+          '${aimCount ?? aimMin} Aim${aimCount == 1 ? '' : 's'}',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
+        SizedBox(width: aimSpacing),
+        GestureDetector(
+          onTap: () {
+            if (aimCount != null &&
+                onAimCountChanged != null &&
+                aimCount! < aimMax) {
+              onAimCountChanged!(aimCount! + 1);
+            }
+          },
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (aimCount != null && aimCount! < aimMax)
+                  ? enabledColor
+                  : disabledColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.borderColor(context),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.shadowColor(opacity: isDark ? 0.2 : 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
         ),
       ],

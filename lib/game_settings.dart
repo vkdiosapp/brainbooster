@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class GameSettings {
   // Common ball color for Ball Rush, Ball Track, and Catch The Ball games
-  static const Color ballColor = Color.fromARGB(255, 70, 11, 94);
+  static const Color ballColor = Colors.black;
   static const String _numberOfRepetitionsKey = 'number_of_repetitions';
   static const String _soundEnabledKey = 'sound_enabled';
 

@@ -149,7 +149,10 @@ class BaseGamePage extends StatelessWidget {
                           child: Stack(
                             children: [
                               // Game-specific content
-                              builders.contentBuilder(state, context),
+                              if (state.isPlaying ||
+                                  state.errorMessage != null ||
+                                  state.reactionTimeMessage != null)
+                                builders.contentBuilder(state, context),
                               // Error message overlay
                               if (state.errorMessage != null)
                                 Positioned.fill(

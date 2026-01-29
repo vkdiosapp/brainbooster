@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/game_session.dart';
@@ -8,6 +7,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../widgets/difficulty_selector.dart';
 import 'color_change_results_page.dart';
 
 class Aim {
@@ -15,11 +15,7 @@ class Aim {
   bool isTapped;
   double radius;
 
-  Aim({
-    required this.position,
-    this.isTapped = false,
-    this.radius = 40.0,
-  });
+  Aim({required this.position, this.isTapped = false, this.radius = 40.0});
 }
 
 class AimGamePage extends StatefulWidget {
@@ -170,11 +166,7 @@ class _AimGamePageState extends State<AimGamePage> {
         );
       }
 
-      _aims.add(Aim(
-        position: position,
-        radius: aimRadius,
-        isTapped: false,
-      ));
+      _aims.add(Aim(position: position, radius: aimRadius, isTapped: false));
     }
 
     setState(() {
@@ -221,7 +213,9 @@ class _AimGamePageState extends State<AimGamePage> {
     _overlayTimer?.cancel();
 
     // Calculate round time
-    final roundTime = DateTime.now().difference(_roundStartTime!).inMilliseconds;
+    final roundTime = DateTime.now()
+        .difference(_roundStartTime!)
+        .inMilliseconds;
 
     _roundResults.add(
       RoundResult(
@@ -312,125 +306,6 @@ class _AimGamePageState extends State<AimGamePage> {
         });
   }
 
-  Widget _buildAimCountSelector() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.6),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.4),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Decrease button
-                GestureDetector(
-                  onTap: () {
-                    if (_aimCount > 1) {
-                      setState(() {
-                        _aimCount--;
-                      });
-                    }
-                  },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: _aimCount > 1
-                          ? const Color(0xFF475569)
-                          : Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.remove,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 24),
-                // Aim count display
-                Text(
-                  '$_aimCount Aim${_aimCount == 1 ? '' : 's'}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF475569),
-                  ),
-                ),
-                const SizedBox(width: 24),
-                // Increase button
-                GestureDetector(
-                  onTap: () {
-                    if (_aimCount < 10) {
-                      setState(() {
-                        _aimCount++;
-                      });
-                    }
-                  },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: _aimCount < 10
-                          ? const Color(0xFF475569)
-                          : Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildAimTarget(double radius) {
     return CustomPaint(
       painter: AimTargetPainter(),
@@ -478,7 +353,17 @@ class _AimGamePageState extends State<AimGamePage> {
         middleContentBuilder: (s, context) {
           // Show aim count selector only before game starts
           if (!s.isPlaying) {
-            return _buildAimCountSelector();
+            return DifficultySelector(
+              isAdvanced: false,
+              onChanged: (_) {},
+              showDifficultyOptions: false,
+              aimCount: _aimCount,
+              onAimCountChanged: (value) {
+                setState(() {
+                  _aimCount = value;
+                });
+              },
+            );
           }
           return const SizedBox.shrink();
         },
@@ -567,14 +452,14 @@ class AimTargetPainter extends CustomPainter {
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
-    
+
     // Horizontal line
     canvas.drawLine(
       Offset(center.dx - radius * 0.9, center.dy),
       Offset(center.dx + radius * 0.9, center.dy),
       linePaint,
     );
-    
+
     // Vertical line
     canvas.drawLine(
       Offset(center.dx, center.dy - radius * 0.9),
