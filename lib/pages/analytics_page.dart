@@ -6,6 +6,7 @@ import 'dart:io';
 import '../models/game_session.dart';
 import '../services/game_history_service.dart';
 import '../widgets/gradient_background.dart';
+import '../theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
 /// Helper widget for glassy container effect similar to GameContainer
@@ -219,10 +220,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     shape: BoxShape.circle,
                                     color: Colors.transparent,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.arrow_back_ios_new,
                                     size: 20,
-                                    color: Color(0xFF0F172A),
+                                    color: AppTheme.iconColor(context),
                                   ),
                                 ),
                               ),
@@ -233,18 +234,18 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   children: [
                                     Text(
                                       widget.gameName,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0F172A),
+                                        color: AppTheme.textPrimary(context),
                                       ),
                                     ),
-                                    const Text(
+                                    Text(
                                       'PERFORMANCE ANALYSIS',
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF64748B),
+                                        color: AppTheme.textSecondary(context),
                                         letterSpacing: 2.0,
                                       ),
                                     ),

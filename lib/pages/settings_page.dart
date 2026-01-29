@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../language_selection_page.dart';
 import '../game_settings.dart';
@@ -50,46 +49,20 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 child: Row(
                   children: [
-                    // Back button - left aligned with frosted glass effect
+                    // Back button - match Analytics page style
                     GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => Navigator.of(context).pop(),
                       child: Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor.withOpacity(0.4),
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Theme.of(context).cardColor.withOpacity(0.6),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).cardColor.withOpacity(0.8),
-                              blurRadius: 1,
-                              offset: const Offset(0, 1),
-                              blurStyle: BlurStyle.inner,
-                            ),
-                          ],
+                          color: Colors.transparent,
                         ),
-                        child: ClipOval(
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: AppTheme.iconColor(context),
-                              size: 20,
-                            ),
-                          ),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 20,
+                          color: AppTheme.iconColor(context),
                         ),
                       ),
                     ),

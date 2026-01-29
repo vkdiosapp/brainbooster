@@ -1,9 +1,9 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/round_result.dart';
 import '../data/exercise_data.dart';
 import '../services/sound_service.dart';
 import '../widgets/gradient_background.dart';
+import '../theme/app_theme.dart';
 
 /// Helper function to get exercise ID from game ID
 int? _getExerciseIdFromGameId(String gameId) {
@@ -135,86 +135,59 @@ class _ColorChangeResultsPageState extends State<ColorChangeResultsPage> {
                 ),
                 child: Row(
                   children: [
-                    // Back button - left aligned with frosted glass effect
+                    // Back button - match Analytics page style
                     GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => Navigator.of(context).pop(),
                       child: Container(
                         width: 40,
                         height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.4),
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.6),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.8),
-                              blurRadius: 1,
-                              offset: const Offset(0, 1),
-                              blurStyle: BlurStyle.inner,
-                            ),
-                          ],
+                          color: Colors.transparent,
                         ),
-                        child: ClipOval(
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                            child: const Icon(
-                              Icons.arrow_back,
-                              color: Color(0xFF475569),
-                              size: 20,
-                            ),
-                          ),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 20,
+                          color: AppTheme.iconColor(context),
                         ),
                       ),
                     ),
-                    // Spacer to center the title
-                    const Spacer(),
-                    // Title - centered on screen
-                    Column(
-                      children: [
-                        const Text(
-                          'RESULT',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                            color: Color(0xFF0F172A),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'RESULT',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                              color: AppTheme.textPrimary(context),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          () {
-                            final exerciseId =
-                                widget.exerciseId ??
-                                (widget.gameId != null
-                                    ? _getExerciseIdFromGameId(widget.gameId!)
-                                    : null);
-                            return exerciseId != null
-                                ? '$exerciseId - ${widget.gameName.toUpperCase()}'
-                                : widget.gameName.toUpperCase();
-                          }(),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2.0,
-                            color: Color(0xFF94A3B8),
+                          const SizedBox(height: 2),
+                          Text(
+                            () {
+                              final exerciseId =
+                                  widget.exerciseId ??
+                                  (widget.gameId != null
+                                      ? _getExerciseIdFromGameId(widget.gameId!)
+                                      : null);
+                              return exerciseId != null
+                                  ? '$exerciseId - ${widget.gameName.toUpperCase()}'
+                                  : widget.gameName.toUpperCase();
+                            }(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 2.0,
+                              color: AppTheme.textSecondary(context),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    // Spacer to balance the back button
-                    const Spacer(),
-                    // Invisible placeholder to balance the back button width
-                    const SizedBox(width: 40),
                   ],
                 ),
               ),

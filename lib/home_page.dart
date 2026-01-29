@@ -319,12 +319,15 @@ class _HomePageState extends State<HomePage> {
                       autofocus: true,
                       decoration: InputDecoration(
                         hintText: 'Search exercises...',
-                        prefixIcon: const Icon(
+                        hintStyle: TextStyle(
+                          color: AppTheme.textSecondary(context),
+                        ),
+                        prefixIcon: Icon(
                           Icons.search,
-                          color: Color(0xFF94A3B8),
+                          color: AppTheme.iconSecondary(context),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: AppTheme.cardColor(context),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
@@ -334,9 +337,10 @@ class _HomePageState extends State<HomePage> {
                           vertical: 16,
                         ),
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        color: AppTheme.textPrimary(context),
                       ),
                     ),
                   ),
@@ -928,7 +932,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildExerciseTile(Exercise exercise, int number) {
     final gameId = _getGameIdFromExerciseId(exercise.id);
-    final tileData = _getTileDataForExercise(exercise, number);
+    final isDark = AppTheme.isDark(context);
+    final tileData = _getTileDataForExercise(context, exercise, number);
 
     return GestureDetector(
       onTap: () {
@@ -939,10 +944,10 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           color: tileData['backgroundColor'] as Color,
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
+          border: Border.all(color: tileData['borderColor'] as Color, width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppTheme.shadowColor(opacity: isDark ? 0.3 : 0.05),
               offset: const Offset(0, 4),
               blurRadius: 0,
             ),
@@ -957,11 +962,11 @@ class _HomePageState extends State<HomePage> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
+                  color: tileData['iconContainerColor'] as Color,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppTheme.shadowColor(opacity: isDark ? 0.2 : 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),
@@ -995,9 +1000,7 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
-                        color: (tileData['textColor'] as Color).withOpacity(
-                          0.7,
-                        ),
+                        color: tileData['secondaryTextColor'] as Color,
                         letterSpacing: 0.5,
                       ),
                       maxLines: 1,
@@ -1082,7 +1085,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Map<String, dynamic> _getTileDataForExercise(Exercise exercise, int number) {
+  Map<String, dynamic> _getTileDataForExercise(
+    BuildContext context,
+    Exercise exercise,
+    int number,
+  ) {
     // Pastel colors from HTML
     final pastelColors = [
       {
@@ -1144,11 +1151,37 @@ class _HomePageState extends State<HomePage> {
     final colorIndex = (number - 1) % pastelColors.length;
     final baseColor = pastelColors[colorIndex];
     final icon = exercise.icon;
+    final accentColor = baseColor['iconColor'] as Color;
+    final isDark = AppTheme.isDark(context);
+    final backgroundColor = isDark
+        ? Color.alphaBlend(
+            accentColor.withOpacity(0.12),
+            AppTheme.cardColor(context),
+          )
+        : baseColor['bg'] as Color;
+    final iconContainerColor = isDark
+        ? Color.alphaBlend(
+            accentColor.withOpacity(0.18),
+            AppTheme.buttonBackground(context),
+          )
+        : Colors.white.withOpacity(0.8);
+    final textColor = isDark
+        ? AppTheme.textPrimary(context)
+        : baseColor['textColor'] as Color;
+    final secondaryTextColor = isDark
+        ? AppTheme.textSecondary(context)
+        : (baseColor['textColor'] as Color).withOpacity(0.7);
+    final borderColor = isDark
+        ? AppTheme.borderColor(context)
+        : Colors.white.withOpacity(0.5);
 
     return {
-      'backgroundColor': baseColor['bg'] as Color,
-      'iconColor': baseColor['iconColor'] as Color,
-      'textColor': baseColor['textColor'] as Color,
+      'backgroundColor': backgroundColor,
+      'iconColor': accentColor,
+      'textColor': textColor,
+      'secondaryTextColor': secondaryTextColor,
+      'iconContainerColor': iconContainerColor,
+      'borderColor': borderColor,
       'icon': icon,
     };
   }

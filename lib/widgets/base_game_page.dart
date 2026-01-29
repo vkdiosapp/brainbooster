@@ -286,8 +286,9 @@ class BaseGamePage extends StatelessWidget {
           const Spacer(),
           Text(
             config.gameName.toUpperCase(),
+            textAlign: .left,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 18,
               fontWeight: FontWeight.w800,
               letterSpacing: 2.0,
               color: AppTheme.textSecondary(context),
