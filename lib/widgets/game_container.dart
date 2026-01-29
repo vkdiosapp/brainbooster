@@ -1,5 +1,5 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// A reusable game container widget with consistent styling
 /// that matches the game mode card design.
@@ -17,14 +17,23 @@ class GameContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    const accentColor = Color(0xFF8B5CF6); // id 22 tile accent
+    const lightBackgroundColor = Color(0xFFEDE9FE); // id 22 tile bg
+    final backgroundColor = isDark
+        ? Color.alphaBlend(
+            accentColor.withOpacity(0.12),
+            AppTheme.cardColor(context),
+          )
+        : lightBackgroundColor;
+    final borderColor = isDark
+        ? AppTheme.borderColor(context)
+        : Colors.white.withOpacity(0.5);
+    final shadowColor = AppTheme.shadowColor(opacity: isDark ? 0.3 : 0.05);
+
     Widget content = ClipRRect(
       borderRadius: BorderRadius.circular(32),
-      child: useBackdropFilter
-          ? BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-              child: child,
-            )
-          : child,
+      child: child,
     );
 
     if (onTap != null) {
@@ -39,12 +48,13 @@ class GameContainer extends StatelessWidget {
       width: double.infinity,
       height: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 16,
+            color: shadowColor,
+            blurRadius: 0,
             offset: const Offset(0, 4),
           ),
         ],

@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -7,7 +6,6 @@ class DifficultySelector extends StatelessWidget {
   final ValueChanged<bool> onChanged;
   final EdgeInsetsGeometry? outerPadding;
   final EdgeInsetsGeometry contentPadding;
-  final bool useBackdropFilter;
   final bool showContainer;
   final double borderRadius;
   final String normalLabel;
@@ -23,7 +21,6 @@ class DifficultySelector extends StatelessWidget {
       horizontal: 16,
       vertical: 12,
     ),
-    this.useBackdropFilter = true,
     this.showContainer = true,
     this.borderRadius = 16,
     this.normalLabel = 'Normal',
@@ -34,15 +31,21 @@ class DifficultySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppTheme.isDark(context);
-    final containerColor =
-        AppTheme.cardColor(context).withOpacity(isDark ? 0.6 : 0.7);
-    final borderColor =
-        AppTheme.borderColor(context).withOpacity(isDark ? 0.6 : 0.4);
-    final shadowColor = AppTheme.shadowColor(opacity: isDark ? 0.25 : 0.05);
+    const accentColor = Color(0xFF8B5CF6); // id 22 tile accent
+    const lightBackgroundColor = Color(0xFFEDE9FE); // id 22 tile bg
+    final backgroundColor = isDark
+        ? Color.alphaBlend(
+            accentColor.withOpacity(0.12),
+            AppTheme.cardColor(context),
+          )
+        : lightBackgroundColor;
+    final borderColor = isDark
+        ? AppTheme.borderColor(context)
+        : Colors.white.withOpacity(0.5);
+    final shadowColor = AppTheme.shadowColor(opacity: isDark ? 0.3 : 0.05);
     final selectedBackground = AppTheme.textPrimary(context);
     final selectedTextColor = AppTheme.cardColor(context);
-    final unselectedBackground =
-        AppTheme.cardColor(context).withOpacity(isDark ? 0.75 : 1);
+    final unselectedBackground = Colors.white;
     final unselectedTextColor = AppTheme.textSecondary(context);
 
     final optionsRow = Row(
@@ -79,54 +82,30 @@ class DifficultySelector extends StatelessWidget {
       if (outerPadding == null) {
         return optionsRow;
       }
-      return Padding(
-        padding: outerPadding!,
-        child: optionsRow,
-      );
+      return Padding(padding: outerPadding!, child: optionsRow);
     }
 
     final inner = Container(
       padding: contentPadding,
       decoration: BoxDecoration(
-        color: containerColor,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(color: borderColor, width: 1),
-      ),
-      child: optionsRow,
-    );
-
-    final child = useBackdropFilter
-        ? ClipRRect(
-            borderRadius: BorderRadius.circular(borderRadius),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: inner,
-            ),
-          )
-        : inner;
-
-    final decorated = Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
             color: shadowColor,
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 0,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: child,
+      child: optionsRow,
     );
-
     if (outerPadding == null) {
-      return decorated;
+      return inner;
     }
 
-    return Padding(
-      padding: outerPadding!,
-      child: decorated,
-    );
+    return Padding(padding: outerPadding!, child: inner);
   }
 
   Widget _buildOption(

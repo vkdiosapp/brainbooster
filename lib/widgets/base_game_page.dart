@@ -232,35 +232,55 @@ class BaseGamePage extends StatelessWidget {
                     if (config.bestSession != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
+                        child: Builder(
+                          builder: (context) {
+                            final isDark = AppTheme.isDark(context);
+                            const accentColor = Color(0xFF8B5CF6);
+                            const lightBackgroundColor = Color(0xFFEDE9FE);
+                            final backgroundColor = isDark
+                                ? Color.alphaBlend(
+                                    accentColor.withOpacity(0.12),
+                                    AppTheme.cardColor(context),
+                                  )
+                                : lightBackgroundColor;
+                            final borderColor = isDark
+                                ? AppTheme.borderColor(context)
+                                : Colors.white.withOpacity(0.5);
+                            final shadowColor = AppTheme.shadowColor(
+                              opacity: isDark ? 0.3 : 0.05,
+                            );
+
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 12,
                               ),
-                            ],
-                          ),
-                          child: Text(
-                            'BEST SESSION: ${config.bestSession}ms',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.iconColor(context),
-                              letterSpacing: 1.0,
-                            ),
-                          ),
+                              decoration: BoxDecoration(
+                                color: backgroundColor,
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: borderColor,
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: shadowColor,
+                                    blurRadius: 0,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'BEST SESSION: ${config.bestSession}ms',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary(context),
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                   ],
