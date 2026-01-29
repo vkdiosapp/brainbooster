@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../game_settings.dart';
 import '../models/game_session.dart';
@@ -8,6 +7,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../services/sound_service.dart';
 import '../widgets/base_game_page.dart';
+import '../widgets/difficulty_selector.dart';
 import '../data/exercise_data.dart';
 import 'color_change_results_page.dart';
 
@@ -75,8 +75,10 @@ class _RotationPageState extends State<RotationPage>
   late final AnimationController _rotationController;
   late final Animation<double> _rotationAnimation;
   int _totalRotations = 0; // Total number of 90° rotations to perform (1-4)
-  int _currentRotationCount = 0; // Current rotation number (0 to _totalRotations)
-  double _baseAngle = 0; // Base angle from completed rotations (before current animation)
+  int _currentRotationCount =
+      0; // Current rotation number (0 to _totalRotations)
+  double _baseAngle =
+      0; // Base angle from completed rotations (before current animation)
 
   @override
   void initState() {
@@ -84,14 +86,13 @@ class _RotationPageState extends State<RotationPage>
 
     _rotationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000), // Each 90° rotation takes 1 second
+      duration: const Duration(
+        milliseconds: 1000,
+      ), // Each 90° rotation takes 1 second
     );
     // 0 -> 1, we'll scale by _currentTargetAngle each round
     _rotationAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _rotationController,
-        curve: Curves.linear,
-      ),
+      CurvedAnimation(parent: _rotationController, curve: Curves.linear),
     );
 
     _resetGame();
@@ -220,16 +221,19 @@ class _RotationPageState extends State<RotationPage>
         .toList();
     remainingPositions.shuffle(_rand);
 
-    final distractorPositions =
-        remainingPositions.take(_distractorDotsCount).toList();
+    final distractorPositions = remainingPositions
+        .take(_distractorDotsCount)
+        .toList();
     // Use more colors for advanced mode
     final distractorColors = _isAdvanced
         ? [Colors.blue, Colors.green, Colors.orange, Colors.purple]
         : [Colors.blue, Colors.green];
     _distractorDotPositions = {};
-    for (int i = 0;
-        i < distractorPositions.length && i < distractorColors.length;
-        i++) {
+    for (
+      int i = 0;
+      i < distractorPositions.length && i < distractorColors.length;
+      i++
+    ) {
       _distractorDotPositions[distractorPositions[i]] = distractorColors[i];
     }
 
@@ -276,9 +280,11 @@ class _RotationPageState extends State<RotationPage>
         _baseAngle += math.pi / 2; // Add 90° to base angle
 
         // Rotate the red dot positions 90° clockwise for each rotation
-        _redDotPositions = _rotatePositions90Clockwise(_redDotPositions.isEmpty
-            ? _originalRedDotPositions
-            : _redDotPositions);
+        _redDotPositions = _rotatePositions90Clockwise(
+          _redDotPositions.isEmpty
+              ? _originalRedDotPositions
+              : _redDotPositions,
+        );
 
         // Check if we need to do more rotations
         if (_currentRotationCount < _totalRotations) {
@@ -364,8 +370,9 @@ class _RotationPageState extends State<RotationPage>
     _overlayTimer?.cancel();
 
     // Calculate round time (from when boxes turned black until all required tapped)
-    final roundTime =
-        DateTime.now().difference(_roundStartTime!).inMilliseconds;
+    final roundTime = DateTime.now()
+        .difference(_roundStartTime!)
+        .inMilliseconds;
 
     _roundResults.add(
       RoundResult(
@@ -413,7 +420,7 @@ class _RotationPageState extends State<RotationPage>
     if (successfulRounds.isNotEmpty) {
       averageTime =
           successfulRounds.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              successfulRounds.length;
+          successfulRounds.length;
       bestTime = successfulRounds
           .map((r) => r.reactionTime)
           .reduce((a, b) => a < b ? a : b);
@@ -423,7 +430,7 @@ class _RotationPageState extends State<RotationPage>
     } else if (_roundResults.isNotEmpty) {
       averageTime =
           _roundResults.map((r) => r.reactionTime).reduce((a, b) => a + b) ~/
-              _roundResults.length;
+          _roundResults.length;
     }
 
     if (_roundResults.isNotEmpty) {
@@ -565,116 +572,14 @@ class _RotationPageState extends State<RotationPage>
   }
 
   Widget _buildDifficultySelector() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.6),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _isAdvanced = false;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: !_isAdvanced
-                          ? const Color(0xFF475569)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      'Normal',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: !_isAdvanced
-                            ? Colors.white
-                            : const Color(0xFF475569),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _isAdvanced = true;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _isAdvanced
-                          ? const Color(0xFF475569)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      'Advanced',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: _isAdvanced
-                            ? Colors.white
-                            : const Color(0xFF475569),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return DifficultySelector(
+      isAdvanced: _isAdvanced,
+      onChanged: (value) {
+        setState(() {
+          _isAdvanced = value;
+        });
+      },
+      outerPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
     );
   }
 
@@ -731,10 +636,7 @@ class _RotationPageState extends State<RotationPage>
                   final angle = _isRotating
                       ? _baseAngle + (_rotationAnimation.value * math.pi / 2)
                       : 0.0;
-                  return Transform.rotate(
-                    angle: angle,
-                    child: child,
-                  );
+                  return Transform.rotate(angle: angle, child: child);
                 },
                 child: _buildGrid(),
               ),
@@ -777,4 +679,3 @@ class _RotationPageState extends State<RotationPage>
     );
   }
 }
-
