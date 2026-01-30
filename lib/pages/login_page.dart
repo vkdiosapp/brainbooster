@@ -23,8 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   final _lastNameController = TextEditingController();
   final _birthdateController = TextEditingController();
   bool _acceptTerms = false;
-  bool _shouldNavigateToHome =
-      false; // Flag to control navigation to home in edit mode
   String? _firstNameError;
   String? _lastNameError;
   String? _birthdateError;
@@ -35,7 +33,6 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     if (widget.isEditMode) {
       _loadExistingData();
-      _shouldNavigateToHome = true; // Set flag to navigate to home in edit mode
     }
   }
 
@@ -130,14 +127,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (mounted) {
       if (widget.isEditMode) {
-        // Only navigate to home if flag is set
-        if (_shouldNavigateToHome) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        } else {
-          Navigator.of(context).pop(); // Go back to previous page
-        }
+        Navigator.of(context).pop(); // Go back to previous page
       } else {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomePage()),
@@ -159,22 +149,59 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Gradient background - only show when not in edit mode
-          if (!widget.isEditMode)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: AppTheme.gradientColors(context),
-                  ),
+          // Gradient background
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: AppTheme.gradientColors(context),
                 ),
               ),
             ),
+          ),
           SafeArea(
             child: Column(
               children: [
+                if (widget.isEditMode)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppTheme.cardColor(context),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppTheme.borderColor(context),
+                                width: 1,
+                              ),
+                              boxShadow: AppTheme.cardShadow(),
+                            ),
+                            child: Icon(
+                              Icons.arrow_back_ios_new,
+                              size: 18,
+                              color: AppTheme.iconColor(context),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Edit Profile',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textPrimary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 // App bar for edit mode - hidden when shown in tab bar
                 Expanded(
                   child: SingleChildScrollView(

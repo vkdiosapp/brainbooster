@@ -5,7 +5,7 @@ import '../models/category.dart';
 import '../models/exercise.dart';
 import '../data/exercise_data.dart';
 import 'pages/category_exercises_page.dart';
-import 'pages/login_page.dart';
+import 'pages/profile_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/analytics_page.dart';
 import 'navigation/exercise_navigator.dart';
@@ -179,7 +179,7 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Text(
                             _selectedTab == 3
-                                ? 'Edit Profile'
+                                ? 'Profile'
                                 : _selectedTab == 2
                                 ? 'Game Analytics'
                                 : 'Exercises',
@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           Text(
                             _selectedTab == 3
-                                ? 'Update your personal information'
+                                ? 'Manage your account'
                                 : _selectedTab == 2
                                 ? 'Performance Analysis'
                                 : 'Train your brain today',
@@ -346,7 +346,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 Expanded(
                   child: _selectedTab == 3
-                      ? const LoginPage(isEditMode: true)
+                      ? const ProfilePage()
                       : _selectedTab == 2
                       ? _buildStatsView()
                       : SingleChildScrollView(

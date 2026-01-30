@@ -4,8 +4,13 @@ import '../widgets/gradient_background.dart';
 
 class TermsWebViewPage extends StatefulWidget {
   final String url;
+  final String title;
 
-  const TermsWebViewPage({super.key, required this.url});
+  const TermsWebViewPage({
+    super.key,
+    required this.url,
+    this.title = 'Terms and Conditions',
+  });
 
   @override
   State<TermsWebViewPage> createState() => _TermsWebViewPageState();
@@ -48,9 +53,9 @@ class _TermsWebViewPageState extends State<TermsWebViewPage> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF475569)),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Terms and Conditions',
-          style: TextStyle(
+        title: Text(
+          widget.title,
+          style: const TextStyle(
             color: Color(0xFF0F172A),
             fontSize: 18,
             fontWeight: FontWeight.w700,
