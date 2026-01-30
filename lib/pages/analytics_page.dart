@@ -9,50 +9,51 @@ import '../widgets/gradient_background.dart';
 import '../theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
-/// Helper widget for glassy container effect similar to GameContainer
-class _GlassyContainer extends StatelessWidget {
+/// Helper widget for standard app containers (no glass effect)
+class _StandardContainer extends StatelessWidget {
   final Widget child;
   final Color? backgroundColor;
   final double borderRadius;
   final EdgeInsetsGeometry? padding;
-  final Border? border;
 
-  const _GlassyContainer({
+  const _StandardContainer({
     required this.child,
     this.backgroundColor,
     this.borderRadius = 32,
     this.padding,
-    this.border,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    const accentColor = Color(0xFF8B5CF6); // id 22 tile accent
+    const lightBackgroundColor = Color(0xFFEDE9FE); // id 22 tile bg
+    final defaultBackgroundColor = isDark
+        ? Color.alphaBlend(
+            accentColor.withOpacity(0.12),
+            AppTheme.cardColor(context),
+          )
+        : lightBackgroundColor;
+    final borderColor = isDark
+        ? AppTheme.borderColor(context)
+        : Colors.white.withOpacity(0.5);
+    final shadowColor = AppTheme.shadowColor(opacity: isDark ? 0.3 : 0.05);
+
     return Container(
+      padding: padding,
       decoration: BoxDecoration(
+        color: backgroundColor ?? defaultBackgroundColor,
         borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 16,
+            color: shadowColor,
+            blurRadius: 0,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: (backgroundColor ?? Colors.white).withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: border,
-            ),
-            child: child,
-          ),
-        ),
-      ),
+      child: child,
     );
   }
 }
@@ -189,6 +190,16 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDark(context);
+    const progressAccentColor = Color(0xFF16A34A); // id 3 tile accent
+    const progressLightBackground = Color(0xFFDCFCE7); // id 3 tile bg
+    final progressInsightBackground = isDark
+        ? Color.alphaBlend(
+            progressAccentColor.withOpacity(0.12),
+            AppTheme.cardColor(context),
+          )
+        : progressLightBackground;
+
     return Scaffold(
       backgroundColor: GradientBackground.getBackgroundColor(context),
       body: _isLoading
@@ -281,13 +292,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                               children: [
                                 const SizedBox(height: 24),
                                 // Chart card
-                                _GlassyContainer(
+                                _StandardContainer(
                                   borderRadius: 40,
                                   padding: const EdgeInsets.all(24),
-                                  border: Border.all(
-                                    color: const Color(0xFFF1F5F9),
-                                    width: 1,
-                                  ),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -393,25 +400,23 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: _GlassyContainer(
+                                      child: _StandardContainer(
                                         borderRadius: 24,
                                         padding: const EdgeInsets.all(16),
-                                        border: Border.all(
-                                          color: const Color(0xFFF1F5F9),
-                                          width: 1,
-                                        ),
                                         child: Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
                                           children: [
-                                            const Text(
+                                            Text(
                                               'AVERAGE',
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                color: Color(0xFF94A3B8),
+                                                color: AppTheme.textSecondary(
+                                                  context,
+                                                ),
                                                 letterSpacing: 1.0,
                                               ),
                                             ),
@@ -421,20 +426,26 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                 children: [
                                                   TextSpan(
                                                     text: '$_averageTime',
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 18,
                                                       fontWeight:
                                                           FontWeight.w900,
-                                                      color: Color(0xFF0F172A),
+                                                      color:
+                                                          AppTheme.textPrimary(
+                                                            context,
+                                                          ),
                                                     ),
                                                   ),
                                                   TextSpan(
                                                     text: _isClickLimitGame
                                                         ? ' clicks'
                                                         : 'ms',
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 10,
-                                                      color: Color(0xFF94A3B8),
+                                                      color:
+                                                          AppTheme.textSecondary(
+                                                            context,
+                                                          ),
                                                       fontWeight:
                                                           FontWeight.normal,
                                                     ),
@@ -448,7 +459,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: _GlassyContainer(
+                                      child: _StandardContainer(
                                         backgroundColor: const Color(
                                           0xFF6366F1,
                                         ),
@@ -502,25 +513,23 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: _GlassyContainer(
+                                      child: _StandardContainer(
                                         borderRadius: 24,
                                         padding: const EdgeInsets.all(16),
-                                        border: Border.all(
-                                          color: const Color(0xFFF1F5F9),
-                                          width: 1,
-                                        ),
                                         child: Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
                                           children: [
-                                            const Text(
+                                            Text(
                                               'CONSISTENCY',
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                color: Color(0xFF94A3B8),
+                                                color: AppTheme.textSecondary(
+                                                  context,
+                                                ),
                                                 letterSpacing: 1.0,
                                               ),
                                             ),
@@ -531,20 +540,24 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                   TextSpan(
                                                     text:
                                                         '${_consistency.toStringAsFixed(0)}',
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 18,
                                                       fontWeight:
                                                           FontWeight.w900,
-                                                      color: Color(0xFF0F172A),
+                                                      color:
+                                                          AppTheme.textPrimary(
+                                                            context,
+                                                          ),
                                                     ),
                                                   ),
                                                   TextSpan(
                                                     text: '%',
                                                     style: TextStyle(
                                                       fontSize: 14,
-                                                      color: const Color(
-                                                        0xFF0F172A,
-                                                      ),
+                                                      color:
+                                                          AppTheme.textPrimary(
+                                                            context,
+                                                          ),
                                                       fontWeight:
                                                           FontWeight.w900,
                                                     ),
@@ -561,14 +574,10 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                 const SizedBox(height: 12),
                                 const SizedBox(height: 24),
                                 // Progress Insight card
-                                _GlassyContainer(
-                                  backgroundColor: const Color(0xFFECFDF5),
+                                _StandardContainer(
+                                  backgroundColor: progressInsightBackground,
                                   borderRadius: 32,
                                   padding: const EdgeInsets.all(20),
-                                  border: Border.all(
-                                    color: const Color(0xFFD1FAE5),
-                                    width: 1,
-                                  ),
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -594,12 +603,16 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            const Text(
+                                            Text(
                                               'Progress Insight',
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
-                                                color: Color(0xFF065F46),
+                                                color: isDark
+                                                    ? AppTheme.textPrimary(
+                                                        context,
+                                                      )
+                                                    : const Color(0xFF065F46),
                                               ),
                                             ),
                                             const SizedBox(height: 4),
@@ -628,9 +641,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                             return 'Great effort! You are $diffPercent% ${isBetter ? "above" : "below"} your previous average tap count. Aim for more taps to keep improving.';
                                                           })()
                                                   : 'Keep playing to see your progress!',
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 14,
-                                                color: Color(0xFF047857),
+                                                color: isDark
+                                                    ? AppTheme.textSecondary(
+                                                        context,
+                                                      )
+                                                    : const Color(0xFF047857),
                                                 height: 1.5,
                                               ),
                                             ),
@@ -651,12 +668,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                _GlassyContainer(
+                                _StandardContainer(
                                   borderRadius: 24,
-                                  border: Border.all(
-                                    color: const Color(0xFFF1F5F9),
-                                    width: 1,
-                                  ),
                                   child: _sessions.isEmpty
                                       ? Padding(
                                           padding: const EdgeInsets.all(40),
@@ -725,6 +738,21 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                             final diff =
                                                 sessionAvg - previousAvg;
 
+                                            final separatorColor =
+                                                AppTheme.borderColor(context);
+
+                                            final tileTextPrimary =
+                                                AppTheme.textPrimary(context);
+                                            final tileTextSecondary =
+                                                AppTheme.textSecondary(context);
+                                            final tileMuted =
+                                                AppTheme.textTertiary(context);
+                                            final iconBadgeColor = isDark
+                                                ? AppTheme.buttonBackground(
+                                                    context,
+                                                  )
+                                                : const Color(0xFFF1F5F9);
+
                                             return Container(
                                               padding: const EdgeInsets.all(16),
                                               decoration: BoxDecoration(
@@ -732,9 +760,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                     ? null
                                                     : Border(
                                                         bottom: BorderSide(
-                                                          color: const Color(
-                                                            0xFFE2E8F0,
-                                                          ),
+                                                          color: separatorColor,
                                                           width: 1,
                                                         ),
                                                       ),
@@ -754,9 +780,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                               shape: BoxShape
                                                                   .circle,
                                                               color:
-                                                                  const Color(
-                                                                    0xFFF1F5F9,
-                                                                  ),
+                                                                  iconBadgeColor,
                                                             ),
                                                         child: Center(
                                                           child: Text(
@@ -767,16 +791,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                                   2,
                                                                   '0',
                                                                 ),
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 12,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Color(
-                                                                    0xFF64748B,
-                                                                  ),
-                                                                ),
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  tileTextSecondary,
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
@@ -790,29 +812,24 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                             _formatDate(
                                                               session.timestamp,
                                                             ),
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 14,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Color(
-                                                                    0xFF0F172A,
-                                                                  ),
-                                                                ),
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  tileTextPrimary,
+                                                            ),
                                                           ),
                                                           Text(
                                                             'Session #${session.sessionNumber.toString().padLeft(2, "0")}',
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 10,
-                                                                  color: Color(
-                                                                    0xFF94A3B8,
-                                                                  ),
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w500,
-                                                                ),
+                                                            style: TextStyle(
+                                                              fontSize: 10,
+                                                              color: tileMuted,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
                                                           ),
                                                         ],
                                                       ),
@@ -834,9 +851,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                                                               ? const Color(
                                                                   0xFF6366F1,
                                                                 )
-                                                              : const Color(
-                                                                  0xFF0F172A,
-                                                                ),
+                                                              : tileTextPrimary,
                                                         ),
                                                       ),
                                                       if (previousSession !=
