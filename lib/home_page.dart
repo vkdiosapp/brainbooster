@@ -28,6 +28,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   final PageController _bannerController = PageController();
+  final PageController _categoryBannerController = PageController();
   // Category graph banner now uses a grid (no page controller).
   final TextEditingController _searchController = TextEditingController();
   List<Exercise> _randomExercises = [];
@@ -111,7 +112,7 @@ class _HomePageState extends State<HomePage>
         final gameId = _getGameIdFromExerciseId(exercise.id);
         if (gameId == null) continue;
 
-        final sessions = await GameHistoryService.getLast10Sessions(gameId);
+        final sessions = await GameHistoryService.getSessions(gameId);
         final points = _extractSessionAverages(sessions);
         if (points.isEmpty) continue;
         series.add(points);
@@ -313,6 +314,7 @@ class _HomePageState extends State<HomePage>
     FavoritesService.favoritesNotifier.removeListener(_onFavoritesChanged);
     _stopBannerAutoScroll();
     _bannerController.dispose();
+    _categoryBannerController.dispose();
     _searchController.dispose();
     _categoryGraphAnimationController.dispose();
     super.dispose();
@@ -348,13 +350,13 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final baseBannerHeight = screenHeight * 0.5;
-    const topContainerGap = 16.0;
-    final topContainerHeight = (baseBannerHeight * 0.6 - topContainerGap).clamp(
+    const bannerGraphGap = 10.0;
+    final topContainerHeight = (baseBannerHeight * 0.4).clamp(
       0.0,
       double.infinity,
     );
     final bannerHeight = _showTopContainer
-        ? baseBannerHeight - topContainerHeight - topContainerGap
+        ? baseBannerHeight - topContainerHeight - bannerGraphGap
         : baseBannerHeight;
     return PopScope(
       canPop: false, // Prevent back navigation
@@ -570,66 +572,80 @@ class _HomePageState extends State<HomePage>
                             children: [
                               // Banner section
                               if (!_isSearching && !_showSearchField) ...[
-                                if (_showTopContainer)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                    ),
-                                    child: SizedBox(
-                                      height: topContainerHeight,
-                                      child: _buildCategoryGraphContainer(
-                                        topContainerHeight,
+                                SizedBox(
+                                  height: baseBannerHeight,
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                        ),
+                                        child: SizedBox(
+                                          height: bannerHeight,
+                                          child: PageView.builder(
+                                            controller: _bannerController,
+                                            onPageChanged: (index) {
+                                              setState(() {
+                                                _currentBannerIndex = index;
+                                              });
+                                            },
+                                            itemCount: _randomExercises.length,
+                                            itemBuilder: (context, index) {
+                                              final exercise =
+                                                  _randomExercises[index];
+                                              return _buildBannerCard(exercise);
+                                            },
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                if (_showTopContainer)
-                                  const SizedBox(height: 16),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                  ),
-                                  child: SizedBox(
-                                    height: bannerHeight,
-                                    child: PageView.builder(
-                                      controller: _bannerController,
-                                      onPageChanged: (index) {
-                                        setState(() {
-                                          _currentBannerIndex = index;
-                                        });
-                                      },
-                                      itemCount: _randomExercises.length,
-                                      itemBuilder: (context, index) {
-                                        final exercise =
-                                            _randomExercises[index];
-                                        return _buildBannerCard(exercise);
-                                      },
-                                    ),
+                                      // Banner indicators
+                                      Offstage(
+                                        offstage: true,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: List.generate(
+                                            _randomExercises.length,
+                                            (index) => Container(
+                                              width:
+                                                  index == _currentBannerIndex
+                                                  ? 24
+                                                  : 6,
+                                              height: 6,
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 3,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    index == _currentBannerIndex
+                                                    ? const Color(0xFF6366F1)
+                                                    : Colors.grey[300],
+                                                borderRadius:
+                                                    BorderRadius.circular(3),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      if (_showTopContainer)
+                                        SizedBox(height: bannerGraphGap),
+                                      if (_showTopContainer)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                          ),
+                                          child: SizedBox(
+                                            height: topContainerHeight,
+                                            child: _buildCategoryGraphContainer(
+                                              topContainerHeight,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(height: 24),
-                                // Banner indicators
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(
-                                    _randomExercises.length,
-                                    (index) => Container(
-                                      width: index == _currentBannerIndex
-                                          ? 24
-                                          : 6,
-                                      height: 6,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: index == _currentBannerIndex
-                                            ? const Color(0xFF6366F1)
-                                            : Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 40),
                                 // Categories section
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -738,11 +754,11 @@ class _HomePageState extends State<HomePage>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
+            // BoxShadow(
+            //   color: Colors.red.withOpacity(0.2),
+            //   blurRadius: 20,
+            //   offset: const Offset(0, 10),
+            // ),
           ],
         ),
         child: ClipRRect(
@@ -973,21 +989,123 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
             )
-          : GridView.builder(
-              padding: EdgeInsets.zero,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _categoryGraphDataHome.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1.25,
-              ),
-              itemBuilder: (context, index) {
-                final data = _categoryGraphDataHome[index];
-                return _buildCategoryGraphCard(data);
-              },
+          : Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: _categoryBannerController,
+                    onPageChanged: (index) {
+                      _startCategoryGraphAnimation();
+                    },
+                    itemCount: _categoryGraphDataHome.length,
+                    itemBuilder: (context, index) {
+                      final data = _categoryGraphDataHome[index];
+                      return _buildCategoryGraphBanner(data);
+                    },
+                  ),
+                ),
+                // Page indicator hidden per request.
+              ],
             ),
+    );
+  }
+
+  Widget _buildCategoryGraphBanner(_CategoryGraphData data) {
+    const headerHeight = 30.0;
+    const textBlockHeight = 26.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: headerHeight,
+          child: Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: data.accentColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(data.icon, color: data.accentColor, size: 18),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      data.category.name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (data.gameName != null)
+                      Text(
+                        'Latest trend: ${data.gameName}',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textSecondary(context),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: AnimatedBuilder(
+              animation: _categoryGraphAnimation,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: CategoryGraphPainter(
+                    data.normalizedPoints,
+                    accentColor: data.accentColor,
+                    progress: _categoryGraphAnimation.value,
+                  ),
+                  child: child,
+                );
+              },
+              child: Container(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        FadeTransition(
+          opacity: _categoryGraphAnimation,
+          child: SizedBox(
+            height: textBlockHeight,
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                data.insightText,
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.1,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary(context),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

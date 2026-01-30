@@ -6,6 +6,7 @@ import '../navigation/exercise_navigator.dart';
 import '../widgets/gradient_background.dart';
 import '../services/favorites_service.dart';
 import '../theme/app_theme.dart';
+import 'analytics_page.dart';
 
 class CategoryExercisesPage extends StatefulWidget {
   final Category category;
@@ -307,6 +308,32 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
                       size: 24,
                     ),
                     const SizedBox(width: 12),
+                    if (_getGameIdFromExerciseId(exercise.id) != null)
+                      GestureDetector(
+                        onTap: () {
+                          final gameId = _getGameIdFromExerciseId(exercise.id);
+                          if (gameId == null) return;
+                          final gameName = _getGameNameFromGameId(gameId);
+                          if (gameName == null) return;
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => AnalyticsPage(
+                                gameId: gameId,
+                                gameName: gameName,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.bar_chart,
+                          color: (tileData['iconColor'] as Color).withOpacity(
+                            0.6,
+                          ),
+                          size: 24,
+                        ),
+                      ),
+                    if (_getGameIdFromExerciseId(exercise.id) != null)
+                      const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () async {
                         // Prevent navigation when tapping star
@@ -506,5 +533,135 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
         ],
       ),
     );
+  }
+
+  String? _getGameIdFromExerciseId(int exerciseId) {
+    switch (exerciseId) {
+      case 1:
+        return 'color_change';
+      case 2:
+        return 'find_number';
+      case 3:
+        return 'catch_ball';
+      case 4:
+        return 'find_color';
+      case 5:
+        return 'catch_color';
+      case 6:
+        return 'quick_math';
+      case 7:
+        return 'figure_change';
+      case 8:
+        return 'sound';
+      case 9:
+        return 'sensation';
+      case 10:
+        return 'sequence_rush';
+      case 11:
+        return 'ball_rush';
+      case 12:
+        return 'ball_track';
+      case 13:
+        return 'visual_memory';
+      case 14:
+        return 'swipe';
+      case 15:
+        return 'excess_cells';
+      case 16:
+        return 'aim';
+      case 17:
+        return 'memorize';
+      case 18:
+        return 'peripheral_vision';
+      case 19:
+        return 'longest_line';
+      case 20:
+        return 'f1_race';
+      case 21:
+        return 'spatial_imagination';
+      case 22:
+        return 'click_limit';
+      case 23:
+        return 'same_number';
+      case 24:
+        return 'dots_count';
+      case 25:
+        return 'same_shape';
+      case 26:
+        return 'color_frames_count';
+      case 27:
+        return 'more_100';
+      case 28:
+        return 'rotation';
+      case 29:
+        return 'detect_direction';
+      default:
+        return null;
+    }
+  }
+
+  String? _getGameNameFromGameId(String gameId) {
+    switch (gameId) {
+      case 'color_change':
+        return 'Color Change';
+      case 'find_number':
+        return 'Find Number';
+      case 'catch_ball':
+        return 'Catch The Ball';
+      case 'find_color':
+        return 'Find Color';
+      case 'catch_color':
+        return 'Catch Color';
+      case 'quick_math':
+        return 'Quick Math';
+      case 'figure_change':
+        return 'Figure Change';
+      case 'sound':
+        return 'Sound';
+      case 'sensation':
+        return 'Sensation';
+      case 'sequence_rush':
+        return 'Sequence Rush';
+      case 'ball_rush':
+        return 'Ball Rush';
+      case 'ball_track':
+        return 'Ball Track';
+      case 'visual_memory':
+        return 'Visual Memory';
+      case 'swipe':
+        return 'Swipe';
+      case 'excess_cells':
+        return 'Excess Cells';
+      case 'aim':
+        return 'Aim';
+      case 'memorize':
+        return 'Memorize';
+      case 'peripheral_vision':
+        return 'Peripheral Vision';
+      case 'longest_line':
+        return 'Longest Line';
+      case 'f1_race':
+        return 'F1 Race';
+      case 'spatial_imagination':
+        return 'Spatial Imagination';
+      case 'click_limit':
+        return 'Click Limit';
+      case 'same_number':
+        return 'Same Number';
+      case 'dots_count':
+        return 'Dots Count';
+      case 'same_shape':
+        return 'Same Shape';
+      case 'color_frames_count':
+        return 'Color Frames Count';
+      case 'more_100':
+        return 'More 100';
+      case 'rotation':
+        return 'Rotation';
+      case 'detect_direction':
+        return 'Detect Direction';
+      default:
+        return null;
+    }
   }
 }

@@ -75,7 +75,7 @@ class AnalyticsPage extends StatefulWidget {
 class _AnalyticsPageState extends State<AnalyticsPage>
     with SingleTickerProviderStateMixin {
   List<GameSession> _sessions = [];
-  List<GameSession> _last10Sessions = [];
+  List<GameSession> _chartSessions = [];
   int _averageTime = 0;
   int _bestTime = 0;
   double _consistency = 0.0;
@@ -106,7 +106,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     setState(() => _isLoading = true);
 
     final sessions = await GameHistoryService.getSessions(widget.gameId);
-    final last10 = await GameHistoryService.getLast10Sessions(widget.gameId);
+    final chartSessions = await GameHistoryService.getSessions(widget.gameId);
     final average = await GameHistoryService.getAverageTime(widget.gameId);
     final best = await GameHistoryService.getBestTime(widget.gameId);
     final consistency = await GameHistoryService.getConsistency(widget.gameId);
@@ -114,14 +114,14 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     if (!mounted) return;
     setState(() {
       _sessions = sessions;
-      _last10Sessions = last10;
+      _chartSessions = chartSessions;
       _averageTime = average;
       _bestTime = best;
       _consistency = consistency;
       _isLoading = false;
     });
 
-    if (_last10Sessions.isNotEmpty && !_chartAnimationTriggered) {
+    if (_chartSessions.isNotEmpty && !_chartAnimationTriggered) {
       _chartAnimationTriggered = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future.delayed(const Duration(milliseconds: 200), () {
@@ -148,9 +148,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   }
 
   int _getPreviousAverage() {
-    if (_last10Sessions.length < 2) return _averageTime;
+    if (_chartSessions.length < 2) return _averageTime;
     // Get average of sessions 2-10 (excluding the most recent)
-    final previousSessions = _last10Sessions.skip(1).take(9).toList();
+    final previousSessions = _chartSessions.skip(1).toList();
     if (previousSessions.isEmpty) return _averageTime;
 
     final allTimes = previousSessions
@@ -348,12 +348,9 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                _last10Sessions.isEmpty
+                                                _chartSessions.isEmpty
                                                     ? 'No sessions yet'
-                                                    : _last10Sessions.length <
-                                                          10
-                                                    ? 'Last ${_last10Sessions.length} ${_last10Sessions.length == 1 ? 'session' : 'sessions'}'
-                                                    : 'Last 10 sessions',
+                                                    : 'All sessions (${_chartSessions.length})',
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                   color: Color(0xFF94A3B8),
@@ -390,10 +387,10 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
-                                          children: _last10Sessions.isEmpty
+                                          children: _chartSessions.isEmpty
                                               ? [
                                                   Text(
-                                                    'Ses 01',
+                                                    '01',
                                                     style: const TextStyle(
                                                       fontSize: 10,
                                                       color: Color(0xFF94A3B8),
@@ -402,12 +399,16 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                                                     ),
                                                   ),
                                                 ]
-                                              : _last10Sessions
+                                              : _chartSessions
                                                     .asMap()
                                                     .entries
                                                     .map((entry) {
                                                       return Text(
-                                                        'Ses ${entry.value.sessionNumber.toString().padLeft(2, '0')}',
+                                                        entry
+                                                            .value
+                                                            .sessionNumber
+                                                            .toString()
+                                                            .padLeft(2, '0'),
                                                         style: const TextStyle(
                                                           fontSize: 10,
                                                           color: Color(
@@ -925,14 +926,14 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   }
 
   Widget _buildChart() {
-    if (_last10Sessions.isEmpty) {
+    if (_chartSessions.isEmpty) {
       return Center(
         child: Text('No data yet', style: TextStyle(color: Colors.grey[400])),
       );
     }
 
     // Get average times for each session
-    final dataPoints = _last10Sessions
+    final dataPoints = _chartSessions
         .map((session) {
           if (session.roundResults.isEmpty) return 0.0;
           final sum = session.roundResults
@@ -1128,11 +1129,15 @@ class ChartPainter extends CustomPainter {
     final path = Path();
 
     final clampedProgress = progress.clamp(0.0, 1.0);
+    double animatedY(double value) {
+      final scaledValue = value * clampedProgress;
+      return size.height - (scaledValue / 100 * size.height);
+    }
 
     // Handle single point case
     if (validPoints.length == 1) {
       final x = chartStartX + chartWidth / 2;
-      final y = size.height - (validPoints[0] / 100 * size.height);
+      final y = animatedY(validPoints[0]);
       if (x.isFinite && y.isFinite && !x.isNaN && !y.isNaN) {
         path.moveTo(x, y);
         canvas.drawPath(path, paint);
@@ -1163,7 +1168,7 @@ class ChartPainter extends CustomPainter {
 
     for (int i = 0; i < validPoints.length; i++) {
       final x = chartStartX + i * stepX;
-      final y = size.height - (validPoints[i] / 100 * size.height);
+      final y = animatedY(validPoints[i]);
 
       // Validate coordinates before using
       if (!x.isFinite || x.isNaN || !y.isFinite || y.isNaN) continue;
@@ -1199,49 +1204,28 @@ class ChartPainter extends CustomPainter {
         }
       }
 
-      final maxIndex = (clampedProgress * (validPoints.length - 1)).floor();
-      if (i <= maxIndex) {
-        // Draw circle on every data point (including last point)
+      final dotOpacity = clampedProgress;
+      if (dotOpacity > 0) {
         canvas.drawCircle(
           Offset(x, y),
           6,
           Paint()
-            ..color = const Color(0xFF3B82F6)
+            ..color = const Color(0xFF3B82F6).withOpacity(dotOpacity)
             ..style = PaintingStyle.fill,
         );
         canvas.drawCircle(
           Offset(x, y),
           6,
           Paint()
-            ..color = Colors.white
+            ..color = Colors.white.withOpacity(dotOpacity)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.5,
         );
       }
     }
 
-    if (clampedProgress >= 1.0) {
+    if (clampedProgress > 0) {
       canvas.drawPath(path, paint);
-    } else if (clampedProgress > 0) {
-      final metrics = path.computeMetrics().toList();
-      if (metrics.isNotEmpty) {
-        final totalLength = metrics.fold<double>(
-          0,
-          (sum, metric) => sum + metric.length,
-        );
-        var remaining = totalLength * clampedProgress;
-        final partialPath = Path();
-
-        for (final metric in metrics) {
-          if (remaining <= 0) break;
-          final length = metric.length;
-          final extracted = metric.extractPath(0, remaining.clamp(0.0, length));
-          partialPath.addPath(extracted, Offset.zero);
-          remaining -= length;
-        }
-
-        canvas.drawPath(partialPath, paint);
-      }
     }
 
     // Draw grid lines across chart area
