@@ -5,12 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ThemeService {
   static const String _themeModeKey = 'theme_mode';
 
-  static ThemeMode _themeMode = ThemeMode.light; // Default to light
+  static ThemeMode _themeMode = ThemeMode.system; // Default to system
   static bool _initialized = false;
 
   // Notifier for theme changes
   static final ValueNotifier<ThemeMode> themeModeNotifier =
-      ValueNotifier<ThemeMode>(ThemeMode.light);
+      ValueNotifier<ThemeMode>(ThemeMode.system);
 
   // Initialize theme from shared preferences
   static Future<void> initialize() async {
@@ -32,17 +32,19 @@ class ThemeService {
             _themeMode = ThemeMode.system;
             break;
           default:
-            _themeMode = ThemeMode.light;
+            _themeMode = ThemeMode.system;
         }
+      } else {
+        _themeMode = ThemeMode.system;
       }
 
       _initialized = true;
       themeModeNotifier.value = _themeMode;
     } catch (e) {
       // If initialization fails, use defaults
-      _themeMode = ThemeMode.light;
+      _themeMode = ThemeMode.system;
       _initialized = true;
-      themeModeNotifier.value = ThemeMode.light;
+      themeModeNotifier.value = ThemeMode.system;
     }
   }
 

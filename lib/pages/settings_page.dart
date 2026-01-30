@@ -14,6 +14,89 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  String _themeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return 'System Default';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.light:
+        return 'Light';
+    }
+  }
+
+  IconData _themeModeIcon(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return Icons.phone_android;
+      case ThemeMode.dark:
+        return Icons.dark_mode;
+      case ThemeMode.light:
+        return Icons.light_mode;
+    }
+  }
+
+  Future<void> _showThemeOptions(ThemeMode currentMode) async {
+    final selectedMode = await showDialog<ThemeMode>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardColor(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Theme',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary(context),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<ThemeMode>(
+                value: ThemeMode.system,
+                groupValue: currentMode,
+                onChanged: (value) => Navigator.of(context).pop(value),
+                title: Text(
+                  'System Default',
+                  style: TextStyle(color: AppTheme.textPrimary(context)),
+                ),
+                activeColor: AppTheme.primaryColor,
+              ),
+              RadioListTile<ThemeMode>(
+                value: ThemeMode.dark,
+                groupValue: currentMode,
+                onChanged: (value) => Navigator.of(context).pop(value),
+                title: Text(
+                  'Dark',
+                  style: TextStyle(color: AppTheme.textPrimary(context)),
+                ),
+                activeColor: AppTheme.primaryColor,
+              ),
+              RadioListTile<ThemeMode>(
+                value: ThemeMode.light,
+                groupValue: currentMode,
+                onChanged: (value) => Navigator.of(context).pop(value),
+                title: Text(
+                  'Light',
+                  style: TextStyle(color: AppTheme.textPrimary(context)),
+                ),
+                activeColor: AppTheme.primaryColor,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selectedMode != null && selectedMode != currentMode) {
+      await ThemeService.setThemeMode(selectedMode);
+    }
+  }
+
   Widget _buildSettingsCard({
     required Widget child,
     required VoidCallback onTap,
@@ -140,34 +223,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
-                    // Theme toggle
+                    // Theme selector
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: ValueListenableBuilder<ThemeMode>(
                         valueListenable: ThemeService.themeModeNotifier,
                         builder: (context, themeMode, _) {
-                          final isDark = themeMode == ThemeMode.dark;
-                          return Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? const Color(0xFF334155)
-                                    : const Color(0xFFE2E8F0),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  offset: const Offset(0, 4),
-                                  blurRadius: 0,
-                                ),
-                              ],
-                            ),
+                          return _buildSettingsCard(
+                            onTap: () => _showThemeOptions(themeMode),
                             child: Row(
                               children: [
                                 Container(
@@ -177,31 +240,43 @@ class _SettingsPageState extends State<SettingsPage> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
-                                    isDark ? Icons.dark_mode : Icons.light_mode,
+                                    _themeModeIcon(themeMode),
                                     color: const Color(0xFF6366F1),
                                     size: 20,
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: Text(
-                                    'Dark Theme',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textPrimary(context),
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Theme',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.textPrimary(context),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _themeModeLabel(themeMode),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.textSecondary(
+                                            context,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                // Toggle switch
-                                Switch(
-                                  value: isDark,
-                                  onChanged: (value) {
-                                    ThemeService.setThemeMode(
-                                      value ? ThemeMode.dark : ThemeMode.light,
-                                    );
-                                  },
-                                  activeColor: AppTheme.primaryColor,
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: AppTheme.iconSecondary(context),
+                                  size: 20,
                                 ),
                               ],
                             ),
