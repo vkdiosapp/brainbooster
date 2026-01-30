@@ -632,8 +632,9 @@ class _HomePageState extends State<HomePage>
                                         SizedBox(height: bannerGraphGap),
                                       if (_showTopContainer)
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 24,
+                                          padding: const EdgeInsets.only(
+                                            left: 24,
+                                            right: 32,
                                           ),
                                           child: SizedBox(
                                             height: topContainerHeight,
@@ -1729,7 +1730,6 @@ class _HomePageState extends State<HomePage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 24),
             Text(
               'Category Trends',
               style: TextStyle(

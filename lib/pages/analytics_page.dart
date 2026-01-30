@@ -715,15 +715,12 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                                           ),
                                         )
                                       : Column(
-                                          children: _sessions.take(10).map((
-                                            session,
-                                          ) {
+                                          children: _sessions.map((session) {
                                             final index = _sessions.indexOf(
                                               session,
                                             );
                                             final isLast =
-                                                index ==
-                                                _sessions.take(10).length - 1;
+                                                index == _sessions.length - 1;
                                             final previousSession =
                                                 index < _sessions.length - 1
                                                 ? _sessions[index + 1]
