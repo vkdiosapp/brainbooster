@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage> {
   int _currentBannerIndex = 0;
   bool _isSearching = false;
   bool _showSearchField = false;
+  bool _showTopContainer = false;
   Timer? _bannerTimer;
   int _selectedTab = 0; // 0: Home, 1: Discover, 2: Stats, 3: Profile
   int _exerciseTab = 0; // 0: All, 1: Favourite
@@ -156,6 +157,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final baseBannerHeight = screenHeight * 0.5;
+    const topContainerGap = 16.0;
+    final topContainerHeight = (baseBannerHeight * 0.4 - topContainerGap).clamp(
+      0.0,
+      double.infinity,
+    );
+    final bannerHeight = _showTopContainer
+        ? baseBannerHeight - topContainerHeight - topContainerGap
+        : baseBannerHeight;
     return PopScope(
       canPop: false, // Prevent back navigation
       child: Scaffold(
@@ -206,6 +217,16 @@ class _HomePageState extends State<HomePage> {
                       Row(
                         children: [
                           if (_selectedTab == 0) ...[
+                            Switch.adaptive(
+                              value: _showTopContainer,
+                              onChanged: (value) {
+                                setState(() {
+                                  _showTopContainer = value;
+                                });
+                              },
+                              activeColor: AppTheme.primaryColor,
+                            ),
+                            const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -357,14 +378,50 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               // Banner section
                               if (!_isSearching && !_showSearchField) ...[
+                                if (_showTopContainer)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                    ),
+                                    child: SizedBox(
+                                      height: topContainerHeight,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.cardColor(context),
+                                          borderRadius: BorderRadius.circular(
+                                            32,
+                                          ),
+                                          border: Border.all(
+                                            color: AppTheme.borderColor(
+                                              context,
+                                            ),
+                                            width: 1,
+                                          ),
+                                          boxShadow: AppTheme.cardShadow(),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            'Top Container',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppTheme.textPrimary(
+                                                context,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (_showTopContainer)
+                                  const SizedBox(height: 16),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 24,
                                   ),
                                   child: SizedBox(
-                                    height:
-                                        MediaQuery.of(context).size.height *
-                                        0.5,
+                                    height: bannerHeight,
                                     child: PageView.builder(
                                       controller: _bannerController,
                                       onPageChanged: (index) {

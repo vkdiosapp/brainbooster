@@ -72,7 +72,8 @@ class AnalyticsPage extends StatefulWidget {
   State<AnalyticsPage> createState() => _AnalyticsPageState();
 }
 
-class _AnalyticsPageState extends State<AnalyticsPage> {
+class _AnalyticsPageState extends State<AnalyticsPage>
+    with SingleTickerProviderStateMixin {
   List<GameSession> _sessions = [];
   List<GameSession> _last10Sessions = [];
   int _averageTime = 0;
@@ -81,10 +82,21 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   bool _isLoading = true;
   final ScreenshotController _screenshotController = ScreenshotController();
   final GlobalKey _shareButtonKey = GlobalKey();
+  late final AnimationController _chartAnimationController;
+  late final Animation<double> _chartAnimation;
+  bool _chartAnimationTriggered = false;
 
   @override
   void initState() {
     super.initState();
+    _chartAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _chartAnimation = CurvedAnimation(
+      parent: _chartAnimationController,
+      curve: Curves.easeOutCubic,
+    );
     _loadData();
   }
 
@@ -99,6 +111,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     final best = await GameHistoryService.getBestTime(widget.gameId);
     final consistency = await GameHistoryService.getConsistency(widget.gameId);
 
+    if (!mounted) return;
     setState(() {
       _sessions = sessions;
       _last10Sessions = last10;
@@ -107,6 +120,16 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       _consistency = consistency;
       _isLoading = false;
     });
+
+    if (_last10Sessions.isNotEmpty && !_chartAnimationTriggered) {
+      _chartAnimationTriggered = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (!mounted) return;
+          _chartAnimationController.forward(from: 0);
+        });
+      });
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -186,6 +209,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         ).showSnackBar(SnackBar(content: Text('Error sharing: $e')));
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _chartAnimationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1004,8 +1033,18 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     return Stack(
       children: [
         // Chart area - full width to align with session labels
-        CustomPaint(
-          painter: ChartPainter(normalizedPoints, leftPadding: 24),
+        AnimatedBuilder(
+          animation: _chartAnimation,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: ChartPainter(
+                normalizedPoints,
+                leftPadding: 24,
+                progress: _chartAnimation.value,
+              ),
+              child: child,
+            );
+          },
           child: Container(),
         ),
         // Y-axis labels positioned at correct chart positions
@@ -1044,8 +1083,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 class ChartPainter extends CustomPainter {
   final List<double> points;
   final double leftPadding;
+  final double progress;
 
-  ChartPainter(this.points, {this.leftPadding = 0});
+  ChartPainter(this.points, {this.leftPadding = 0, this.progress = 1.0});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1087,6 +1127,8 @@ class ChartPainter extends CustomPainter {
 
     final path = Path();
 
+    final clampedProgress = progress.clamp(0.0, 1.0);
+
     // Handle single point case
     if (validPoints.length == 1) {
       final x = chartStartX + chartWidth / 2;
@@ -1094,21 +1136,24 @@ class ChartPainter extends CustomPainter {
       if (x.isFinite && y.isFinite && !x.isNaN && !y.isNaN) {
         path.moveTo(x, y);
         canvas.drawPath(path, paint);
-        canvas.drawCircle(
-          Offset(x, y),
-          6,
-          Paint()
-            ..color = const Color(0xFF3B82F6)
-            ..style = PaintingStyle.fill,
-        );
-        canvas.drawCircle(
-          Offset(x, y),
-          6,
-          Paint()
-            ..color = Colors.white
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.5,
-        );
+        final dotOpacity = clampedProgress;
+        if (dotOpacity > 0) {
+          canvas.drawCircle(
+            Offset(x, y),
+            6,
+            Paint()
+              ..color = const Color(0xFF3B82F6).withOpacity(dotOpacity)
+              ..style = PaintingStyle.fill,
+          );
+          canvas.drawCircle(
+            Offset(x, y),
+            6,
+            Paint()
+              ..color = Colors.white.withOpacity(dotOpacity)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2.5,
+          );
+        }
       }
       return;
     }
@@ -1154,25 +1199,50 @@ class ChartPainter extends CustomPainter {
         }
       }
 
-      // Draw circle on every data point (including last point)
-      canvas.drawCircle(
-        Offset(x, y),
-        6,
-        Paint()
-          ..color = const Color(0xFF3B82F6)
-          ..style = PaintingStyle.fill,
-      );
-      canvas.drawCircle(
-        Offset(x, y),
-        6,
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5,
-      );
+      final maxIndex = (clampedProgress * (validPoints.length - 1)).floor();
+      if (i <= maxIndex) {
+        // Draw circle on every data point (including last point)
+        canvas.drawCircle(
+          Offset(x, y),
+          6,
+          Paint()
+            ..color = const Color(0xFF3B82F6)
+            ..style = PaintingStyle.fill,
+        );
+        canvas.drawCircle(
+          Offset(x, y),
+          6,
+          Paint()
+            ..color = Colors.white
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5,
+        );
+      }
     }
 
-    canvas.drawPath(path, paint);
+    if (clampedProgress >= 1.0) {
+      canvas.drawPath(path, paint);
+    } else if (clampedProgress > 0) {
+      final metrics = path.computeMetrics().toList();
+      if (metrics.isNotEmpty) {
+        final totalLength = metrics.fold<double>(
+          0,
+          (sum, metric) => sum + metric.length,
+        );
+        var remaining = totalLength * clampedProgress;
+        final partialPath = Path();
+
+        for (final metric in metrics) {
+          if (remaining <= 0) break;
+          final length = metric.length;
+          final extracted = metric.extractPath(0, remaining.clamp(0.0, length));
+          partialPath.addPath(extracted, Offset.zero);
+          remaining -= length;
+        }
+
+        canvas.drawPath(partialPath, paint);
+      }
+    }
 
     // Draw grid lines across chart area
     final gridPaint = Paint()
@@ -1187,5 +1257,9 @@ class ChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant ChartPainter oldDelegate) {
+    return oldDelegate.points != points ||
+        oldDelegate.leftPadding != leftPadding ||
+        oldDelegate.progress != progress;
+  }
 }
