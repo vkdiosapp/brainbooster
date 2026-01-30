@@ -11,7 +11,12 @@ import 'pages/analytics_page.dart';
 import 'navigation/exercise_navigator.dart';
 import 'widgets/gradient_background.dart';
 import '../services/favorites_service.dart';
+import '../services/game_history_service.dart';
+import '../models/game_session.dart';
 import '../theme/app_theme.dart';
+
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,8 +25,10 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   final PageController _bannerController = PageController();
+  // Category graph banner now uses a grid (no page controller).
   final TextEditingController _searchController = TextEditingController();
   List<Exercise> _randomExercises = [];
   List<Exercise> _allExercises = [];
@@ -30,16 +37,30 @@ class _HomePageState extends State<HomePage> {
   int _currentBannerIndex = 0;
   bool _isSearching = false;
   bool _showSearchField = false;
-  bool _showTopContainer = false;
+  bool _showTopContainer = true;
   Timer? _bannerTimer;
   int _selectedTab = 0; // 0: Home, 1: Discover, 2: Stats, 3: Profile
   int _exerciseTab = 0; // 0: All, 1: Favourite
   Set<int> _favoriteExerciseIds = {};
   Map<int, bool> _favoriteStatusCache = {};
+  List<_CategoryGraphData> _categoryGraphDataAll = [];
+  List<_CategoryGraphData> _categoryGraphDataHome = [];
+  bool _isCategoryGraphLoading = true;
+  late final AnimationController _categoryGraphAnimationController;
+  late final Animation<double> _categoryGraphAnimation;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _categoryGraphAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _categoryGraphAnimation = CurvedAnimation(
+      parent: _categoryGraphAnimationController,
+      curve: Curves.easeInOutCubic,
+    );
     _loadData();
     _searchController.addListener(_filterExercises);
     // Listen to favorites changes
@@ -67,10 +88,149 @@ class _HomePageState extends State<HomePage> {
       _filteredExercises = _allExercises;
     });
     _loadFavorites();
+    _loadCategoryGraphData();
     // Start auto-scroll after data is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startBannerAutoScroll();
     });
+  }
+
+  Future<void> _loadCategoryGraphData() async {
+    if (_categories.isEmpty || _allExercises.isEmpty) return;
+
+    setState(() => _isCategoryGraphLoading = true);
+
+    final graphData = <_CategoryGraphData>[];
+    for (final category in _categories) {
+      final exercisesInCategory = _allExercises
+          .where((exercise) => exercise.categoryId == category.id)
+          .toList();
+
+      final series = <List<double>>[];
+      for (final exercise in exercisesInCategory) {
+        final gameId = _getGameIdFromExerciseId(exercise.id);
+        if (gameId == null) continue;
+
+        final sessions = await GameHistoryService.getLast10Sessions(gameId);
+        final points = _extractSessionAverages(sessions);
+        if (points.isEmpty) continue;
+        series.add(points);
+      }
+
+      final averagedPoints = _averageSeries(series);
+
+      final categoryStyle = _getCategoryStyle(_categories.indexOf(category));
+      final accentColor = categoryStyle.color;
+      final icon = categoryStyle.icon;
+
+      final normalizedPoints = _normalizePoints(averagedPoints);
+      final insight = _buildCategoryInsight(
+        categoryName: category.name,
+        points: averagedPoints,
+        isClickLimitGame: false,
+      );
+
+      graphData.add(
+        _CategoryGraphData(
+          category: category,
+          gameName: averagedPoints.isEmpty ? null : 'Category average',
+          normalizedPoints: normalizedPoints,
+          pointsCount: averagedPoints.length,
+          insightText: insight,
+          accentColor: accentColor,
+          icon: icon,
+          hasData: averagedPoints.isNotEmpty,
+        ),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _categoryGraphDataAll = graphData;
+      _categoryGraphDataHome = graphData;
+      _isCategoryGraphLoading = false;
+    });
+
+    _startCategoryGraphAnimation();
+  }
+
+  List<double> _extractSessionAverages(List<GameSession> sessions) {
+    return sessions
+        .map((session) {
+          if (session.roundResults.isEmpty) return 0.0;
+          final sum = session.roundResults
+              .map((result) => result.reactionTime)
+              .reduce((a, b) => a + b);
+          return sum / session.roundResults.length;
+        })
+        .where((point) => point.isFinite && !point.isNaN)
+        .toList();
+  }
+
+  List<double> _normalizePoints(List<double> points) {
+    if (points.isEmpty) return [];
+    final maxValue = points.reduce((a, b) => a > b ? a : b);
+    final minValue = points.reduce((a, b) => a < b ? a : b);
+    final range = maxValue - minValue;
+    return points.map((point) {
+      if (range == 0 || !range.isFinite) return 50.0;
+      final normalized = ((point - minValue) / range * 80 + 10);
+      return normalized.clamp(0.0, 100.0);
+    }).toList();
+  }
+
+  List<double> _averageSeries(List<List<double>> series) {
+    if (series.isEmpty) return [];
+    final maxLength = series
+        .map((list) => list.length)
+        .reduce((value, element) => value > element ? value : element);
+    final averaged = <double>[];
+
+    for (int i = 0; i < maxLength; i++) {
+      final values = <double>[];
+      for (final list in series) {
+        if (i < list.length) {
+          values.add(list[i]);
+        }
+      }
+      if (values.isEmpty) continue;
+      final sum = values.reduce((a, b) => a + b);
+      averaged.add(sum / values.length);
+    }
+
+    return averaged;
+  }
+
+  String _buildCategoryInsight({
+    required String categoryName,
+    required List<double> points,
+    required bool isClickLimitGame,
+  }) {
+    if (points.length < 2) {
+      return 'You are Faster 0% in $categoryName.';
+    }
+
+    final first = points.first;
+    final last = points.last;
+    final percent = first == 0
+        ? 0
+        : (((last - first) / first) * 100).abs().round();
+    final isImproving = isClickLimitGame ? last > first : last < first;
+    final trendLabel = isImproving ? 'Faster' : 'Slower';
+
+    return 'You are $trendLabel $percent% in $categoryName.';
+  }
+
+  void _startCategoryGraphAnimation() {
+    if (!mounted || !_showTopContainer) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _categoryGraphAnimationController.forward(from: 0);
+    });
+  }
+
+  void _refreshCategoryGraphs() {
+    _loadCategoryGraphData();
   }
 
   Future<void> _loadFavorites() async {
@@ -148,11 +308,40 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    routeObserver.unsubscribe(this);
     FavoritesService.favoritesNotifier.removeListener(_onFavoritesChanged);
     _stopBannerAutoScroll();
     _bannerController.dispose();
     _searchController.dispose();
+    _categoryGraphAnimationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPush() {
+    _refreshCategoryGraphs();
+  }
+
+  @override
+  void didPopNext() {
+    _refreshCategoryGraphs();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshCategoryGraphs();
+    }
   }
 
   @override
@@ -160,7 +349,7 @@ class _HomePageState extends State<HomePage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final baseBannerHeight = screenHeight * 0.5;
     const topContainerGap = 16.0;
-    final topContainerHeight = (baseBannerHeight * 0.4 - topContainerGap).clamp(
+    final topContainerHeight = (baseBannerHeight * 0.6 - topContainerGap).clamp(
       0.0,
       double.infinity,
     );
@@ -223,6 +412,9 @@ class _HomePageState extends State<HomePage> {
                                 setState(() {
                                   _showTopContainer = value;
                                 });
+                                if (value) {
+                                  _refreshCategoryGraphs();
+                                }
                               },
                               activeColor: AppTheme.primaryColor,
                             ),
@@ -385,32 +577,8 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     child: SizedBox(
                                       height: topContainerHeight,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.cardColor(context),
-                                          borderRadius: BorderRadius.circular(
-                                            32,
-                                          ),
-                                          border: Border.all(
-                                            color: AppTheme.borderColor(
-                                              context,
-                                            ),
-                                            width: 1,
-                                          ),
-                                          boxShadow: AppTheme.cardShadow(),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            'Top Container',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w700,
-                                              color: AppTheme.textPrimary(
-                                                context,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      child: _buildCategoryGraphContainer(
+                                        topContainerHeight,
                                       ),
                                     ),
                                   ),
@@ -782,24 +950,140 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoryButton(Category category, int index) {
-    final colors = [
-      const Color(0xFF6366F1), // Indigo
-      const Color(0xFFE11D48), // Rose
-      const Color(0xFF10B981), // Emerald
-      const Color(0xFFF59E0B), // Amber
-      const Color(0xFF0EA5E9), // Sky
-    ];
-    final icons = [
-      Icons.bolt,
-      Icons.psychology,
-      Icons.calculate,
-      Icons.visibility,
-      Icons.grid_on,
-    ];
+  Widget _buildCategoryGraphContainer(double height) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor(context),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: AppTheme.borderColor(context), width: 1),
+        boxShadow: AppTheme.cardShadow(),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: _isCategoryGraphLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _categoryGraphDataHome.isEmpty
+          ? Center(
+              child: Text(
+                'Play a game to unlock category trends.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary(context),
+                ),
+              ),
+            )
+          : GridView.builder(
+              padding: EdgeInsets.zero,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _categoryGraphDataHome.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.25,
+              ),
+              itemBuilder: (context, index) {
+                final data = _categoryGraphDataHome[index];
+                return _buildCategoryGraphCard(data);
+              },
+            ),
+    );
+  }
 
-    final color = colors[index % colors.length];
-    final icon = icons[index % icons.length];
+  Widget _buildCategoryGraphCard(_CategoryGraphData data) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor(context),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.borderColor(context), width: 1),
+        boxShadow: AppTheme.cardShadow(),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: data.accentColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(data.icon, color: data.accentColor, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  data.category.name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: data.pointsCount == 0
+                  ? Center(
+                      child: Text(
+                        'No data',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary(context),
+                        ),
+                      ),
+                    )
+                  : AnimatedBuilder(
+                      animation: _categoryGraphAnimation,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: CategoryGraphPainter(
+                            data.normalizedPoints,
+                            accentColor: data.accentColor,
+                            progress: _categoryGraphAnimation.value,
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: Container(),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.center,
+            child: Text(
+              data.insightText,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary(context),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryButton(Category category, int index) {
+    final style = _getCategoryStyle(index);
+    final color = style.color;
+    final icon = style.icon;
 
     return GestureDetector(
       onTap: () {
@@ -830,6 +1114,28 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  _CategoryStyle _getCategoryStyle(int index) {
+    final colors = [
+      const Color(0xFF6366F1), // Indigo
+      const Color(0xFFE11D48), // Rose
+      const Color(0xFF10B981), // Emerald
+      const Color(0xFFF59E0B), // Amber
+      const Color(0xFF0EA5E9), // Sky
+    ];
+    final icons = [
+      Icons.bolt,
+      Icons.psychology,
+      Icons.calculate,
+      Icons.visibility,
+      Icons.grid_on,
+    ];
+
+    return _CategoryStyle(
+      color: colors[index % colors.length],
+      icon: icons[index % icons.length],
     );
   }
 
@@ -1306,6 +1612,43 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 24),
+            Text(
+              'Category Trends',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary(context),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _isCategoryGraphLoading
+                ? const Center(child: CircularProgressIndicator())
+                : GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _categoryGraphDataAll.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1.1,
+                        ),
+                    itemBuilder: (context, index) {
+                      final data = _categoryGraphDataAll[index];
+                      return _buildCategoryGraphCard(data);
+                    },
+                  ),
+            const SizedBox(height: 24),
+            Text(
+              'Game Analytics',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary(context),
+              ),
+            ),
+            const SizedBox(height: 12),
             ...gamesWithAnalytics.asMap().entries.map((entry) {
               final index = entry.key;
               final game = entry.value;
@@ -1465,6 +1808,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           _selectedTab = 0;
                         });
+                        _refreshCategoryGraphs();
                       },
                     ),
                     _buildPillNavItem(
@@ -1475,6 +1819,8 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           _selectedTab = 2;
                         });
+                        _refreshCategoryGraphs();
+                        _startCategoryGraphAnimation();
                       },
                     ),
                     _buildPillNavItem(
@@ -1616,5 +1962,125 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+}
+
+class _CategoryGraphData {
+  final Category category;
+  final String? gameName;
+  final List<double> normalizedPoints;
+  final int pointsCount;
+  final String insightText;
+  final Color accentColor;
+  final IconData icon;
+  final bool hasData;
+
+  _CategoryGraphData({
+    required this.category,
+    required this.gameName,
+    required this.normalizedPoints,
+    required this.pointsCount,
+    required this.insightText,
+    required this.accentColor,
+    required this.icon,
+    required this.hasData,
+  });
+}
+
+class _CategoryStyle {
+  final Color color;
+  final IconData icon;
+
+  _CategoryStyle({required this.color, required this.icon});
+}
+
+class CategoryGraphPainter extends CustomPainter {
+  final List<double> points;
+  final Color accentColor;
+  final double progress;
+
+  CategoryGraphPainter(
+    this.points, {
+    required this.accentColor,
+    this.progress = 1.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty || size.width <= 0 || size.height <= 0) return;
+
+    final validPoints = points.where((p) => p.isFinite && !p.isNaN).toList();
+    if (validPoints.isEmpty) return;
+
+    final clampedProgress = progress.clamp(0.0, 1.0);
+    double animatedY(double value) {
+      final scaledValue = value * clampedProgress;
+      return size.height - (scaledValue / 100 * size.height);
+    }
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    final gradient = ui.Gradient.linear(Offset(0, 0), Offset(size.width, 0), [
+      accentColor.withOpacity(0.8),
+      accentColor,
+    ]);
+    paint.shader = gradient;
+
+    final path = Path();
+    if (validPoints.length == 1) {
+      final x = size.width / 2;
+      final y = animatedY(validPoints[0]);
+      path.moveTo(x, y);
+      canvas.drawPath(path, paint);
+      canvas.drawCircle(
+        Offset(x, y),
+        5,
+        Paint()
+          ..color = accentColor.withOpacity(clampedProgress)
+          ..style = PaintingStyle.fill,
+      );
+      return;
+    }
+
+    final stepX = size.width / (validPoints.length - 1);
+    for (int i = 0; i < validPoints.length; i++) {
+      final x = i * stepX;
+      final y = animatedY(validPoints[i]);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        final prevX = (i - 1) * stepX;
+        final prevY = animatedY(validPoints[i - 1]);
+        final controlX1 = prevX + stepX * 0.5;
+        final controlY1 = prevY;
+        final controlX2 = x - stepX * 0.5;
+        final controlY2 = y;
+        path.cubicTo(controlX1, controlY1, controlX2, controlY2, x, y);
+      }
+    }
+
+    canvas.drawPath(path, paint);
+
+    for (int i = 0; i < validPoints.length; i++) {
+      final x = i * stepX;
+      final y = animatedY(validPoints[i]);
+      canvas.drawCircle(
+        Offset(x, y),
+        4,
+        Paint()
+          ..color = accentColor.withOpacity(clampedProgress)
+          ..style = PaintingStyle.fill,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CategoryGraphPainter oldDelegate) {
+    return oldDelegate.points != points ||
+        oldDelegate.accentColor != accentColor ||
+        oldDelegate.progress != progress;
   }
 }

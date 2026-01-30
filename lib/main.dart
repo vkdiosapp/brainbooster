@@ -145,6 +145,7 @@ class _MyAppState extends State<MyApp> {
           ],
           supportedLocales: AppLocalizationsHelper.getSupportedLocales(),
           locale: currentLocale,
+          navigatorObservers: [routeObserver],
           // Use builder to wrap all routes - automatically applies to all pages
           builder: (context, child) {
             if (child == null) {
