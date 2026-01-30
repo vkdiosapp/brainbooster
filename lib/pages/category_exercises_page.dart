@@ -595,6 +595,8 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
         return 'rotation';
       case 29:
         return 'detect_direction';
+      case 30:
+        return 'tic_tac_toe';
       default:
         return null;
     }
@@ -660,6 +662,8 @@ class _CategoryExercisesPageState extends State<CategoryExercisesPage> {
         return 'Rotation';
       case 'detect_direction':
         return 'Detect Direction';
+      case 'tic_tac_toe':
+        return 'Tic Tac Toe';
       default:
         return null;
     }

@@ -48,6 +48,8 @@ int? _getExerciseIdFromGameId(String gameId) {
       return 19;
     case 'click_limit':
       return 22;
+    case 'tic_tac_toe':
+      return 30;
     default:
       return null;
   }

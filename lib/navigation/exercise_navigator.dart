@@ -28,6 +28,8 @@ import '../pages/color_frames_count_page.dart';
 import '../pages/more_100_page.dart';
 import '../pages/rotation_page.dart';
 import '../pages/detect_direction_page.dart';
+import '../pages/tic_tac_toe_page.dart';
+import '../pages/drop_stick_page.dart';
 import '../data/exercise_data.dart';
 
 class ExerciseNavigator {
@@ -360,6 +362,28 @@ class ExerciseNavigator {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => DetectDirectionPage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 30:
+        // Tic Tac Toe game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => TicTacToePage(
+              categoryName: category.name,
+              exerciseName: exercise.name,
+            ),
+          ),
+        );
+        break;
+      case 31:
+        // Drop Stick game
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => DropStickPage(
               categoryName: category.name,
               exerciseName: exercise.name,
             ),

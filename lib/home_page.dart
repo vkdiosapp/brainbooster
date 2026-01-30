@@ -36,10 +36,11 @@ class _HomePageState extends State<HomePage>
   List<Exercise> _filteredExercises = [];
   List<Category> _categories = [];
   int _currentBannerIndex = 0;
+  int _currentCategoryIndex = 0;
   bool _isSearching = false;
   bool _showSearchField = false;
-  bool _showTopContainer = true;
   Timer? _bannerTimer;
+  Timer? _categoryBannerTimer;
   int _selectedTab = 0; // 0: Home, 1: Discover, 2: Stats, 3: Profile
   int _exerciseTab = 0; // 0: All, 1: Favourite
   Set<int> _favoriteExerciseIds = {};
@@ -153,6 +154,7 @@ class _HomePageState extends State<HomePage>
     });
 
     _startCategoryGraphAnimation();
+    _startCategoryBannerAutoScroll();
   }
 
   List<double> _extractSessionAverages(List<GameSession> sessions) {
@@ -223,7 +225,7 @@ class _HomePageState extends State<HomePage>
   }
 
   void _startCategoryGraphAnimation() {
-    if (!mounted || !_showTopContainer) return;
+    if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _categoryGraphAnimationController.forward(from: 0);
@@ -277,6 +279,32 @@ class _HomePageState extends State<HomePage>
     _bannerTimer = null;
   }
 
+  void _startCategoryBannerAutoScroll() {
+    _categoryBannerTimer?.cancel();
+    _categoryBannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted ||
+          _categoryGraphDataHome.isEmpty ||
+          !_categoryBannerController.hasClients ||
+          _isSearching ||
+          _showSearchField ||
+          _selectedTab != 0) {
+        return;
+      }
+      final nextIndex =
+          (_currentCategoryIndex + 1) % _categoryGraphDataHome.length;
+      _categoryBannerController.animateToPage(
+        nextIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  void _stopCategoryBannerAutoScroll() {
+    _categoryBannerTimer?.cancel();
+    _categoryBannerTimer = null;
+  }
+
   void _filterExercises() {
     final query = _searchController.text.toLowerCase();
     setState(() {
@@ -313,6 +341,7 @@ class _HomePageState extends State<HomePage>
     routeObserver.unsubscribe(this);
     FavoritesService.favoritesNotifier.removeListener(_onFavoritesChanged);
     _stopBannerAutoScroll();
+    _stopCategoryBannerAutoScroll();
     _bannerController.dispose();
     _categoryBannerController.dispose();
     _searchController.dispose();
@@ -351,13 +380,11 @@ class _HomePageState extends State<HomePage>
     final screenHeight = MediaQuery.of(context).size.height;
     final baseBannerHeight = screenHeight * 0.5;
     const bannerGraphGap = 10.0;
-    final topContainerHeight = (baseBannerHeight * 0.4).clamp(
+    final topContainerHeight = (baseBannerHeight * 0.4 - bannerGraphGap).clamp(
       0.0,
       double.infinity,
     );
-    final bannerHeight = _showTopContainer
-        ? baseBannerHeight - topContainerHeight - bannerGraphGap
-        : baseBannerHeight;
+    final bannerHeight = baseBannerHeight - topContainerHeight - bannerGraphGap;
     return PopScope(
       canPop: false, // Prevent back navigation
       child: Scaffold(
@@ -408,19 +435,6 @@ class _HomePageState extends State<HomePage>
                       Row(
                         children: [
                           if (_selectedTab == 0) ...[
-                            Switch.adaptive(
-                              value: _showTopContainer,
-                              onChanged: (value) {
-                                setState(() {
-                                  _showTopContainer = value;
-                                });
-                                if (value) {
-                                  _refreshCategoryGraphs();
-                                }
-                              },
-                              activeColor: AppTheme.primaryColor,
-                            ),
-                            const SizedBox(width: 8),
                             GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -445,6 +459,11 @@ class _HomePageState extends State<HomePage>
                                     );
                                   }
                                 });
+                                if (_showSearchField) {
+                                  _stopCategoryBannerAutoScroll();
+                                } else {
+                                  _startCategoryBannerAutoScroll();
+                                }
                               },
                               child: Container(
                                 width: 40,
@@ -628,21 +647,19 @@ class _HomePageState extends State<HomePage>
                                           ),
                                         ),
                                       ),
-                                      if (_showTopContainer)
-                                        SizedBox(height: bannerGraphGap),
-                                      if (_showTopContainer)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 24,
-                                            right: 32,
-                                          ),
-                                          child: SizedBox(
-                                            height: topContainerHeight,
-                                            child: _buildCategoryGraphContainer(
-                                              topContainerHeight,
-                                            ),
+                                      SizedBox(height: bannerGraphGap),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 24,
+                                          right: 32,
+                                        ),
+                                        child: SizedBox(
+                                          height: topContainerHeight,
+                                          child: _buildCategoryGraphContainer(
+                                            topContainerHeight,
                                           ),
                                         ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -978,24 +995,13 @@ class _HomePageState extends State<HomePage>
       padding: const EdgeInsets.all(16),
       child: _isCategoryGraphLoading
           ? const Center(child: CircularProgressIndicator())
-          : _categoryGraphDataHome.isEmpty
-          ? Center(
-              child: Text(
-                'Play a game to unlock category trends.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary(context),
-                ),
-              ),
-            )
           : Column(
               children: [
                 Expanded(
                   child: PageView.builder(
                     controller: _categoryBannerController,
                     onPageChanged: (index) {
+                      _currentCategoryIndex = index;
                       _startCategoryGraphAnimation();
                     },
                     itemCount: _categoryGraphDataHome.length,
@@ -1065,25 +1071,52 @@ class _HomePageState extends State<HomePage>
           ),
         ),
         const SizedBox(height: 6),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: AnimatedBuilder(
-              animation: _categoryGraphAnimation,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: CategoryGraphPainter(
-                    data.normalizedPoints,
-                    accentColor: data.accentColor,
-                    progress: _categoryGraphAnimation.value,
-                  ),
-                  child: child,
-                );
-              },
-              child: Container(),
+        if (data.pointsCount == 0)
+          Expanded(
+            child: Center(
+              child: Text(
+                "You haven't played yet.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary(context),
+                ),
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: data.pointsCount == 0
+                  ? Center(
+                      child: Text(
+                        "You haven't played yet.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary(context),
+                        ),
+                      ),
+                    )
+                  : AnimatedBuilder(
+                      animation: _categoryGraphAnimation,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: CategoryGraphPainter(
+                            data.normalizedPoints,
+                            accentColor: data.accentColor,
+                            progress: _categoryGraphAnimation.value,
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: Container(),
+                    ),
             ),
           ),
-        ),
         const SizedBox(height: 4),
         FadeTransition(
           opacity: _categoryGraphAnimation,
@@ -1152,31 +1185,20 @@ class _HomePageState extends State<HomePage>
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: data.pointsCount == 0
-                  ? Center(
-                      child: Text(
-                        'No data',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondary(context),
-                        ),
-                      ),
-                    )
-                  : AnimatedBuilder(
-                      animation: _categoryGraphAnimation,
-                      builder: (context, child) {
-                        return CustomPaint(
-                          painter: CategoryGraphPainter(
-                            data.normalizedPoints,
-                            accentColor: data.accentColor,
-                            progress: _categoryGraphAnimation.value,
-                          ),
-                          child: child,
-                        );
-                      },
-                      child: Container(),
+              child: AnimatedBuilder(
+                animation: _categoryGraphAnimation,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: CategoryGraphPainter(
+                      data.normalizedPoints,
+                      accentColor: data.accentColor,
+                      progress: _categoryGraphAnimation.value,
                     ),
+                    child: child,
+                  );
+                },
+                child: Container(),
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -1321,6 +1343,10 @@ class _HomePageState extends State<HomePage>
         return 'rotation';
       case 29:
         return 'detect_direction';
+      case 30:
+        return 'tic_tac_toe';
+      case 31:
+        return 'drop_stick';
       default:
         return null; // Games without analytics yet
     }
@@ -1390,6 +1416,10 @@ class _HomePageState extends State<HomePage>
         return 'Rotation';
       case 'detect_direction':
         return 'Detect Direction';
+      case 'tic_tac_toe':
+        return 'Tic Tac Toe';
+      case 'drop_stick':
+        return 'Drop Stick';
       default:
         return null;
     }
@@ -1741,6 +1771,16 @@ class _HomePageState extends State<HomePage>
             const SizedBox(height: 12),
             _isCategoryGraphLoading
                 ? const Center(child: CircularProgressIndicator())
+                : _categoryGraphDataAll.isEmpty ||
+                      _categoryGraphDataAll.every(
+                        (item) => item.pointsCount == 0,
+                      )
+                ? Center(
+                    child: Text(
+                      'No data yet',
+                      style: TextStyle(color: Colors.grey[400]),
+                    ),
+                  )
                 : GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),

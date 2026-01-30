@@ -293,13 +293,17 @@ class _LoginPageState extends State<LoginPage> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: widget.isEditMode
+                                          ? CrossAxisAlignment.center
+                                          : CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           widget.isEditMode
                                               ? 'Welcome Again to'
                                               : 'Welcome to',
+                                          textAlign: widget.isEditMode
+                                              ? TextAlign.center
+                                              : TextAlign.start,
                                           style: TextStyle(
                                             fontSize: 36,
                                             fontWeight: FontWeight.w800,
@@ -312,6 +316,9 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                         Text(
                                           'Brain Booster',
+                                          textAlign: widget.isEditMode
+                                              ? TextAlign.center
+                                              : TextAlign.start,
                                           style: TextStyle(
                                             fontSize: 42,
                                             fontWeight: FontWeight.w800,

@@ -1142,18 +1142,10 @@ class ChartPainter extends CustomPainter {
         if (dotOpacity > 0) {
           canvas.drawCircle(
             Offset(x, y),
-            6,
+            5,
             Paint()
               ..color = const Color(0xFF3B82F6).withOpacity(dotOpacity)
               ..style = PaintingStyle.fill,
-          );
-          canvas.drawCircle(
-            Offset(x, y),
-            6,
-            Paint()
-              ..color = Colors.white.withOpacity(dotOpacity)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 2.5,
           );
         }
       }
@@ -1205,18 +1197,10 @@ class ChartPainter extends CustomPainter {
       if (dotOpacity > 0) {
         canvas.drawCircle(
           Offset(x, y),
-          6,
+          4,
           Paint()
             ..color = const Color(0xFF3B82F6).withOpacity(dotOpacity)
             ..style = PaintingStyle.fill,
-        );
-        canvas.drawCircle(
-          Offset(x, y),
-          6,
-          Paint()
-            ..color = Colors.white.withOpacity(dotOpacity)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.5,
         );
       }
     }

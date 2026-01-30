@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'game_container.dart';
-import 'category_header.dart';
 import 'gradient_background.dart';
 import '../game_settings.dart';
 import '../theme/app_theme.dart';
@@ -124,9 +123,6 @@ class BaseGamePage extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    // Category header
-                    CategoryHeader(categoryName: config.categoryName),
-                    const SizedBox(height: 4),
                     // Game label (text from game page, style from base - change here to affect all games)
                     Text(
                       builders.titleBuilder(state),
@@ -157,7 +153,7 @@ class BaseGamePage extends StatelessWidget {
                               if (state.errorMessage != null)
                                 Positioned.fill(
                                   child: Container(
-                                    color: Colors.red.withOpacity(0.9),
+                                    color: Colors.red,
                                     child: Center(
                                       child: Text(
                                         state.errorMessage!,
@@ -175,7 +171,7 @@ class BaseGamePage extends StatelessWidget {
                               if (state.reactionTimeMessage != null)
                                 Positioned.fill(
                                   child: Container(
-                                    color: Colors.green.withOpacity(0.8),
+                                    color: Colors.green,
                                     child: Center(
                                       child: Text(
                                         state.reactionTimeMessage!,
@@ -231,61 +227,57 @@ class BaseGamePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Best session indicator
-                    if (config.bestSession != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Builder(
-                          builder: (context) {
-                            final isDark = AppTheme.isDark(context);
-                            const accentColor = Color(0xFF8B5CF6);
-                            const lightBackgroundColor = Color(0xFFEDE9FE);
-                            final backgroundColor = isDark
-                                ? Color.alphaBlend(
-                                    accentColor.withOpacity(0.12),
-                                    AppTheme.cardColor(context),
-                                  )
-                                : lightBackgroundColor;
-                            final borderColor = isDark
-                                ? AppTheme.borderColor(context)
-                                : Colors.white.withOpacity(0.5);
-                            final shadowColor = AppTheme.shadowColor(
-                              opacity: isDark ? 0.3 : 0.05,
-                            );
+                    // Category indicator (replacing best session)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Builder(
+                        builder: (context) {
+                          final isDark = AppTheme.isDark(context);
+                          const accentColor = Color(0xFF8B5CF6);
+                          const lightBackgroundColor = Color(0xFFEDE9FE);
+                          final backgroundColor = isDark
+                              ? Color.alphaBlend(
+                                  accentColor.withOpacity(0.12),
+                                  AppTheme.cardColor(context),
+                                )
+                              : lightBackgroundColor;
+                          final borderColor = isDark
+                              ? AppTheme.borderColor(context)
+                              : Colors.white.withOpacity(0.5);
+                          final shadowColor = AppTheme.shadowColor(
+                            opacity: isDark ? 0.3 : 0.05,
+                          );
 
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: backgroundColor,
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(
-                                  color: borderColor,
-                                  width: 1,
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: backgroundColor,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: borderColor, width: 1),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: shadowColor,
+                                  blurRadius: 0,
+                                  offset: const Offset(0, 4),
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: shadowColor,
-                                    blurRadius: 0,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                              ],
+                            ),
+                            child: Text(
+                              'CATEGORY: ${config.categoryName.toUpperCase()}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary(context),
+                                letterSpacing: 1.0,
                               ),
-                              child: Text(
-                                'BEST SESSION: ${config.bestSession}ms',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimary(context),
-                                  letterSpacing: 1.0,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
+                    ),
                   ],
                 ),
               ),

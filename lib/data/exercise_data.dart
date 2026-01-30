@@ -290,6 +290,24 @@ class ExerciseData {
         timeRequired: 500,
         penaltyTime: 1000,
       ),
+      Exercise(
+        id: 30,
+        categoryId: 5,
+        name: 'Tic Tac Toe',
+        desc: 'Play against the computer and finish the board quickly.',
+        icon: Icons.grid_3x3,
+        timeRequired: 600,
+        penaltyTime: 1000,
+      ),
+      Exercise(
+        id: 31,
+        categoryId: 4,
+        name: 'Drop Stick',
+        desc: 'Tap falling sticks before they reach the bottom.',
+        icon: Icons.south,
+        timeRequired: 400,
+        penaltyTime: 1000,
+      ),
     ];
   }
 
