@@ -303,7 +303,7 @@ class ExerciseData {
         id: 31,
         categoryId: 4,
         name: 'Drop Stick',
-        desc: 'Tap falling sticks before they reach the bottom.',
+        desc: 'Tap falling sticks before falling down.',
         icon: Icons.south,
         timeRequired: 400,
         penaltyTime: 1000,

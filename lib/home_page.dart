@@ -1183,23 +1183,35 @@ class _HomePageState extends State<HomePage>
           ),
           const SizedBox(height: 6),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: AnimatedBuilder(
-                animation: _categoryGraphAnimation,
-                builder: (context, child) {
-                  return CustomPaint(
-                    painter: CategoryGraphPainter(
-                      data.normalizedPoints,
-                      accentColor: data.accentColor,
-                      progress: _categoryGraphAnimation.value,
+            child: data.pointsCount == 0
+                ? Center(
+                    child: Text(
+                      "You haven't played yet.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary(context),
+                      ),
                     ),
-                    child: child,
-                  );
-                },
-                child: Container(),
-              ),
-            ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: AnimatedBuilder(
+                      animation: _categoryGraphAnimation,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: CategoryGraphPainter(
+                            data.normalizedPoints,
+                            accentColor: data.accentColor,
+                            progress: _categoryGraphAnimation.value,
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: Container(),
+                    ),
+                  ),
           ),
           const SizedBox(height: 6),
           Align(

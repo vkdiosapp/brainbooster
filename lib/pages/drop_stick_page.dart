@@ -233,10 +233,14 @@ class _DropStickPageState extends State<DropStickPage> {
 
     const totalSticks = 6;
     const spacing = 20.0;
-    final availableWidth = size.width.clamp(1.0, size.width);
+    const horizontalPadding = 15.0;
+    final availableWidth = (size.width - horizontalPadding * 2).clamp(
+      1.0,
+      size.width,
+    );
     final stickWidth =
         (availableWidth - (totalSticks - 1) * spacing) / totalSticks;
-    final startX = 0.0;
+    final startX = horizontalPadding;
     final stickLength = (size.height * 0.18).clamp(60.0, 140.0);
     final baseSpeed = (size.height * 0.65).clamp(260.0, 420.0);
 
@@ -477,7 +481,7 @@ class _DropStickPageState extends State<DropStickPage> {
       builders: GameBuilders(
         titleBuilder: (s) {
           if (!s.isPlaying) {
-            return 'Tap the falling sticks before they hit the bottom';
+            return 'Tap falling sticks before falling down.';
           }
           if (s.isWaiting) {
             return 'WAIT...';
