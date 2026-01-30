@@ -205,65 +205,67 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Row(
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _showSearchField = !_showSearchField;
-                                if (!_showSearchField) {
-                                  _searchController.clear();
-                                  _isSearching = false;
-                                  _filteredExercises = _allExercises;
-                                  // Restart auto-scroll when search is closed
-                                  _startBannerAutoScroll();
-                                } else {
-                                  // Stop auto-scroll when search is opened
-                                  _stopBannerAutoScroll();
-                                  // Focus on search field when shown
-                                  Future.delayed(
-                                    const Duration(milliseconds: 100),
-                                    () {
-                                      FocusScope.of(
-                                        context,
-                                      ).requestFocus(FocusNode());
-                                    },
-                                  );
-                                }
-                              });
-                            },
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).cardColor,
-                                shape: BoxShape.circle,
-                                border: Border.all(
+                          if (_selectedTab == 0) ...[
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showSearchField = !_showSearchField;
+                                  if (!_showSearchField) {
+                                    _searchController.clear();
+                                    _isSearching = false;
+                                    _filteredExercises = _allExercises;
+                                    // Restart auto-scroll when search is closed
+                                    _startBannerAutoScroll();
+                                  } else {
+                                    // Stop auto-scroll when search is opened
+                                    _stopBannerAutoScroll();
+                                    // Focus on search field when shown
+                                    Future.delayed(
+                                      const Duration(milliseconds: 100),
+                                      () {
+                                        FocusScope.of(
+                                          context,
+                                        ).requestFocus(FocusNode());
+                                      },
+                                    );
+                                  }
+                                });
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFE2E8F0),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      offset: const Offset(0, 4),
+                                      blurRadius: 0,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  _showSearchField ? Icons.close : Icons.search,
                                   color:
                                       Theme.of(context).brightness ==
                                           Brightness.dark
-                                      ? const Color(0xFF334155)
-                                      : const Color(0xFFE2E8F0),
-                                  width: 1,
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF475569),
+                                  size: 20,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    offset: const Offset(0, 4),
-                                    blurRadius: 0,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(
-                                _showSearchField ? Icons.close : Icons.search,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF475569),
-                                size: 20,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
+                            const SizedBox(width: 12),
+                          ],
                           GestureDetector(
                             onTap: () {
                               Navigator.of(context).push(

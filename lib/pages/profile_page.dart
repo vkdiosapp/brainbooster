@@ -40,6 +40,15 @@ class _ProfilePageState extends State<ProfilePage> {
     return full.isEmpty ? 'User' : full;
   }
 
+  String get _initials {
+    final first = _firstName.trim();
+    final last = _lastName.trim();
+    final firstInitial = first.isNotEmpty ? first[0] : '';
+    final lastInitial = last.isNotEmpty ? last[0] : '';
+    final initials = '$firstInitial$lastInitial'.toUpperCase();
+    return initials.isEmpty ? 'U' : initials;
+  }
+
   Widget _buildCard({required Widget child, EdgeInsetsGeometry? padding}) {
     return Container(
       padding: padding ?? const EdgeInsets.all(20),
@@ -163,10 +172,15 @@ class _ProfilePageState extends State<ProfilePage> {
                         shape: BoxShape.circle,
                         color: AppTheme.primaryWithOpacity(0.1),
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        color: AppTheme.primaryColor,
-                        size: 32,
+                      child: Center(
+                        child: Text(
+                          _initials,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
