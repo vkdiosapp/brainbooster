@@ -37,56 +37,43 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _showThemeOptions(ThemeMode currentMode) async {
-    final selectedMode = await showDialog<ThemeMode>(
+    final selectedMode = await showModalBottomSheet<ThemeMode>(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppTheme.cardColor(context),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            'Theme',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary(context),
+        return SafeArea(
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor(context),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppTheme.borderColor(context),
+                width: 1,
+              ),
+              boxShadow: AppTheme.cardShadow(),
             ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.system,
-                groupValue: currentMode,
-                onChanged: (value) => Navigator.of(context).pop(value),
-                title: Text(
-                  'System Default',
-                  style: TextStyle(color: AppTheme.textPrimary(context)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildThemeOptionTile(
+                  label: 'System Default',
+                  value: ThemeMode.system,
+                  currentMode: currentMode,
                 ),
-                activeColor: AppTheme.primaryColor,
-              ),
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.dark,
-                groupValue: currentMode,
-                onChanged: (value) => Navigator.of(context).pop(value),
-                title: Text(
-                  'Dark',
-                  style: TextStyle(color: AppTheme.textPrimary(context)),
+                _buildThemeOptionTile(
+                  label: 'Dark',
+                  value: ThemeMode.dark,
+                  currentMode: currentMode,
                 ),
-                activeColor: AppTheme.primaryColor,
-              ),
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.light,
-                groupValue: currentMode,
-                onChanged: (value) => Navigator.of(context).pop(value),
-                title: Text(
-                  'Light',
-                  style: TextStyle(color: AppTheme.textPrimary(context)),
+                _buildThemeOptionTile(
+                  label: 'Light',
+                  value: ThemeMode.light,
+                  currentMode: currentMode,
                 ),
-                activeColor: AppTheme.primaryColor,
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -95,6 +82,29 @@ class _SettingsPageState extends State<SettingsPage> {
     if (selectedMode != null && selectedMode != currentMode) {
       await ThemeService.setThemeMode(selectedMode);
     }
+  }
+
+  Widget _buildThemeOptionTile({
+    required String label,
+    required ThemeMode value,
+    required ThemeMode currentMode,
+  }) {
+    final isSelected = value == currentMode;
+
+    return ListTile(
+      onTap: () => Navigator.of(context).pop(value),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.textPrimary(context),
+        ),
+      ),
+      trailing: isSelected
+          ? Icon(Icons.check, color: AppTheme.primaryColor, size: 20)
+          : null,
+    );
   }
 
   Widget _buildSettingsCard({
