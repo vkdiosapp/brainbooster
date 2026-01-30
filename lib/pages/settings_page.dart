@@ -36,77 +36,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _showThemeOptions(ThemeMode currentMode) async {
-    final selectedMode = await showModalBottomSheet<ThemeMode>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return SafeArea(
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: AppTheme.cardColor(context),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppTheme.borderColor(context),
-                width: 1,
-              ),
-              boxShadow: AppTheme.cardShadow(),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildThemeOptionTile(
-                  label: 'System Default',
-                  value: ThemeMode.system,
-                  currentMode: currentMode,
-                ),
-                _buildThemeOptionTile(
-                  label: 'Dark',
-                  value: ThemeMode.dark,
-                  currentMode: currentMode,
-                ),
-                _buildThemeOptionTile(
-                  label: 'Light',
-                  value: ThemeMode.light,
-                  currentMode: currentMode,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (selectedMode != null && selectedMode != currentMode) {
-      await ThemeService.setThemeMode(selectedMode);
-    }
-  }
-
-  Widget _buildThemeOptionTile({
-    required String label,
-    required ThemeMode value,
-    required ThemeMode currentMode,
-  }) {
-    final isSelected = value == currentMode;
-
-    return ListTile(
-      onTap: () => Navigator.of(context).pop(value),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: AppTheme.textPrimary(context),
-        ),
-      ),
-      trailing: isSelected
-          ? Icon(Icons.check, color: AppTheme.primaryColor, size: 20)
-          : null,
-    );
-  }
-
   Widget _buildSettingsCard({
     required Widget child,
     required VoidCallback onTap,
@@ -233,14 +162,34 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
-                    // Theme selector
+                    // Theme toggle
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: ValueListenableBuilder<ThemeMode>(
                         valueListenable: ThemeService.themeModeNotifier,
                         builder: (context, themeMode, _) {
-                          return _buildSettingsCard(
-                            onTap: () => _showThemeOptions(themeMode),
+                          final isDark = themeMode == ThemeMode.dark;
+                          return Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 0,
+                                ),
+                              ],
+                            ),
                             child: Row(
                               children: [
                                 Container(
@@ -283,10 +232,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                     ],
                                   ),
                                 ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  color: AppTheme.iconSecondary(context),
-                                  size: 20,
+                                Switch(
+                                  value: isDark,
+                                  onChanged: (value) async {
+                                    await ThemeService.setThemeMode(
+                                      value ? ThemeMode.dark : ThemeMode.light,
+                                    );
+                                  },
+                                  activeColor: AppTheme.primaryColor,
                                 ),
                               ],
                             ),
@@ -415,7 +368,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 // Decrease button
                                 IconButton(
                                   onPressed: () {
-                                    if (repetitions > 1) {
+                                    if (repetitions > 2) {
                                       GameSettings.setNumberOfRepetitions(
                                         repetitions - 1,
                                       );

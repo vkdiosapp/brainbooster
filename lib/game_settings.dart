@@ -26,7 +26,10 @@ class GameSettings {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      _numberOfRepetitions = prefs.getInt(_numberOfRepetitionsKey) ?? 5;
+      _numberOfRepetitions = (prefs.getInt(_numberOfRepetitionsKey) ?? 5).clamp(
+        2,
+        999,
+      );
       _soundEnabled =
           prefs.getBool(_soundEnabledKey) ?? true; // Default to true (ON)
       _initialized = true;
@@ -47,7 +50,7 @@ class GameSettings {
 
   // Set number of repetitions
   static Future<void> setNumberOfRepetitions(int repetitions) async {
-    if (repetitions < 1) return; // Minimum value is 1
+    if (repetitions < 2) return; // Minimum value is 2
 
     _numberOfRepetitions = repetitions;
     final prefs = await SharedPreferences.getInstance();

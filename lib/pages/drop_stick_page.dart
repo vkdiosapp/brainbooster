@@ -242,7 +242,7 @@ class _DropStickPageState extends State<DropStickPage> {
         (availableWidth - (totalSticks - 1) * spacing) / totalSticks;
     final startX = horizontalPadding;
     final stickLength = (size.height * 0.18).clamp(60.0, 140.0);
-    final baseSpeed = (size.height * 0.65).clamp(260.0, 420.0);
+    final baseSpeed = (size.height * 0.94).clamp(372.0, 600.0);
 
     for (int i = 0; i < totalSticks; i++) {
       final length = stickLength;

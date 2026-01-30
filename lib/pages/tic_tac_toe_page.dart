@@ -8,6 +8,7 @@ import '../models/round_result.dart';
 import '../services/game_history_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/base_game_page.dart';
+import '../widgets/difficulty_selector.dart';
 import 'color_change_results_page.dart';
 
 class TicTacToePage extends StatefulWidget {
@@ -30,16 +31,64 @@ class _TicTacToePageState extends State<TicTacToePage>
   static const double _gridPadding = 20;
   static const double _gridSpacing = 8;
 
-  final List<List<int>> _winningLines = const [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
+  bool _isAdvanced = false; // false = Normal (3x3), true = Advanced (5x5)
+  int get _gridSize => _isAdvanced ? 5 : 3;
+  int get _cellCount => _gridSize * _gridSize;
+
+  List<List<int>> _getWinningLines() {
+    if (_gridSize == 3) {
+      return const [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+    }
+    // 5x5: win with 3 in a row (all possible length-3 lines)
+    const n = 5;
+    final lines = <List<int>>[];
+    // Rows: 3 consecutive in each row
+    for (int row = 0; row < n; row++) {
+      for (int start = 0; start <= n - 3; start++) {
+        lines.add([row * n + start, row * n + start + 1, row * n + start + 2]);
+      }
+    }
+    // Columns: 3 consecutive in each column
+    for (int col = 0; col < n; col++) {
+      for (int start = 0; start <= n - 3; start++) {
+        lines.add([
+          start * n + col,
+          (start + 1) * n + col,
+          (start + 2) * n + col,
+        ]);
+      }
+    }
+    // Diagonals top-left to bottom-right (length >= 3)
+    for (int row = 0; row <= n - 3; row++) {
+      for (int col = 0; col <= n - 3; col++) {
+        lines.add([
+          row * n + col,
+          (row + 1) * n + (col + 1),
+          (row + 2) * n + (col + 2),
+        ]);
+      }
+    }
+    // Diagonals top-right to bottom-left (length >= 3)
+    for (int row = 0; row <= n - 3; row++) {
+      for (int col = 2; col < n; col++) {
+        lines.add([
+          row * n + col,
+          (row + 1) * n + (col - 1),
+          (row + 2) * n + (col - 2),
+        ]);
+      }
+    }
+    return lines;
+  }
 
   int _currentRound = 0;
   int _completedRounds = 0;
@@ -67,7 +116,7 @@ class _TicTacToePageState extends State<TicTacToePage>
   Color? _winningLineColor;
 
   final List<RoundResult> _roundResults = [];
-  List<String?> _board = List.filled(9, null);
+  late List<String?> _board;
   late final int _lossPenaltyMs = ExerciseData.getExercises()
       .firstWhere(
         (e) => e.id == 30,
@@ -109,7 +158,7 @@ class _TicTacToePageState extends State<TicTacToePage>
     _winningLine = null;
     _winningLineColor = null;
     _roundResults.clear();
-    _board = List.filled(9, null);
+    _board = List.filled(_cellCount, null);
     _lineController.reset();
   }
 
@@ -139,7 +188,7 @@ class _TicTacToePageState extends State<TicTacToePage>
       _isWaitingForRound = true;
       _isRoundActive = false;
       _isPlayerTurn = true;
-      _board = List.filled(9, null);
+      _board = List.filled(_cellCount, null);
       _roundStartTime = null;
       _errorMessage = null;
       _reactionTimeMessage = null;
@@ -219,10 +268,12 @@ class _TicTacToePageState extends State<TicTacToePage>
     for (final move in available) {
       if (_isWinningMove(move, _player)) return move;
     }
-    // Center
-    if (available.contains(4)) return 4;
+    // Center (index 4 for 3x3, 12 for 5x5)
+    final center = _gridSize == 3 ? 4 : 12;
+    if (available.contains(center)) return center;
     // Corners
-    final corners = [0, 2, 6, 8]..shuffle();
+    final corners = _gridSize == 3 ? [0, 2, 6, 8] : [0, 4, 20, 24]
+      ..shuffle();
     for (final move in corners) {
       if (available.contains(move)) return move;
     }
@@ -253,25 +304,35 @@ class _TicTacToePageState extends State<TicTacToePage>
   }
 
   String? _checkWinner(List<String?> board) {
-    for (final line in _winningLines) {
-      final a = board[line[0]];
-      final b = board[line[1]];
-      final c = board[line[2]];
-      if (a != null && a == b && b == c) {
-        return a;
+    final winningLines = _getWinningLines();
+    for (final line in winningLines) {
+      final first = board[line[0]];
+      if (first == null) continue;
+      bool win = true;
+      for (int i = 1; i < line.length; i++) {
+        if (board[line[i]] != first) {
+          win = false;
+          break;
+        }
       }
+      if (win) return first;
     }
     return null;
   }
 
   List<int>? _findWinningLine(List<String?> board) {
-    for (final line in _winningLines) {
-      final a = board[line[0]];
-      final b = board[line[1]];
-      final c = board[line[2]];
-      if (a != null && a == b && b == c) {
-        return line;
+    final winningLines = _getWinningLines();
+    for (final line in winningLines) {
+      final first = board[line[0]];
+      if (first == null) continue;
+      bool win = true;
+      for (int i = 1; i < line.length; i++) {
+        if (board[line[i]] != first) {
+          win = false;
+          break;
+        }
       }
+      if (win) return line;
     }
     return null;
   }
@@ -435,12 +496,12 @@ class _TicTacToePageState extends State<TicTacToePage>
               GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(_gridPadding),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: _gridSize,
                   crossAxisSpacing: _gridSpacing,
                   mainAxisSpacing: _gridSpacing,
                 ),
-                itemCount: 9,
+                itemCount: _cellCount,
                 itemBuilder: (context, index) {
                   final value = _board[index];
                   final isEnabled =
@@ -448,6 +509,7 @@ class _TicTacToePageState extends State<TicTacToePage>
                   final textColor = value == _player
                       ? const Color(0xFF0F172A)
                       : const Color(0xFFB91C1C);
+                  final fontSize = _gridSize == 3 ? 36.0 : 22.0;
 
                   return GestureDetector(
                     onTap: isEnabled ? () => _handleCellTap(index) : null,
@@ -455,7 +517,9 @@ class _TicTacToePageState extends State<TicTacToePage>
                       duration: const Duration(milliseconds: 150),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(
+                          _gridSize == 3 ? 16 : 10,
+                        ),
                         border: Border.all(
                           color: const Color(0xFFE2E8F0),
                           width: 2,
@@ -472,7 +536,7 @@ class _TicTacToePageState extends State<TicTacToePage>
                         child: Text(
                           value ?? '',
                           style: TextStyle(
-                            fontSize: 36,
+                            fontSize: fontSize,
                             fontWeight: FontWeight.w900,
                             color: textColor,
                           ),
@@ -495,6 +559,7 @@ class _TicTacToePageState extends State<TicTacToePage>
                             progress: _lineController.value,
                             padding: _gridPadding,
                             spacing: _gridSpacing,
+                            gridSize: _gridSize,
                           ),
                         );
                       },
@@ -564,7 +629,9 @@ class _TicTacToePageState extends State<TicTacToePage>
       builders: GameBuilders(
         titleBuilder: (state) {
           if (!state.isPlaying) {
-            return 'Beat the computer at Tic Tac Toe';
+            return _isAdvanced
+                ? 'Beat the computer at 5×5 Tic Tac Toe'
+                : 'Beat the computer at Tic Tac Toe';
           }
           if (state.isWaiting) {
             return 'GET READY...';
@@ -574,7 +641,24 @@ class _TicTacToePageState extends State<TicTacToePage>
           }
           return 'Round ${state.currentRound}';
         },
-        middleContentBuilder: (state, context) => _buildStatusPill(),
+        middleContentBuilder: (state, context) {
+          if (!state.isPlaying) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+              child: DifficultySelector(
+                isAdvanced: _isAdvanced,
+                onChanged: (value) {
+                  setState(() {
+                    _isAdvanced = value;
+                  });
+                },
+                normalLabel: 'Normal',
+                advancedLabel: 'Advanced',
+              ),
+            );
+          }
+          return _buildStatusPill();
+        },
         contentBuilder: (state, context) {
           if (state.isWaiting) {
             return const Positioned.fill(child: SizedBox.shrink());
@@ -600,6 +684,7 @@ class _WinningLinePainter extends CustomPainter {
   final double progress;
   final double padding;
   final double spacing;
+  final int gridSize;
 
   const _WinningLinePainter({
     required this.line,
@@ -607,15 +692,17 @@ class _WinningLinePainter extends CustomPainter {
     required this.progress,
     required this.padding,
     required this.spacing,
+    required this.gridSize,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cellSize = (size.width - (padding * 2) - (spacing * 2)) / 3.0;
+    final totalGaps = (gridSize - 1) * spacing;
+    final cellSize = (size.width - (padding * 2) - totalGaps) / gridSize;
 
     Offset centerForIndex(int index) {
-      final row = index ~/ 3;
-      final col = index % 3;
+      final row = index ~/ gridSize;
+      final col = index % gridSize;
       final dx = padding + col * (cellSize + spacing) + cellSize / 2;
       final dy = padding + row * (cellSize + spacing) + cellSize / 2;
       return Offset(dx, dy);
@@ -627,7 +714,7 @@ class _WinningLinePainter extends CustomPainter {
 
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 2.0
+      ..strokeWidth = gridSize == 3 ? 2.0 : 1.5
       ..strokeCap = StrokeCap.round;
 
     canvas.drawLine(start, current, paint);
@@ -637,6 +724,7 @@ class _WinningLinePainter extends CustomPainter {
   bool shouldRepaint(covariant _WinningLinePainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.line != line ||
-        oldDelegate.color != color;
+        oldDelegate.color != color ||
+        oldDelegate.gridSize != gridSize;
   }
 }
