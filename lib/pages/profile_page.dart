@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import '../services/game_history_service.dart';
 import '../services/login_service.dart';
 import '../theme/app_theme.dart';
 import 'login_page.dart';
@@ -57,17 +58,23 @@ class _ProfilePageState extends State<ProfilePage> {
     required IconData icon,
     VoidCallback? onTap,
     Key? key,
+    Color? iconColor,
+    Color? textColor,
   }) {
     return ListTile(
       key: key,
       onTap: onTap,
-      leading: Icon(icon, color: AppTheme.iconColor(context), size: 20),
+      leading: Icon(
+        icon,
+        color: iconColor ?? AppTheme.iconColor(context),
+        size: 20,
+      ),
       title: Text(
         label,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: AppTheme.textPrimary(context),
+          color: textColor ?? AppTheme.textPrimary(context),
         ),
       ),
       trailing: Icon(
@@ -77,6 +84,63 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
     );
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Delete account',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary(context),
+          ),
+        ),
+        content: Text(
+          'This will remove your profile and all saved data from this device. This action cannot be undone.',
+          style: TextStyle(
+            fontSize: 14,
+            color: AppTheme.textSecondary(context),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: AppTheme.textSecondary(context),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Delete',
+              style: TextStyle(
+                color: AppTheme.errorColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await GameHistoryService.clearAllAnalyticsData();
+      await LoginService.clearLoginData();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    }
   }
 
   @override
@@ -241,6 +305,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         }
                       },
                       key: _shareTileKey,
+                    ),
+                    Divider(color: AppTheme.borderColor(context), height: 1),
+                    _buildActionTile(
+                      label: 'Delete Account',
+                      icon: Icons.delete_outline,
+                      onTap: _confirmDeleteAccount,
+                      iconColor: AppTheme.errorColor,
+                      textColor: AppTheme.errorColor,
                     ),
                   ],
                 ),

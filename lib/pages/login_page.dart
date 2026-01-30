@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/login_service.dart';
+import '../services/game_history_service.dart';
 import '../home_page.dart';
 import '../language_selection_page.dart';
 import '../language_settings.dart';
@@ -23,6 +24,8 @@ class _LoginPageState extends State<LoginPage> {
   final _lastNameController = TextEditingController();
   final _birthdateController = TextEditingController();
   bool _acceptTerms = false;
+  String _originalBirthdate = '';
+  bool _shouldClearAnalyticsOnSave = false;
   String? _firstNameError;
   String? _lastNameError;
   String? _birthdateError;
@@ -42,8 +45,58 @@ class _LoginPageState extends State<LoginPage> {
       _firstNameController.text = data['firstName'] ?? '';
       _lastNameController.text = data['lastName'] ?? '';
       _birthdateController.text = data['birthdate'] ?? '';
+      _originalBirthdate = data['birthdate'] ?? '';
       _acceptTerms = true; // Auto-accept in edit mode
     });
+  }
+
+  Future<bool> _confirmBirthdateChange() async {
+    final shouldProceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Birthdate change',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimary(context),
+          ),
+        ),
+        content: Text(
+          'Changing your birthdate will clear all older data, as we track stats by age.',
+          style: TextStyle(
+            fontSize: 14,
+            color: AppTheme.textSecondary(context),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: AppTheme.textSecondary(context),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Confirm',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return shouldProceed ?? false;
   }
 
   @override
@@ -55,6 +108,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    if (widget.isEditMode) {
+      final confirmed = await _confirmBirthdateChange();
+      if (!confirmed) return;
+    }
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
@@ -75,7 +133,11 @@ class _LoginPageState extends State<LoginPage> {
     );
     if (picked != null) {
       setState(() {
-        _birthdateController.text = DateFormat('yyyy-MM-dd').format(picked);
+        final newBirthdate = DateFormat('yyyy-MM-dd').format(picked);
+        _birthdateController.text = newBirthdate;
+        if (widget.isEditMode) {
+          _shouldClearAnalyticsOnSave = newBirthdate != _originalBirthdate;
+        }
       });
     }
   }
@@ -119,6 +181,12 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _saveLogin() async {
+    if (widget.isEditMode && _shouldClearAnalyticsOnSave) {
+      await GameHistoryService.clearAllAnalyticsData();
+      _shouldClearAnalyticsOnSave = false;
+      _originalBirthdate = _birthdateController.text;
+    }
+
     await LoginService.saveLoginData(
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
